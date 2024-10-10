@@ -6,26 +6,30 @@ import { Controller } from './controller'
 import { OutputMetrics } from './output_metrics'
 import { UrlHandler } from './url_handler'
 import fs from 'fs'
-
+import path from 'path'
+import { log } from 'console'
 
 
 // Getting environment variables for logfile and logLvl
-const logfile = process.env.LOG_FILE as string;
+let logfile = process.env.LOG_FILE as string;
 let logLvl = process.env.LOG_LEVEL as string;
 
 // Check if the logfile is given and if there is a GITHUB_TOKEN. Exiting and writing an error message if they don't exist
-if(logfile == "") {
+if(!logfile) {
+    logfile = "app.log";
     console.error("No logfile given");
-    process.exit(1);
-}
-if(process.env.GITHUB_TOKEN as string == "") {
-    console.error("No github token given");
-    process.exit(1);
+    //process.exit(1);
 }
 
+
 // If logLvl wasn't set, it is set to 0 by default
-if(logLvl == "") {
+if(!logLvl) {
     logLvl = "0";
+}
+
+const logDir = path.dirname(logfile);
+if (!fs.existsSync(logDir)) {
+    fs.mkdirSync(logDir, { recursive: true });
 }
 
 // Opening logfile
@@ -36,6 +40,10 @@ const manager = new Manager(fp, +logLvl);
 
 // Registering process command that takes a file and begins the scoring process for the urls
 manager.registerCommand('process', 'Process a file of URLs for scoring', (args) => {
+    if(process.env.GITHUB_TOKEN as string == "") {
+        console.error("No github token given");
+        process.exit(1);
+    }
     if (args.file) {
         const filePath = args.file;
         const data = fs.readFileSync(filePath, 'utf8');
