@@ -1,4 +1,4 @@
-import { createConnection, createTable, addEntry, updateEntry, closeConnection } from '../database';
+import { createConnection, createTable, addEntry, updateEntry, closeConnection } from '../metrics/database';
 import fs from 'fs';
 import Database from 'better-sqlite3';
 

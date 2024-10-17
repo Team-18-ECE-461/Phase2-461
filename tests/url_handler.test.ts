@@ -1,10 +1,10 @@
-import { UrlHandler, RowInfo } from '../url_handler'; // Adjust the import paths accordingly
+import { UrlHandler, RowInfo } from '../metrics/url_handler'; // Adjust the import paths accordingly
 import axios from 'axios';
 import Database from 'better-sqlite3';
 import fs from 'fs';
 import git from 'isomorphic-git';
 import http from 'isomorphic-git/http/node';
-import * as database from '../database'; // Import the database module
+import * as database from '../metrics/database'; // Import the database module
 
 jest.mock('axios');
 jest.mock('fs');

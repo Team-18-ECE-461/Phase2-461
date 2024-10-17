@@ -1,4 +1,4 @@
-import { OutputMetrics } from '../output_metrics';
+import { OutputMetrics } from '../metrics/output_metrics';
 import Database from 'better-sqlite3';
 import { EventEmitter } from 'stream';
 
