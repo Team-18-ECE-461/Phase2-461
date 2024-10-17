@@ -44,6 +44,7 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_REGION: 'us-east-1'  # Adjust the region if necessary
       run: |
-        aws lambda update-function-code `
-        function-name LambdaFunction_PackageUpload `
-        zip-file fileb://upload.zip
+        aws lambda update-function-code \
+        --function-name LambdaFunction_PackageUpload \
+        --zip-file fileb://upload.zip
+
