@@ -35,8 +35,8 @@ jobs:
 
     - name: Zip Lambda files
       run: |
-        cd lambda-folder  # Navigate to your Lambda folder
-        zip -r function.zip .  # Zip all files in the folder
+        cd lambda  
+        zip upload.zip upload_package.js 
 
     - name: Deploy to AWS
       env:
