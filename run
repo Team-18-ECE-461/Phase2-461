@@ -12,7 +12,7 @@ if [ "$1" == "install" ]; then
     tsc || { echo "Compilation failed"; exit 1; }
 # Handle the "test" command (just run the tests without compiling)
 elif [ "$1" == "test" ]; then
-    node main.js test || { echo "Failed to run the program with 'test'"; exit 1; }
+    node metrics/main.js test || { echo "Failed to run the program with 'test'"; exit 1; }
 
 # Handle if a file is passed as an argument (just process the file without compiling)
 elif [ -f "$1" ]; then
