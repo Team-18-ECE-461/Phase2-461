@@ -46,5 +46,5 @@ jobs:
       run: |
         aws lambda update-function-code \
         --function-name LambdaFunction_PackageUpload \
-        --zip-file fileb://upload.zip
+        --zip-file fileb://lambda/upload.zip
 
