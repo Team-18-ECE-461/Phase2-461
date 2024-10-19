@@ -18,7 +18,7 @@ export const lambdaHandler = async (event: LambdaEvent, context: LambdaContext) 
 
   // Upload the decoded content to S3
   await s3.putObject({
-    Bucket: 'api-gateway-uploaded-files',
+    Bucket: 'packagesstorage',
     Key: 'data.pdf',
     Body: decodeContent
   }).promise();
