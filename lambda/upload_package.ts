@@ -1,4 +1,4 @@
-import { S3 } from 'aws-sdk';
+import { S3 } from '@aws-sdk/client-s3';
 import * as base64 from 'base-64';
 
 interface LambdaEvent {
@@ -19,9 +19,9 @@ export const lambdaHandler = async (event: LambdaEvent, context: LambdaContext) 
   // Upload the decoded content to S3
   await s3.putObject({
     Bucket: 'packagesstorage',
-    Key: 'data.pdf',
+    Key: 'data.zip',
     Body: decodeContent
-  }).promise();
+  });
 
   // Return a successful response
   return {
