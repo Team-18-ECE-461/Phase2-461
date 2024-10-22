@@ -24,6 +24,8 @@ jobs:
 
     - name: Install Dependencies
       run: ./run install
+           cd lambda
+           npm install
 
     - name: Run Tests
       run: ./run test
