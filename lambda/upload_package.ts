@@ -98,7 +98,7 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
       Item: item
     }));
 
-    
+
   
     return {
       statusCode: 201,
@@ -110,7 +110,7 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
         },
         data: {
           Content: content,
-          URL: url,
+          URL: url, 
           JSProgram: JSProgram,
         },
       }),
