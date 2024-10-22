@@ -35,8 +35,9 @@ jobs:
 
     - name: Zip Lambda files
       run: |
-        cd lambda  
-        zip upload.zip upload_package.js 
+        cd lambda
+        zip -r upload.zip upload_package.js node_modules  
+
 
     - name: Deploy to AWS
       env:
