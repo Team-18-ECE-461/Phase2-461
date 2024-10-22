@@ -1,22 +1,24 @@
 import { S3 } from '@aws-sdk/client-s3';
-import { DynamoDB } from 'aws-sdk';
+import { DynamoDBClient, PutItemCommand, GetItemCommand } from '@aws-sdk/client-dynamodb';
 import axios from 'axios';
 import * as JSZIP from 'jszip';
 
 interface LambdaEvent {
-  content?: string;
-  url?: string;
+  Content?: string;
+  URL?: string;
   JSProgram: string;
 }
 
 const s3 = new S3();
-const dynamoDB = new DynamoDB.DocumentClient();
+const dynamoDBclient = new DynamoDBClient({});
 const BUCKET_NAME = 'packagesstorage';
 const TABLE_NAME = 'PackageInfo';
 
 export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
   try {
-    const { content, url, JSProgram } = event;
+    const content = event.Content;
+    const url = event.URL;
+    const JSProgram = event.JSProgram;
 
     // Check if either content or url is set, but not both
     if ((!content && !url) || (content && url)) {
@@ -58,13 +60,12 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
     const packageVersion = packageInfo.version || 'Undefined';
 
     // Check if the package already exists in DynamoDB
-    const existingPackage = await dynamoDB
-      .get({
+    const existingPackage = await dynamoDBclient
+      .send(new GetItemCommand({
         TableName: TABLE_NAME,
         Key: { Name: packageName, Version: packageVersion },
-      })
-      .promise();
-
+      }));
+      
     if (existingPackage.Item) {
       return {
         statusCode: 409, // Conflict
@@ -85,18 +86,20 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
 
     // Save package details to DynamoDB
     const item = {
-      ID: fileName,
-      Name: packageName,
-      Version: packageVersion,
-      JSProgram: JSProgram,
-      CreatedAt: new Date().toISOString(),
+      ID: { S: fileName },
+      Name: { S: packageName },
+      Version: { S: packageVersion },
+      JSProgram: { S: JSProgram },
+      CreatedAt: { S: new Date().toISOString() },
     };
 
-    await dynamoDB.put({
+    await dynamoDBclient.send(new PutItemCommand({
       TableName: TABLE_NAME,
-      Item: item,
-    }).promise();
+      Item: item
+    }));
 
+    
+  
     return {
       statusCode: 201,
       body: JSON.stringify({
@@ -108,7 +111,7 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
         data: {
           Content: content,
           URL: url,
-          JSProgram,
+          JSProgram: JSProgram,
         },
       }),
     };
