@@ -9,6 +9,8 @@ interface LambdaEvent {
   JSProgram: string;
 }
 
+
+
 const s3 = new S3();
 const dynamoDBclient = new DynamoDBClient({});
 const BUCKET_NAME = 'packagesstorage';
@@ -36,7 +38,7 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
     if (content) {
       zipBuffer = Buffer.from(content, 'base64');
     } else if (url) {
-      const response = await axios.get(url, { responseType: 'arraybuffer' });
+      const response = await axios.get(`${url}/archive/refs/heads/main.zip`, { responseType: 'arraybuffer' });
       zipBuffer = Buffer.from(response.data);
     } else {
       throw new Error('No content or URL provided');
@@ -44,7 +46,7 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
 
     // Load zip content to inspect package.json
     const zip = await JSZIP.loadAsync(zipBuffer);
-    const packageJsonFile = zip.file('package.json');
+    const packageJsonFile = zip.file('issue-regex-main/package.json');
 
     if (!packageJsonFile) {
       return {
@@ -63,7 +65,7 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
     const existingPackage = await dynamoDBclient
       .send(new GetItemCommand({
         TableName: TABLE_NAME,
-        Key: { Name: packageName, Version: packageVersion },
+        Key: { Name: {S: packageName}, Version: {S : packageVersion} },
       }));
       
     if (existingPackage.Item) {
