@@ -20,6 +20,7 @@
     "better-sqlite3": "^11.3.0",
     "dotenv": "^16.4.5",
     "isomorphic-git": "^1.27.1",
+    "jszip": "^3.10.1",
     "performance-now": "^2.1.0",
     "stream": "^0.0.3"
   },
