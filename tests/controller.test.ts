@@ -1,9 +1,9 @@
-import { Controller } from '../controller';
-import * as manager from '../manager';
-import * as cm from '../calc_metrics';
-import * as url_handler from '../url_handler';
-import * as om from '../output_metrics';
-import * as database from '../database';
+import { Controller } from '../metrics/controller';
+import * as manager from '../metrics/manager';
+import * as cm from '../metrics/calc_metrics';
+import * as url_handler from '../metrics/url_handler';
+import * as om from '../metrics/output_metrics';
+import * as database from '../metrics/database';
 import Database from 'better-sqlite3';
 import fs from 'fs';
 import { EventEmitter } from 'events';

@@ -13,14 +13,21 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.675.0",
+    "@aws-sdk/client-s3": "^3.675.0",
+    "@aws-sdk/lib-dynamodb": "^3.675.0",
+    "aws-sdk": "^2.1691.0",
     "axios": "^1.7.7",
+    "base-64": "^1.0.0",
     "better-sqlite3": "^11.3.0",
     "dotenv": "^16.4.5",
     "isomorphic-git": "^1.27.1",
+    "jszip": "^3.10.1",
     "performance-now": "^2.1.0",
     "stream": "^0.0.3"
   },
   "devDependencies": {
+    "@types/base-64": "^1.0.2",
     "@types/better-sqlite3": "^7.6.11",
     "@types/commander": "^2.12.2",
     "@types/jest": "^29.5.13",

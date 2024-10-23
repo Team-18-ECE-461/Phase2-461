@@ -23,7 +23,32 @@ jobs:
         node-version: ${{ matrix.node-version }}
 
     - name: Install Dependencies
-      run: ./run install
+      run: | 
+        ./run install
+        cd lambda
+        npm install
 
     - name: Run Tests
       run: ./run test
+
+    - name: Install AWS CLI
+      run: |
+        sudo apt-get update
+        sudo apt-get install awscli -y
+
+    - name: Zip Lambda files
+      run: |
+        cd lambda
+        zip -r upload.zip upload_package.js node_modules  
+
+
+    - name: Deploy to AWS
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION: 'us-east-1'  # Adjust the region if necessary
+      run: |
+        aws lambda update-function-code \
+        --function-name LambdaFunction_PackageUpload \
+        --zip-file fileb://lambda/upload.zip
+

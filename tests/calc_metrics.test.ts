@@ -1,5 +1,5 @@
-import { Metrics } from '../calc_metrics'; // Adjust the path accordingly
-import * as updateEntry from '../database'; // Adjust the path as needed
+import { Metrics } from '../metrics/calc_metrics'; // Adjust the path accordingly
+import * as updateEntry from '../metrics/database'; // Adjust the path as needed
 import Database from 'better-sqlite3';
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
