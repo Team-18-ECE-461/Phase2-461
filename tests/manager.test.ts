@@ -1,4 +1,4 @@
-import { Manager } from '../manager';
+import { Manager } from '../metrics/manager';
 import { Command } from 'commander';
 import { EventEmitter } from 'stream';
 
