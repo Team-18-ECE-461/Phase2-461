@@ -48,18 +48,18 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
     const zip = await JSZIP.loadAsync(zipBuffer);
     const packageJsonFile = zip.file('issue-regex-main/package.json');
 
-    if (!packageJsonFile) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify('package.json not found in the zip file'),
-      };
+
+
+    let packageName = 'Undefined';
+    let packageVersion = 'Undefined';
+    
+    if(packageJsonFile){
+      const packageJsonContent = await packageJsonFile.async('string');
+      const packageInfo = JSON.parse(packageJsonContent);
+
+      packageName = packageInfo.name || 'Undefined';
+      packageVersion = packageInfo.version || 'Undefined';
     }
-
-    const packageJsonContent = await packageJsonFile.async('string');
-    const packageInfo = JSON.parse(packageJsonContent);
-
-    const packageName = packageInfo.name || 'Undefined';
-    const packageVersion = packageInfo.version || 'Undefined';
 
     // Check if the package already exists in DynamoDB
     const existingPackage = await dynamoDBclient
