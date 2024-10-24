@@ -4,12 +4,21 @@ import axios from 'axios';
 import * as JSZIP from 'jszip';
 
 interface LambdaEvent {
-  Content?: string;
-  URL?: string;
-  JSProgram: string;
+  body: string;
+  // Content?: string;
+  // URL?: string;
+  // JSProgram: string;
 }
 
+function urlhandler(url:string){
+  if(url.includes('github')){
+    const repoNameMatch = url.match(/github\.com\/[^\/]+\/([^\/]+)/);
+    if (repoNameMatch && repoNameMatch[1]) {
+      return repoNameMatch[1], url;
+    }
+  }
 
+}
 
 const s3 = new S3();
 const dynamoDBclient = new DynamoDBClient({});
@@ -18,9 +27,11 @@ const TABLE_NAME = 'PackageInfo';
 
 export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
   try {
-    const content = event.Content;
-    const url = event.URL;
-    const JSProgram = event.JSProgram;
+
+    const requestBody = JSON.parse(event.body);
+    const content = requestBody.Content;
+    const url = requestBody.URL;
+    const JSProgram = requestBody.JSProgram;
 
     // Check if either content or url is set, but not both
     if ((!content && !url) || (content && url)) {
