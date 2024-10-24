@@ -29,7 +29,7 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
   try {
 
     const requestBody = JSON.parse(event.body);
-    const content = requestBody.Content;
+    let content = requestBody.Content;
     const url = requestBody.URL;
     const JSProgram = requestBody.JSProgram;
 
@@ -57,15 +57,20 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
 
     // Load zip content to inspect package.json
     const zip = await JSZIP.loadAsync(zipBuffer);
-    const packageJsonFile = zip.file('issue-regex-main/package.json');
-
-
+    content  = zipBuffer.toString('base64');
+    let tpackageJsonFile: JSZIP.JSZipObject | null = null;
+    zip.forEach((relativePath, file) => {
+    if (relativePath.endsWith('package.json')) {
+      tpackageJsonFile = zip.file(relativePath); // Capture the relative path to package.json
+    }
+    });
+    const packageJsonFile = tpackageJsonFile;
 
     let packageName = 'Undefined';
     let packageVersion = 'Undefined';
     
     if(packageJsonFile){
-      const packageJsonContent = await packageJsonFile.async('string');
+      const packageJsonContent = await (packageJsonFile as JSZIP.JSZipObject).async('string');
       const packageInfo = JSON.parse(packageJsonContent);
 
       packageName = packageInfo.name || 'Undefined';
