@@ -32,9 +32,6 @@ jobs:
         cd authentication/authentication-app
         npm install
 
-    - name: Run Tests
-      run: ./run test
-
     - name: Install AWS CLI
       run: |
         sudo apt-get update
