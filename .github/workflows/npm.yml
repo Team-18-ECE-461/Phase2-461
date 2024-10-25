@@ -22,7 +22,7 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
     - name: Install Dependencies
-      run : |
+      run: |
         ./run install
 
     - name: Install Lambda Dependencies
@@ -32,7 +32,7 @@ jobs:
 
     - name: Install Authentication App Dependencies
       run: |
-        cd authentication/authentication-app
+        cd authentication/authentication-app/src
         npm install
 
     - name: Install AWS CLI
