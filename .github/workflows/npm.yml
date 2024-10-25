@@ -27,6 +27,9 @@ jobs:
         ./run install
         cd lambda
         npm install
+        cd ..
+        cd authentication/authentication-app
+        npm install
 
     - name: Run Tests
       run: ./run test
