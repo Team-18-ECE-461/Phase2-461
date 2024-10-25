@@ -32,7 +32,7 @@ jobs:
 
     - name: Install Authentication App Dependencies
       run: |
-        cd authentication/authentication-app/src
+        cd authentication/authentication-app
         npm install
 
     - name: Install AWS CLI
