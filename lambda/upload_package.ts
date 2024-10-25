@@ -2,6 +2,7 @@ import { S3 } from '@aws-sdk/client-s3';
 import { DynamoDBClient, PutItemCommand, GetItemCommand } from '@aws-sdk/client-dynamodb';
 import axios from 'axios';
 import * as JSZIP from 'jszip';
+import getgithuburl from 'get-github-url'
 
 interface LambdaEvent {
   body: string;
@@ -10,15 +11,34 @@ interface LambdaEvent {
   // JSProgram: string;
 }
 
-function urlhandler(url:string){
+async function urlhandler(url:string){
   if(url.includes('github')){
     const repoNameMatch = url.match(/github\.com\/[^\/]+\/([^\/]+)/);
     if (repoNameMatch && repoNameMatch[1]) {
-      return repoNameMatch[1], url;
+      return url ;
     }
   }
+  else if(url.includes('npm')){
+    try {
+      const response = await axios.get(url, { responseType: 'json' });
+      const repositoryUrl = response.data.repository?.url;
+      if (repositoryUrl) {
+        url = getgithuburl(repositoryUrl);
+      } else {
+        throw new Error('No repository URL found');
+      }
+      const repoNameMatch = url.match(/github\.com\/[^\/]+\/([^\/]+)/);
+      if (repoNameMatch && repoNameMatch[1]) {
+        return url;
+      }
+    } catch (error) {
+      console.error(`Error fetching package data: ${error}`);
+    }
+    
+  }
+  }
 
-}
+
 
 const s3 = new S3();
 const dynamoDBclient = new DynamoDBClient({});
@@ -30,8 +50,9 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
 
     const requestBody = JSON.parse(event.body);
     let content = requestBody.Content;
-    const url = requestBody.URL;
+    let url = requestBody.URL;
     const JSProgram = requestBody.JSProgram;
+    let repoName = '';
 
     // Check if either content or url is set, but not both
     if ((!content && !url) || (content && url)) {
@@ -39,6 +60,10 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
         statusCode: 400,
         body: JSON.stringify('Invalid Request Body!'),
       };
+    }
+
+    if(url){
+       url = await urlhandler(url);
     }
 
     // Temporary file name for the zip package
