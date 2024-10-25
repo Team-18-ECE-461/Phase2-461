@@ -22,12 +22,13 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
 
-    - name: Install Dependencies
-      run: | 
-        ./run install
+    - name: Install Lambda Dependencies
+      run: |
         cd lambda
         npm install
-        cd ..
+
+    - name: Install Authentication App Dependencies
+      run: |
         cd authentication/authentication-app
         npm install
 
