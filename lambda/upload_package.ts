@@ -2,12 +2,41 @@ import { S3 } from '@aws-sdk/client-s3';
 import { DynamoDBClient, PutItemCommand, GetItemCommand } from '@aws-sdk/client-dynamodb';
 import axios from 'axios';
 import * as JSZIP from 'jszip';
+import getgithuburl from 'get-github-url'
 
 interface LambdaEvent {
-  Content?: string;
-  URL?: string;
-  JSProgram: string;
+  body: string;
+  // Content?: string;
+  // URL?: string;
+  // JSProgram: string;
 }
+
+async function urlhandler(url:string){
+  if(url.includes('github')){
+    const repoNameMatch = url.match(/github\.com\/[^\/]+\/([^\/]+)/);
+    if (repoNameMatch && repoNameMatch[1]) {
+      return url ;
+    }
+  }
+  else if(url.includes('npm')){
+    try {
+      const response = await axios.get(url, { responseType: 'json' });
+      const repositoryUrl = response.data.repository?.url;
+      if (repositoryUrl) {
+        url = getgithuburl(repositoryUrl);
+      } else {
+        throw new Error('No repository URL found');
+      }
+      const repoNameMatch = url.match(/github\.com\/[^\/]+\/([^\/]+)/);
+      if (repoNameMatch && repoNameMatch[1]) {
+        return url;
+      }
+    } catch (error) {
+      console.error(`Error fetching package data: ${error}`);
+    }
+    
+  }
+  }
 
 
 
@@ -18,9 +47,12 @@ const TABLE_NAME = 'PackageInfo';
 
 export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
   try {
-    const content = event.Content;
-    const url = event.URL;
-    const JSProgram = event.JSProgram;
+
+    const requestBody = JSON.parse(event.body);
+    let content = requestBody.Content;
+    let url = requestBody.URL;
+    const JSProgram = requestBody.JSProgram;
+    let repoName = '';
 
     // Check if either content or url is set, but not both
     if ((!content && !url) || (content && url)) {
@@ -28,6 +60,10 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
         statusCode: 400,
         body: JSON.stringify('Invalid Request Body!'),
       };
+    }
+
+    if(url){
+       url = await urlhandler(url);
     }
 
     // Temporary file name for the zip package
@@ -46,15 +82,20 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
 
     // Load zip content to inspect package.json
     const zip = await JSZIP.loadAsync(zipBuffer);
-    const packageJsonFile = zip.file('issue-regex-main/package.json');
-
-
+    content  = zipBuffer.toString('base64');
+    let tpackageJsonFile: JSZIP.JSZipObject | null = null;
+    zip.forEach((relativePath, file) => {
+    if (relativePath.endsWith('package.json')) {
+      tpackageJsonFile = zip.file(relativePath); // Capture the relative path to package.json
+    }
+    });
+    const packageJsonFile = tpackageJsonFile;
 
     let packageName = 'Undefined';
     let packageVersion = 'Undefined';
     
     if(packageJsonFile){
-      const packageJsonContent = await packageJsonFile.async('string');
+      const packageJsonContent = await (packageJsonFile as JSZIP.JSZipObject).async('string');
       const packageInfo = JSON.parse(packageJsonContent);
 
       packageName = packageInfo.name || 'Undefined';
