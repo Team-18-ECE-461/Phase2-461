@@ -96,6 +96,16 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
       const outputDir = path.join(tempDir, 'debloated');
       fs.mkdirSync(outputDir, { recursive: true });
 
+
+      
+      const entryPath = getEntryPoint(path.join(packagePath, 'package.json'));
+      if (!entryPath) {
+        return {
+          statusCode: 400,
+          body: JSON.stringify('No entry point found'),
+        };
+      }
+
       await esbuild.build({
         entryPoints: [path.join(packagePath!, 'index.js')], // Adjust main entry file if necessary
         bundle: true,
@@ -295,9 +305,20 @@ function generatePackageId(name: string, version: string): string {
 }
 
 // Function to clean up temporary files
-async function cleanupTempFiles(tempFilePath: any) {
-  if (fs.existsSync(tempFilePath)) {
-    fs.unlinkSync(tempFilePath);
+async function cleanupTempFiles(tempFilePath: string): Promise<void> {
+  try {
+    // Check if the path exists
+    await fs.promises.access(tempFilePath);
+    const stats = await fs.promises.stat(tempFilePath);
+
+    // Remove file or directory as needed
+    if (stats.isFile()) {
+      await fs.promises.unlink(tempFilePath);
+    } else if (stats.isDirectory()) {
+      await fs.promises.rm(tempFilePath, { recursive: true, force: true });
+    }
+  } catch (error) {
+    console.error(`Error cleaning up temporary file or directory at ${tempFilePath}:`, error);
   }
 }
 
@@ -406,6 +427,47 @@ async function uploadDB(packageId: string, packageName: string, packageVersion: 
     Item: item
   }));
 
+}
+
+function getEntryPoint(packageJsonPath: string): string | null {
+  const packageJson = require(packageJsonPath);
+
+  // Check for index.js first
+  const indexPath = path.join(  );
+  if (fs.existsSync(indexPath)) {
+    return 'index.js';
+  }
+
+  // If index.js doesn't exist, check the bin category
+  if (packageJson.bin && typeof packageJson.bin === 'object') {
+    const binFiles = Object.values(packageJson.bin);
+    if (binFiles.length > 0 && fs.existsSync(path.join(path.dirname(packageJsonPath), binFiles[0] as string))) {
+      return binFiles[0] as string;
+    }
+  }
+
+  // If nothing found in bin, check the files category (if defined)
+  if (packageJson.files && packageJson.files.length > 0) {
+    for (const file of packageJson.files) {
+      const filePath = path.join(path.dirname(packageJsonPath), file);
+      if (fs.existsSync(filePath)) {
+        return file;
+      }
+    }
+  }
+
+  //If nothing found in files, check the exports category (if defined)
+  if(packageJson.exports){
+    const entryPoint = packageJson.exports['.'] || packageJson.exports['./index.js'];
+    if(entryPoint){
+      return entryPoint;
+    }
+  }
+
+  
+
+  // If no entry point is found, return null
+  return null;
 }
 
 
