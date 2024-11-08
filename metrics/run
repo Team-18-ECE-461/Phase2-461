@@ -1,0 +1,29 @@
+#!/bin/bash
+# Check if TypeScript is installed
+if ! command -v tsc &> /dev/null; then
+    echo "TypeScript is not installed. Please install it first."
+    exit 1
+fi
+
+# Handle the "install" command (no compilation after install)
+if [ "$1" == "install" ]; then
+    npm install --save better-sqlite3 commander axios dotenv isomorphic-git
+    npm install --save-dev typescript @types/better-sqlite3 @types/commander @types/node@18.11.9 jest ts-jest @types/jest
+    tsc || { echo "Compilation failed"; exit 1; }
+# Handle the "test" command (just run the tests without compiling)
+elif [ "$1" == "test" ]; then
+    node main.js test || { echo "Failed to run the program with 'test'"; exit 1; }
+
+# Handle if a file is passed as an argument (just process the file without compiling)
+elif [ -f "$1" ]; then
+    node main.js process "$1" || { echo "Failed to process the file"; exit 1; }
+    rm metrics.db || { echo "Failed to remove metrics.db"; exit 1; }
+
+# Handle unknown arguments
+else
+    echo "Usage: ./run install or ./run test or ./run URL_FILE"
+    exit 1
+fi
+
+# Exit with success
+exit 0

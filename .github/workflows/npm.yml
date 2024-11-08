@@ -21,19 +21,27 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
+    # - name: Install Dependencies
+    #   run: |
+    #     ./run install
 
-    - name: Install Dependencies
-      run: ./run install
-           cd lambda
-           npm install
+    - name: Install Lambda Dependencies
+      run: |
+        cd lambda
+        npm install
 
-    - name: Run Tests
-      run: ./run test
+    - name: Install Authentication App Dependencies
+      run: |
+        cd authentication/authentication-app
+        npm install
 
     - name: Install AWS CLI
       run: |
         sudo apt-get update
         sudo apt-get install awscli -y
+
+    - name: Run Tests
+      run: ./run test
 
     - name: Zip Lambda files
       run: |
