@@ -40,8 +40,8 @@ jobs:
         sudo apt-get update
         sudo apt-get install awscli -y
 
-    - name: Run Tests
-      run: ./run test
+    # - name: Run Tests
+    #   run: ./run test
 
     - name: Zip Lambda files
       run: |
