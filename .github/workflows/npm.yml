@@ -30,10 +30,10 @@ jobs:
         cd lambda
         npm install
 
-    - name: Install Authentication App Dependencies
-      run: |
-        cd authentication/authentication-app
-        npm install
+    # - name: Install Authentication App Dependencies
+    #   run: |
+    #     cd authentication/authentication-app
+    #     npm install
 
     - name: Install AWS CLI
       run: |
