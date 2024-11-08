@@ -29,6 +29,8 @@ jobs:
       run: |
         cd lambda
         npm install
+        cd ..
+        npm install
 
     # - name: Install Authentication App Dependencies
     #   run: |
