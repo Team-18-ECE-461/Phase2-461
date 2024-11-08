@@ -10,8 +10,20 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/uglify-js": "^3.17.5",
+    "archiver": "^7.0.1",
     "axios": "^1.7.7",
+    "esbuild": "^0.24.0",
     "get-github-url": "^1.0.4",
-    "jszip": "^3.10.1"
+    "jszip": "^3.10.1",
+    "tar": "^7.4.3",
+    "terser": "^5.36.0",
+    "uglify-js": "^3.19.3",
+    "unzipper": "^0.12.3",
+    "uuid": "^11.0.2"
+  },
+  "devDependencies": {
+    "@types/archiver": "^6.0.3",
+    "@types/unzipper": "^0.10.10"
   }
 }
