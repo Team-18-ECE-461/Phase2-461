@@ -16,6 +16,7 @@ import archiver from 'archiver';
 import unzipper from 'unzipper';
 import stream from 'stream';
 import * as tar from 'tar'; 
+import { exec } from 'child_process';
 
 interface LambdaEvent {
   body: string;
@@ -107,6 +108,8 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
           body: JSON.stringify('No entry point found'),
         };
       }
+
+      unzipPackageForDependencies(packagePath);
 
       await esbuild.build({
         entryPoints: [entryPath], 
@@ -473,3 +476,33 @@ function getEntryPoint(packageJsonPath: string): string | null {
 }
 
 
+function unzipPackageForDependencies(zipFilePath: string) {
+  // Create a stream to read the zip file
+  const unzipStream = fs.createReadStream(zipFilePath).pipe(unzipper.Parse());
+  const tmpDir = fs.mkdtempSync(path.join(tmpdir(), 'package-'));
+  
+  unzipStream.on('entry', entry => {
+    // If we encounter package.json, extract it temporarily for installation
+    if (entry.path === 'package.json') {
+      entry.pipe(fs.createWriteStream(path.join(tmpDir, 'package.json')));
+    } else {
+      entry.autodrain(); // Ignore other files
+    }
+  });
+
+  unzipStream.on('close', () => {
+    console.log('package.json extracted temporarily');
+    installDependencies(tmpDir);  // Install dependencies in temp directory
+  });
+}
+
+
+function installDependencies(dir:string) {
+  exec('npm install', { cwd: dir }, (err, stdout, stderr) => {
+    if (err) {
+      console.error('Error installing dependencies:', stderr);
+      return;
+    }
+    console.log('Dependencies installed:', stdout);
+  });
+}
