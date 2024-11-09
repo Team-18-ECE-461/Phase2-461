@@ -483,12 +483,18 @@ function unzipPackageForDependencies(zipFilePath: string) {
   
   unzipStream.on('entry', entry => {
     // If we encounter package.json, extract it temporarily for installation
-    if (entry.path === 'package.json') {
-      entry.pipe(fs.createWriteStream(path.join(tmpDir, 'package.json')));
-    } else {
-      entry.autodrain(); // Ignore other files
-    }
-  });
+    if(entry.type === 'File'){
+      if (entry.path === 'package.json') {
+        entry.pipe(fs.createWriteStream(path.join(tmpDir, 'package.json')));
+      }
+      else{
+        entry.autodrain();
+      }
+    } 
+    else {
+        entry.autodrain(); // Ignore other files
+      }
+    });
 
   unzipStream.on('close', () => {
     console.log('package.json extracted temporarily');
