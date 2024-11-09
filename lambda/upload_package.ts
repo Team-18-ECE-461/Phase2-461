@@ -107,7 +107,7 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
       }
 
       await esbuild.build({
-        entryPoints: [path.join(packagePath!, 'index.js')], // Adjust main entry file if necessary
+        entryPoints: [entryPath], 
         bundle: true,
         outdir: outputDir,
         minify: true,
@@ -433,9 +433,9 @@ function getEntryPoint(packageJsonPath: string): string | null {
   const packageJson = require(packageJsonPath);
 
   // Check for index.js first
-  const indexPath = path.join(  );
+  const indexPath = path.join(path.dirname(packageJsonPath), 'index.js');
   if (fs.existsSync(indexPath)) {
-    return 'index.js';
+    return indexPath;
   }
 
   // If index.js doesn't exist, check the bin category
