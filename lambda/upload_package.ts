@@ -98,7 +98,9 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
 
 
       
-      const entryPath = getEntryPoint(path.join(packagePath, 'package.json'));
+      let entryPath = getEntryPoint(path.join(packagePath, 'package.json'));
+      entryPath = entryPath ? path.join(packagePath, entryPath) : null;
+
       if (!entryPath) {
         return {
           statusCode: 400,
@@ -435,7 +437,7 @@ function getEntryPoint(packageJsonPath: string): string | null {
   // Check for index.js first
   const indexPath = path.join(path.dirname(packageJsonPath), 'index.js');
   if (fs.existsSync(indexPath)) {
-    return indexPath;
+    return 'index.js';
   }
 
   // If index.js doesn't exist, check the bin category
