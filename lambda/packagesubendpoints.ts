@@ -89,12 +89,12 @@ async function handleGetPackage(packageId: string) {
       
           // Convert the Body stream to a Buffer
         if(data && data.Body) {
-            const stream = data.Body as ReadableStream;
-            const reader = stream.getReader();
-            const chunks = [];
+            const stream = data.Body as NodeJS.ReadableStream;
+            const chunks: Buffer[] = [];
             let done, value;
-            while ({ done, value } = await reader.read(), !done) {
-                chunks.push(value);
+             // Collect data chunks from the stream
+            for await (const chunk of stream[Symbol.asyncIterator]()) {
+              chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
             }
             const buffer = Buffer.concat(chunks);
             base64Content = buffer.toString('base64');
