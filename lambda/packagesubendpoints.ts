@@ -14,7 +14,7 @@ import archiver from 'archiver';
 const s3 = new S3();
 const dynamoDBclient = new DynamoDBClient({});
 const BUCKET_NAME = 'packagesstorage';
-const TABLE_NAME = 'PackageInfo2';
+const TABLE_NAME = 'PackageInfo';
 
 interface LambdaEvent {
     httpMethod: string,
@@ -78,7 +78,7 @@ async function handleGetPackage(packageId: string) {
         }
 
         const s3Client = new S3();
-        const key = `${packageId}-${packageVersion}`;
+        const key = `${packageName}-${packageVersion}`;
         const param = {
             Bucket: BUCKET_NAME,
             Key: key
