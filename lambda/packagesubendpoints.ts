@@ -145,14 +145,18 @@ async function handleUpdatePackage(event: LambdaEvent) {
           }
       };
       
+      
         const checkResult = await dynamoDBclient.send(new QueryCommand(checkParams));
+        
         
         if (!checkResult.Items) {
             return { statusCode: 404, body: JSON.stringify({ message: "Package not found" }) };
         }
 
-        const versionExists = checkResult.Items.some(item => item.Version && item.Version.S === packageVersion);
-        if(versionExists)
+        const versionisValid = await checkValidVersion(packageName, packageVersion);
+        
+
+        if(!versionisValid)
         {
             return { statusCode: 400, body: JSON.stringify({ message: "Version already exists" }) };
         }
@@ -528,6 +532,32 @@ async function urlhandler(url:string){
         ContentType: 'application/zip',
     })
   
+  }
+
+  async function checkValidVersion(packageName: string, version: string): Promise<boolean> {
+    const params = {
+        TableName: TABLE_NAME,
+        KeyConditionExpression: "#name = :name",
+        ExpressionAttributeNames: { "#name": "Name" },
+        ExpressionAttributeValues: {
+            ":name": { S: packageName }
+        },
+    };
+  
+    try {
+        const result = await dynamoDBclient.send(new QueryCommand(params));
+        if(!result.Items){
+          return false;
+        }
+        const existingVersions = result.Items.map(item => item.Version.S);
+        if(existingVersions.includes(version)){
+          return false;
+        }
+        return true;
+    } catch (error) {
+        console.error('Error checking version:', error);
+        return false;
+    }
   }
   
 
