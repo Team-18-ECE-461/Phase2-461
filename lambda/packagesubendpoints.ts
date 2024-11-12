@@ -124,8 +124,8 @@ async function handleUpdatePackage(event: LambdaEvent) {
         const packageId = requestBody.metadata.ID;
         const packageName = requestBody.metadata.Name;
         const packageVersion = requestBody.metadata.Version;
-        let content = requestBody.data.content;
-        let url = requestBody.data.url;
+        let content = requestBody.data.Content;
+        let url = requestBody.data.URL;
         const JSProgram = requestBody.data.JSProgram;
         const debloat = requestBody.data.debloat;
         
@@ -183,10 +183,10 @@ async function handleUpdatePackage(event: LambdaEvent) {
           const packagedebloatName = packageName;
           const version = packageVersion;
           let packagePath = ''
-          if(content){
-            packagePath =  await downloadAndExtractNpmPackage(url, tempDir);
-          }
           if(url){
+            packagePath =  await downloadAndExtractNpmPackage(url, tempDir, packageName, packageVersion);
+          }
+          if(content){
             packagePath = await extractBase64ZipContent(content, tempDir);
           }
           const outputDir = path.join(tempDir, 'debloated');
@@ -451,15 +451,15 @@ async function urlhandler(url:string){
     const [major, minor, patch] = version.split('.').map(Number);
     return major * 1000000 + minor * 1000 + patch;
   }
-  async function downloadAndExtractNpmPackage(npmUrl: string, destination: string): Promise<any> {
+  async function downloadAndExtractNpmPackage(npmUrl: string, destination: string, packageName: string, packageVersion:string): Promise<any> {
     // Convert npm URL to registry API URL
-    const packageName = npmUrl.split('/').pop();
-    const registryUrl = `https://registry.npmjs.org/${packageName}`;
-  
+   
+    const registryUrl = npmUrl.replace('https://www.npmjs.com/package/', 'https://registry.npmjs.org/').replace('/v/', '/');
+    
     // Fetch package metadata
     const response = await axios.get(registryUrl);
-    const latestVersion = response.data['dist-tags'].latest;
-    const tarballUrl = response.data.versions[latestVersion].dist.tarball;
+    //const latestVersion = response.data['dist-tags'].latest;
+    const tarballUrl = response.data.dist.tarball;
   
     // Download the tarball
     const tarballPath = path.join(destination, 'package.tgz');
@@ -473,7 +473,7 @@ async function urlhandler(url:string){
   
     // Extract tarball
     await tar.extract({ file: tarballPath, cwd: destination });
-    return [path.join(destination, 'package'), latestVersion, packageName]; // Adjust this based on the extracted directory structure
+    return [path.join(destination, 'package'), packageVersion, packageName]; // Adjust this based on the extracted directory structure
   }
   
   
