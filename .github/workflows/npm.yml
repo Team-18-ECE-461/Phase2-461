@@ -50,7 +50,8 @@ jobs:
       run: |
         cd lambda
         tsc
-        zip -r upload.zip upload_package.js node_modules  
+        zip -r upload.zip upload_package.js node_modules 
+        zip -r function.zip packagesubendpoints.js node_modules
 
 
     - name: Deploy to AWS
@@ -62,4 +63,9 @@ jobs:
         aws lambda update-function-code \
         --function-name LambdaFunction_PackageUpload \
         --zip-file fileb://lambda/upload.zip
+        
+        aws lambda update-function-code \
+        --function-name packagesid \
+        --zip-file fileb://lambda/function.zip
+      
 
