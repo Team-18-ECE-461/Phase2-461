@@ -445,17 +445,26 @@ async function urlhandler(url:string){
   async function downloadAndExtractNpmPackage(npmUrl: string, destination: string, packageName: string, packageVersion:string): Promise<any> {
     // Convert npm URL to registry API URL
     let registryUrl = npmUrl
+    let response;
+    let tarballUrl;
     if (npmUrl.includes( '/v/')){
-       registryUrl = npmUrl.replace('https://www.npmjs.com/package/', 'https://registry.npmjs.org/').replace('/v/', '/');}
+       registryUrl = npmUrl.replace('https://www.npmjs.com/package/', 'https://registry.npmjs.org/').replace('/v/', '/');
+       response = await axios.get(registryUrl);
+       tarballUrl = response.data.dist.tarball;
+      }
     else{
-       registryUrl = npmUrl.replace('https://www.npmjs.com/package/', 'https://registry.npmjs.org/');
+        registryUrl = npmUrl.replace('https://www.npmjs.com/package/', 'https://registry.npmjs.org/');
+        response = await axios.get(registryUrl);
+        const latestVersion = response.data['dist-tags'].latest;
+        tarballUrl = response.data.versions[latestVersion].dist.tarball;
+
     }
    
     
     // Fetch package metadata
-    const response = await axios.get(registryUrl);
-    //const latestVersion = response.data['dist-tags'].latest;
-    const tarballUrl = response.data.dist.tarball;
+    
+    
+    
   
     // Download the tarball
     const tarballPath = path.join(destination, 'package.tgz');
