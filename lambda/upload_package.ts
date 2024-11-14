@@ -109,11 +109,11 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
         };
       }
 
-      unzipPackageForDependencies(packagePath);
+      //unzipPackageForDependencies(packagePath);
 
       await esbuild.build({
         entryPoints: [entryPath], 
-        bundle: true,
+        bundle: false,
         outdir: outputDir,
         minify: true,
         treeShaking: true,
@@ -123,8 +123,12 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
     await zipFolder(outputDir, debloatedZipPath);
     const uploadkey = `${packagedebloatName}-${version}`;
     const debloatID = generatePackageId(packagedebloatName, version);
+    
+    let base64Zip = null;
 
     if(await checkexistingPackage(packagedebloatName, version) === false){
+      const zipBuffer = fs.readFileSync(debloatedZipPath);
+      base64Zip = zipBuffer.toString('base64');
       await uploadToS3(debloatedZipPath, BUCKET_NAME, uploadkey);
       await cleanupTempFiles(tempDir);
     }
@@ -145,7 +149,7 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
           ID: debloatID,
         },
         data: {
-          Content: content,
+          Content: base64Zip,
           URL: url, 
           JSProgram: JSProgram,
         },
@@ -169,9 +173,6 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
     // Load zip content to inspect package.json
     const zip = await JSZIP.loadAsync(zipBuffer);
     
-    
-    console.log("here: after debloat");
-
 
 
     content  = zipBuffer.toString('base64');

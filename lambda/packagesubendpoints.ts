@@ -1,11 +1,20 @@
 import { S3, GetObjectCommand } from '@aws-sdk/client-s3';
 import axios from 'axios';
 import { DynamoDBClient, GetItemCommand, PutItemCommand, DeleteItemCommand, QueryCommand } from '@aws-sdk/client-dynamodb';
+import fs from 'fs';
+import path from 'path';
+import { tmpdir } from 'os';
+import getgithuburl from 'get-github-url'
+import * as crypto from 'crypto';
+import * as tar from 'tar'; 
+import * as esbuild from 'esbuild';
+import unzipper from 'unzipper';
+import archiver from 'archiver';
 
 const s3 = new S3();
 const dynamoDBclient = new DynamoDBClient({});
 const BUCKET_NAME = 'packagesstorage';
-const TABLE_NAME = 'PackageInfo2';
+const TABLE_NAME = 'PackageInfo';
 
 interface LambdaEvent {
     httpMethod: string,
@@ -39,11 +48,13 @@ async function handleGetPackage(packageId: string) {
             return { statusCode: 400, body: JSON.stringify({ message: 'Invalid request' }) };
         }
         const params = {
-            TableName: TABLE_NAME, // The DynamoDB table to query
-            KeyConditionExpression: "ID = :id", // Search for items where ID equals a specific value
-            ExpressionAttributeValues: { 
-              ":id": { S: packageId },           // The actual value for the ID (a string type in this case)
-            },}
+          TableName: TABLE_NAME,               // The DynamoDB table to query
+          IndexName: "ID-index",               // Specify the GSI name here
+          KeyConditionExpression: "ID = :id",  // Search for items where ID equals a specific value
+          ExpressionAttributeValues: { 
+              ":id": { S: packageId },         // The actual value for the ID (a string type in this case)
+          },
+      };
         const result = await dynamoDBclient.send(new QueryCommand(params));
         const items = result.Items;
         let packageVersion = 'No version';
@@ -67,7 +78,7 @@ async function handleGetPackage(packageId: string) {
         }
 
         const s3Client = new S3();
-        const key = `${packageId}-${packageVersion}`;
+        const key = `${packageName}-${packageVersion}`;
         const param = {
             Bucket: BUCKET_NAME,
             Key: key
@@ -78,12 +89,12 @@ async function handleGetPackage(packageId: string) {
       
           // Convert the Body stream to a Buffer
         if(data && data.Body) {
-            const stream = data.Body as ReadableStream;
-            const reader = stream.getReader();
-            const chunks = [];
+            const stream = data.Body as NodeJS.ReadableStream;
+            const chunks: Buffer[] = [];
             let done, value;
-            while ({ done, value } = await reader.read(), !done) {
-                chunks.push(value);
+             // Collect data chunks from the stream
+            for await (const chunk of stream[Symbol.asyncIterator]()) {
+              chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
             }
             const buffer = Buffer.concat(chunks);
             base64Content = buffer.toString('base64');
@@ -113,11 +124,10 @@ async function handleUpdatePackage(event: LambdaEvent) {
         const packageId = requestBody.metadata.ID;
         const packageName = requestBody.metadata.Name;
         const packageVersion = requestBody.metadata.Version;
-        let content = requestBody.data.content;
-        let url = requestBody.data.url;
+        let content = requestBody.data.Content;
+        let url = requestBody.data.URL;
         const JSProgram = requestBody.data.JSProgram;
-        const currentTime = Date.now();
-
+        const debloat = requestBody.data.debloat;
         
 
 
@@ -135,14 +145,18 @@ async function handleUpdatePackage(event: LambdaEvent) {
           }
       };
       
+      
         const checkResult = await dynamoDBclient.send(new QueryCommand(checkParams));
+        
         
         if (!checkResult.Items) {
             return { statusCode: 404, body: JSON.stringify({ message: "Package not found" }) };
         }
 
-        const versionExists = checkResult.Items.some(item => item.Version && item.Version.S === packageVersion);
-        if(versionExists)
+        const versionisValid = await checkValidVersion(packageName, packageVersion);
+        
+
+        if(!versionisValid)
         {
             return { statusCode: 400, body: JSON.stringify({ message: "Version already exists" }) };
         }
@@ -169,10 +183,12 @@ async function handleUpdatePackage(event: LambdaEvent) {
           const packagedebloatName = packageName;
           const version = packageVersion;
           let packagePath = ''
-          if(content){
-            packagePath =  await downloadAndExtractNpmPackage(url, tempDir);
-          }
+          let tempversion = ''
+          let tempname = ''
           if(url){
+            [packagePath, tempversion, tempname] =  await downloadAndExtractNpmPackage(url, tempDir, packageName, packageVersion);
+          }
+          if(content){
             packagePath = await extractBase64ZipContent(content, tempDir);
           }
           const outputDir = path.join(tempDir, 'debloated');
@@ -203,19 +219,8 @@ async function handleUpdatePackage(event: LambdaEvent) {
     await cleanupTempFiles(tempDir);
     await uploadDB(debloatID, packagedebloatName, version, JSProgram, url);
     return {
-      statusCode: 201,
-      body: JSON.stringify({
-        metadata: {
-          Name: packagedebloatName,
-          Version: version,
-          ID: debloatID,
-        },
-        data: {
-          Content: base64Zip,
-          URL: url, 
-          JSProgram: JSProgram,
-        },
-      }),
+      statusCode: 200,
+      body: "Package updated successfully",
     };
   }
   else{
@@ -288,28 +293,31 @@ async function handleDeletePackage(id:string){
 }
 
 async function getMostRecentVersion(packageName: string) {
-    const params = {
-        TableName: TABLE_NAME,          // Replace with your table name
-        IndexName: "PackageNameVersionIndex",     // Name of the GSI with Name and CreatedAt
-        KeyConditionExpression: "Name = :name",// Query by the package name
-        ExpressionAttributeValues: {
-          ":name": { S: packageName },         // Replace packageName with the name you're querying for
-        },      
-        ScanIndexForward: false,               // Sort results in descending order by CreatedAt
-        Limit: 1                               // Only retrieve the most recent entry
-      };
+  const params = {
+      TableName: TABLE_NAME,                 // Replace with your table name
+      KeyConditionExpression: "#name = :name",
+      ExpressionAttributeNames: { "#name": "Name"},// Query by the package name
+      ExpressionAttributeValues: {
+          ":name": { S: packageName },       // The name you're querying for
+      },
+      ProjectionExpression: "VersionInt"     // Only retrieve the versionInt attribute
+  };
+
+  try {
+      const result = await dynamoDBclient.send(new QueryCommand(params));
       
-      try {
-        const result = await dynamoDBclient.send(new QueryCommand(params));
-        if (result.Items && result.Items.length > 0) {
-          const mostRecentVersion = result.Items[0].CreatedAt.S;
-          return mostRecentVersion;
-        } else {
-          console.log("Package not found.");
-        }
-      } catch (error) {
-        console.error("Error querying DynamoDB:", error);
+      if (result.Items && result.Items.length > 0) {
+          // Extract versionInt values from each item
+          const versionInts = result.Items.map(item => Number(item.VersionInt.N));
+          return Math.max(...versionInts);
+      } else {
+          console.log("No versions found for this package.");
+          return null;
       }
+  } catch (error) {
+      console.error("Error querying DynamoDB:", error);
+      return null;
+  }
 }
 
 async function checkValidVersionContent(version:string, mostRecentVersion:number) {
@@ -434,15 +442,15 @@ async function urlhandler(url:string){
     const [major, minor, patch] = version.split('.').map(Number);
     return major * 1000000 + minor * 1000 + patch;
   }
-  async function downloadAndExtractNpmPackage(npmUrl: string, destination: string): Promise<any> {
+  async function downloadAndExtractNpmPackage(npmUrl: string, destination: string, packageName: string, packageVersion:string): Promise<any> {
     // Convert npm URL to registry API URL
-    const packageName = npmUrl.split('/').pop();
-    const registryUrl = `https://registry.npmjs.org/${packageName}`;
-  
+   
+    const registryUrl = npmUrl.replace('https://www.npmjs.com/package/', 'https://registry.npmjs.org/').replace('/v/', '/');
+    
     // Fetch package metadata
     const response = await axios.get(registryUrl);
-    const latestVersion = response.data['dist-tags'].latest;
-    const tarballUrl = response.data.versions[latestVersion].dist.tarball;
+    //const latestVersion = response.data['dist-tags'].latest;
+    const tarballUrl = response.data.dist.tarball;
   
     // Download the tarball
     const tarballPath = path.join(destination, 'package.tgz');
@@ -456,7 +464,7 @@ async function urlhandler(url:string){
   
     // Extract tarball
     await tar.extract({ file: tarballPath, cwd: destination });
-    return [path.join(destination, 'package'), latestVersion, packageName]; // Adjust this based on the extracted directory structure
+    return [path.join(destination, 'package'), packageVersion, packageName]; // Adjust this based on the extracted directory structure
   }
   
   
@@ -515,6 +523,32 @@ async function urlhandler(url:string){
         ContentType: 'application/zip',
     })
   
+  }
+
+  async function checkValidVersion(packageName: string, version: string): Promise<boolean> {
+    const params = {
+        TableName: TABLE_NAME,
+        KeyConditionExpression: "#name = :name",
+        ExpressionAttributeNames: { "#name": "Name" },
+        ExpressionAttributeValues: {
+            ":name": { S: packageName }
+        },
+    };
+  
+    try {
+        const result = await dynamoDBclient.send(new QueryCommand(params));
+        if(!result.Items){
+          return false;
+        }
+        const existingVersions = result.Items.map(item => item.Version.S);
+        if(existingVersions.includes(version)){
+          return false;
+        }
+        return true;
+    } catch (error) {
+        console.error('Error checking version:', error);
+        return false;
+    }
   }
   
 
