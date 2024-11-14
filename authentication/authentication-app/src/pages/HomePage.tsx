@@ -7,7 +7,7 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="homepage">
-    
+  
       <header className="homepage-header">
         <h1>Welcome to the Module Registry</h1>
         <p>Your trusted source for npm module management and verification.</p>

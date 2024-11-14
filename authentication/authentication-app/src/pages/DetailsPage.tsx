@@ -8,5 +8,4 @@ const DetailsPage: React.FC = () => {
     </div>
   );
 };
-
 export default DetailsPage;

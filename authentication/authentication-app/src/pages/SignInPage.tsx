@@ -13,7 +13,7 @@ const SignInPage: React.FC = () => {
         if (user) {
           navigate('/dashboard');
         }
-  
+
         return (
           <div>
             <h1>Sign In</h1>

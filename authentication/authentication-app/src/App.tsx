@@ -17,7 +17,6 @@ import Navbar from './components/NavBar';
 Amplify.configure(awsExports);
 
 
-
 const App: React.FC = () => {
   //const location = useLocation();
   return (
