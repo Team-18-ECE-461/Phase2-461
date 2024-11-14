@@ -15,57 +15,76 @@ jobs:
         node-version: [18.x, 20.x, 22.x]
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-    # - name: Install Dependencies
-    #   run: |
-    #     ./run install
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
 
-    - name: Install Lambda Dependencies
-      run: |
-        cd lambda
-        npm install
-        cd ..
-        npm install
+      # - name: Install Dependencies
+      #   run: |
+      #     ./run install
 
-    # - name: Install Authentication App Dependencies
-    #   run: |
-    #     cd authentication/authentication-app
-    #     npm install
+      - name: Install Lambda Dependencies
+        run: |
+          cd lambda
+          npm install
+          cd ..
+          npm install
 
-    - name: Install AWS CLI
-      run: |
-        sudo apt-get update
-        sudo apt-get install awscli -y
+      # - name: Install Authentication App Dependencies
+      #   run: |
+      #     cd authentication/authentication-app
+      #     npm install
 
-    # - name: Run Tests
-    #   run: ./run test
-    
+      - name: Install AWS CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install awscli -y
 
-    - name: Zip Lambda files
-      run: |
-        cd lambda
-        tsc
-        zip -r upload.zip upload_package.js node_modules 
-        zip -r function.zip packagesubendpoints.js node_modules
+      # - name: Run Tests
+      #   run: ./run test
 
+      - name: Zip Lambda files
+        run: |
+          cd lambda
+          tsc
+          zip -r upload.zip upload_package.js node_modules 
+          zip -r function.zip packagesubendpoints.js node_modules
 
-    - name: Deploy to AWS
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_REGION: 'us-east-1'  # Adjust the region if necessary
-      run: |
-        aws lambda update-function-code \
-        --function-name LambdaFunction_PackageUpload \
-        --zip-file fileb://lambda/upload.zip
-        
-        aws lambda update-function-code \
-        --function-name packagesid \
-        --zip-file fileb://lambda/function.zip
-      
+      - name: Update LambdaFunction_PackageUpload
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: us-east-1
+        run: |
+          retries=5
+          delay=10
+          for ((i=0; i<retries; i++)); do
+            if aws lambda update-function-code --function-name LambdaFunction_PackageUpload --zip-file fileb://lambda/upload.zip; then
+              echo "Update successful for LambdaFunction_PackageUpload"
+              break
+            else
+              echo "Update failed, retrying in $delay seconds..."
+              sleep $delay
+            fi
+          done
 
+      - name: Update packagesid Function
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: us-east-1
+        run: |
+          retries=5
+          delay=10
+          for ((i=0; i<retries; i++)); do
+            if aws lambda update-function-code --function-name packagesid --zip-file fileb://lambda/function.zip; then
+              echo "Update successful for packagesid"
+              break
+            else
+              echo "Update failed, retrying in $delay seconds..."
+              sleep $delay
+            fi
+          done
