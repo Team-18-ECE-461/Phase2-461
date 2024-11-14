@@ -13,6 +13,7 @@ const HomePage: React.FC = () => {
         <p>Your trusted source for npm module management and verification.</p>
       </header>
 
+
       <section className="homepage-features">
         <h2>Features</h2>
         <ul>

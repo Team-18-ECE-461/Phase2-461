@@ -10,6 +10,7 @@ interface CognitoUserAttributes {
   [key: string]: string | undefined;
 }
 
+
 interface CognitoUser {
   username: string;
   attributes: CognitoUserAttributes;

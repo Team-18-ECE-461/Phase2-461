@@ -12,6 +12,7 @@ const UploadPage: React.FC = () => {
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
 
+    
     // Here you’d typically send data to your server or backend API
     if (file) {
       // Mock successful submission
