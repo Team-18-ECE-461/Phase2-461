@@ -444,8 +444,13 @@ async function urlhandler(url:string){
   }
   async function downloadAndExtractNpmPackage(npmUrl: string, destination: string, packageName: string, packageVersion:string): Promise<any> {
     // Convert npm URL to registry API URL
+    let registryUrl = npmUrl
+    if (npmUrl.includes( '/v/')){
+       registryUrl = npmUrl.replace('https://www.npmjs.com/package/', 'https://registry.npmjs.org/').replace('/v/', '/');}
+    else{
+       registryUrl = npmUrl.replace('https://www.npmjs.com/package/', 'https://registry.npmjs.org/');
+    }
    
-    const registryUrl = npmUrl.replace('https://www.npmjs.com/package/', 'https://registry.npmjs.org/').replace('/v/', '/');
     
     // Fetch package metadata
     const response = await axios.get(registryUrl);
