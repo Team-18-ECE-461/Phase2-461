@@ -183,8 +183,10 @@ async function handleUpdatePackage(event: LambdaEvent) {
           const packagedebloatName = packageName;
           const version = packageVersion;
           let packagePath = ''
+          let tempversion = ''
+          let tempname = ''
           if(url){
-            packagePath =  await downloadAndExtractNpmPackage(url, tempDir, packageName, packageVersion);
+            [packagePath, tempversion, tempname] =  await downloadAndExtractNpmPackage(url, tempDir, packageName, packageVersion);
           }
           if(content){
             packagePath = await extractBase64ZipContent(content, tempDir);
@@ -217,19 +219,8 @@ async function handleUpdatePackage(event: LambdaEvent) {
     await cleanupTempFiles(tempDir);
     await uploadDB(debloatID, packagedebloatName, version, JSProgram, url);
     return {
-      statusCode: 201,
-      body: JSON.stringify({
-        metadata: {
-          Name: packagedebloatName,
-          Version: version,
-          ID: debloatID,
-        },
-        data: {
-          Content: base64Zip,
-          URL: url, 
-          JSProgram: JSProgram,
-        },
-      }),
+      statusCode: 200,
+      body: "Package updated successfully",
     };
   }
   else{
