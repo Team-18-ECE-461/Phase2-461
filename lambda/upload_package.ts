@@ -160,7 +160,6 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
       zipBuffer = Buffer.from(content, 'base64');
     }
    else if (url) {
-      url = await urlhandler(url);
       const response = await axios.get(`${url}/archive/refs/heads/main.zip`, { responseType: 'arraybuffer' });
       zipBuffer = Buffer.from(response.data);
     } else {
@@ -438,22 +437,10 @@ async function uploadDB(packageId: string, packageName: string, packageVersion: 
 function getEntryPoint(packageJsonPath: string): string | null {
   const packageJson = require(packageJsonPath);
 
-  if (packageJson.main) {
-    const mainPath = path.join(path.dirname(packageJsonPath), packageJson.main);
-    if (fs.existsSync(mainPath)) {
-        return packageJson.main;
-    }
-}
-
   // Check for index.js first
   const indexPath = path.join(path.dirname(packageJsonPath), 'index.js');
   if (fs.existsSync(indexPath)) {
     return 'index.js';
-  }
-
-  const indextPath = path.join(path.dirname(packageJsonPath), 'index.ts');
-  if (fs.existsSync(indextPath)) {
-    return 'index.ts';
   }
 
   // If index.js doesn't exist, check the bin category
@@ -463,13 +450,6 @@ function getEntryPoint(packageJsonPath: string): string | null {
       return binFiles[0] as string;
     }
   }
-
-  if (packageJson.browser) {
-    const browserPath = path.join(path.dirname(packageJsonPath), packageJson.browser);
-    if (fs.existsSync(browserPath)) {
-        return packageJson.browser;
-    }
-}
 
   // If nothing found in bin, check the files category (if defined)
   if (packageJson.files && packageJson.files.length > 0) {
@@ -488,13 +468,6 @@ function getEntryPoint(packageJsonPath: string): string | null {
       return entryPoint;
     }
   }
-
-  if (packageJson.module) {
-    const modulePath = path.join(path.dirname(packageJsonPath), packageJson.module);
-    if (fs.existsSync(modulePath)) {
-        return packageJson.module;
-    }
-}
 
   
 
