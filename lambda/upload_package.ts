@@ -309,6 +309,7 @@ async function downloadNpm(npmUrl:string){
     let tarballUrl;
     let version;
     let packageName;
+    const tempDir = await fs.promises.mkdtemp(path.join(tmpdir(), 'npm-'));  //tmpdir = /tmp/npm-
     if (npmUrl.includes( '/v/')){
       registryUrl = npmUrl.replace('https://www.npmjs.com/package/', 'https://registry.npmjs.org/').replace('/v/', '/');
       response = await axios.get(registryUrl);
@@ -326,8 +327,8 @@ async function downloadNpm(npmUrl:string){
     }
 
     const dresponse = await axios.get(tarballUrl, { responseType: 'stream' });
-    const tarballPath = `/tmp/${packageName}.tgz`;
-    const writer = fs.createWriteStream(tarballPath);
+    const tarballPath = path.join(tempDir, `${packageName}.tgz`); // /tmp/npm-/packageName.tgz
+    const writer = fs.createWriteStream(tarballPath); //write tarball to /tmp/npm-/packageName.tgz
     dresponse.data.pipe(writer);
 
     await new Promise((resolve, reject) => {
@@ -336,23 +337,28 @@ async function downloadNpm(npmUrl:string){
     });
 
     // Step 2: Extract the tarball
-    const extractPath = `/tmp/${packageName}`;
-    await tar.x({
+    const extractPath = path.join(tempDir, packageName);  //extractPath = /tmp/npm-/packageName
+
+    if (!fs.existsSync(extractPath)) {
+      fs.mkdirSync(extractPath, { recursive: true });
+    }
+
+    await tar.x({   //extract tarball to /tmp/npm-/packageName
       file: tarballPath,
       cwd: extractPath,
     });
 
-    const zipPath = `/tmp/${packageName}.zip`;
+    const zipPath = path.join(tempDir, `${packageName}.zip`); // /tmp/npm-/packageName.zip
     const output = fs.createWriteStream(zipPath);
     const archive = archiver('zip', {
       zlib: { level: 9 },
     });
 
     archive.pipe(output);
-    archive.directory(extractPath, false);
+    archive.directory(extractPath, false);  //zip from /tmp/npm-/packageName to /tmp/npm-/packageName.zip
     await archive.finalize();
 
-    let base64content = fs.readFileSync(zipPath).toString('base64');
+    let base64content = fs.readFileSync(zipPath).toString('base64');  //read from /tmp/npm-/packageName.zip to content
 
     uploadToS3(zipPath, BUCKET_NAME, `${packageName}-${version}`);
     await cleanupTempFiles(tarballPath);
