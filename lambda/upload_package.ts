@@ -327,28 +327,26 @@ async function downloadNpm(npmUrl:string){
     }
 
     const dresponse = await axios.get(tarballUrl, { responseType: 'stream' });
-    const tarballPath = path.join(tempDir, `${packageName}.tgz`); // /tmp/npm-/packageName.tgz
+    const tarballPath = path.join(tempDir, `package.tgz`); // /tmp/npm-/packageName.tgz
     const writer = fs.createWriteStream(tarballPath); //write tarball to /tmp/npm-/packageName.tgz
     dresponse.data.pipe(writer);
 
     await new Promise((resolve, reject) => {
+      dresponse.data.pipe(writer);
       writer.on('finish', resolve);
       writer.on('error', reject);
     });
 
     // Step 2: Extract the tarball
-    const extractPath = path.join(tempDir, packageName);  //extractPath = /tmp/npm-/packageName
-
-    if (!fs.existsSync(extractPath)) {
-      fs.mkdirSync(extractPath, { recursive: true });
-    }
-
-    await tar.x({   //extract tarball to /tmp/npm-/packageName
-      file: tarballPath,
-      cwd: extractPath,
+    const extractPath = path.join(tempDir, 'package');  //extractPath = /tmp/npm-/packageName
+    await fs.promises.mkdir(extractPath);
+    await tar.x({
+        file: tarballPath,
+        cwd: extractPath,
     });
+    
 
-    const zipPath = path.join(tempDir, `${packageName}.zip`); // /tmp/npm-/packageName.zip
+    const zipPath = path.join(tempDir, `package.zip`); // /tmp/npm-/packageName.zip
     const output = fs.createWriteStream(zipPath);
     const archive = archiver('zip', {
       zlib: { level: 9 },
@@ -358,13 +356,18 @@ async function downloadNpm(npmUrl:string){
     archive.directory(extractPath, false);  //zip from /tmp/npm-/packageName to /tmp/npm-/packageName.zip
     await archive.finalize();
 
+    await new Promise((resolve, reject) => {
+      output.on('finish', resolve);
+      output.on('error', reject);
+  });
+
     let base64content = fs.readFileSync(zipPath).toString('base64');  //read from /tmp/npm-/packageName.zip to content
 
-    uploadToS3(zipPath, BUCKET_NAME, `${packageName}-${version}`);
+    await uploadToS3(zipPath, BUCKET_NAME, `${packageName}-${version}`);
     await cleanupTempFiles(tarballPath);
     await cleanupTempFiles(extractPath);
     await cleanupTempFiles(zipPath);
-    uploadDB(generatePackageId(packageName, version), packageName, version, '', npmUrl);
+    await uploadDB(generatePackageId(packageName, version), packageName, version, '', npmUrl);
     return [generatePackageId(packageName, version), packageName, version, npmUrl, base64content];
   } catch (error) {
     console.log('Error downloading npm package:', error);
