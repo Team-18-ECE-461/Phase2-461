@@ -88,7 +88,7 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
       if(url && url.includes('npm')){
         [packagePath, version, packagedebloatName] = await downloadAndExtractNpmPackage(url, tempDir);
       }
-      
+
       else if(content){
         packagePath = await extractBase64ZipContent(content, tempDir);
         packagedebloatName = name;
@@ -168,13 +168,31 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
       let tversion: string;
       const tempDir = await fs.promises.mkdtemp(path.join(tmpdir(), 'package-'));
       [zippath, tname, tversion] = await downloadAndExtractNpmPackage(url, tempDir);
+      let uploadkey = `${tname}-${tversion}`;
       const outputZipPath = path.join(tempDir, 'output.zip');
       await zipFolder(zippath, outputZipPath);
       zipBuffer = fs.readFileSync(outputZipPath);
-      //base64Zip = zipBuffer.toString('base64');
-      // await uploadToS3(outputZipPath, BUCKET_NAME, uploadkey);
+      base64Zip = zipBuffer.toString('base64');
+      const idid = generatePackageId(tname, tversion);
+      await uploadToS3(outputZipPath, BUCKET_NAME, uploadkey);
       await cleanupTempFiles(tempDir);
-      //await uploadDB(debloatID, packageName, packageVersion, JSProgram, url);
+      await uploadDB(idid, tname, tversion, JSProgram, url);
+      return {
+        statusCode: 201,
+        body: JSON.stringify({
+          metadata: {
+            Name: tname,
+            Version: tversion,
+            ID: idid,
+          },
+          data: {
+            Content: base64Zip,
+            URL: url, 
+            JSProgram: JSProgram,
+          },
+        }),
+      };
+    
     }
       
     if (content) {
