@@ -85,9 +85,10 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
 
     if(debloat){
       const tempDir = await fs.promises.mkdtemp(path.join(tmpdir(), 'package-')); 
-      if(url){
+      if(url && url.includes('npm')){
         [packagePath, version, packagedebloatName] = await downloadAndExtractNpmPackage(url, tempDir);
       }
+      
       else if(content){
         packagePath = await extractBase64ZipContent(content, tempDir);
         packagedebloatName = name;
@@ -158,8 +159,24 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
   }
 
   else{ //no debloat
-    // Retrieve zip file contents
     let zipBuffer: Buffer;
+    let base64Zip: string;
+    // Retrieve zip file contents
+    if(url && url.includes('npm')){
+      let zippath: string;
+      let tname: string;
+      let tversion: string;
+      const tempDir = await fs.promises.mkdtemp(path.join(tmpdir(), 'package-'));
+      [zippath, tname, tversion] = await downloadAndExtractNpmPackage(url, tempDir);
+      const outputZipPath = path.join(tempDir, 'output.zip');
+      await zipFolder(zippath, outputZipPath);
+      zipBuffer = fs.readFileSync(outputZipPath);
+      //base64Zip = zipBuffer.toString('base64');
+      // await uploadToS3(outputZipPath, BUCKET_NAME, uploadkey);
+      await cleanupTempFiles(tempDir);
+      //await uploadDB(debloatID, packageName, packageVersion, JSProgram, url);
+    }
+      
     if (content) {
       zipBuffer = Buffer.from(content, 'base64');
     }
@@ -193,8 +210,8 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
       const packageJsonContent = await (packageJsonFile as JSZIP.JSZipObject).async('string');
       const packageInfo = JSON.parse(packageJsonContent);
 
-      packageName = packageInfo.name || 'Undefined';
-      packageVersion = packageInfo.version || '1.0.0';
+      packageName = packageInfo.name 
+      packageVersion = packageInfo.version
     }
 
     // Generate package ID
@@ -262,7 +279,8 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
   }
   
 
-  } catch (error) {
+   
+}catch (error) {
     console.error('Error processing request:', error);
     return {
       statusCode: 500,
@@ -280,13 +298,26 @@ function versionInt(version: string): number{
 
 async function downloadAndExtractNpmPackage(npmUrl: string, destination: string): Promise<any> {
   // Convert npm URL to registry API URL
-  const packageName = npmUrl.split('/').pop();
-  const registryUrl = `https://registry.npmjs.org/${packageName}`;
+  let registryUrl = npmUrl
+  let response;
+  let tarballUrl;
+  let version;
+  let packageName;
+  if (npmUrl.includes( '/v/')){
+     registryUrl = npmUrl.replace('https://www.npmjs.com/package/', 'https://registry.npmjs.org/').replace('/v/', '/');
+     response = await axios.get(registryUrl);
+     version = npmUrl.split('/v/')[1];
+     packageName = response.data.name;
+     tarballUrl = response.data.dist.tarball;
+    }
+  else{
+      registryUrl = npmUrl.replace('https://www.npmjs.com/package/', 'https://registry.npmjs.org/');
+      response = await axios.get(registryUrl);
+      version = response.data['dist-tags'].latest;
+      tarballUrl = response.data.versions[version].dist.tarball;
+      packageName = response.data.name
 
-  // Fetch package metadata
-  const response = await axios.get(registryUrl);
-  const latestVersion = response.data['dist-tags'].latest;
-  const tarballUrl = response.data.versions[latestVersion].dist.tarball;
+  }
 
   // Download the tarball
   const tarballPath = path.join(destination, 'package.tgz');
@@ -300,7 +331,7 @@ async function downloadAndExtractNpmPackage(npmUrl: string, destination: string)
 
   // Extract tarball
   await tar.extract({ file: tarballPath, cwd: destination });
-  return [path.join(destination, 'package'), latestVersion, packageName]; // Adjust this based on the extracted directory structure
+  return [path.join(destination, 'package'), packageName, version]; // Adjust this based on the extracted directory structure
 }
 
 
