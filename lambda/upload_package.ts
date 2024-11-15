@@ -166,24 +166,15 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
       let zippath: string;
       let tname: string;
       let tversion: string;
-      const tempDir = await fs.promises.mkdtemp(path.join(tmpdir(), 'package-'));
-      [zippath, tname, tversion] = await downloadAndExtractNpmPackage(url, tempDir);
-      let uploadkey = `${tname}-${tversion}`;
-      const outputZipPath = path.join(tempDir, 'output.zip');
-      await zipFolder(zippath, outputZipPath);
-      zipBuffer = fs.readFileSync(outputZipPath);
-      base64Zip = zipBuffer.toString('base64');
-      const idid = generatePackageId(tname, tversion);
-      await uploadToS3(outputZipPath, BUCKET_NAME, uploadkey);
-      await cleanupTempFiles(tempDir);
-      await uploadDB(idid, tname, tversion, JSProgram, url);
+      let tid
+      [tid, tname, tversion, url, base64Zip] = await downloadNpm(url);
       return {
         statusCode: 201,
         body: JSON.stringify({
           metadata: {
             Name: tname,
             Version: tversion,
-            ID: idid,
+            ID: tid,
           },
           data: {
             Content: base64Zip,
@@ -312,7 +303,69 @@ function versionInt(version: string): number{
   const [major, minor, patch] = version.split('.').map(Number);
   return major * 1000000 + minor * 1000 + patch;
 }
+async function downloadNpm(npmUrl:string){
+  try {let registryUrl = npmUrl
+    let response;
+    let tarballUrl;
+    let version;
+    let packageName;
+    if (npmUrl.includes( '/v/')){
+      registryUrl = npmUrl.replace('https://www.npmjs.com/package/', 'https://registry.npmjs.org/').replace('/v/', '/');
+      response = await axios.get(registryUrl);
+      version = npmUrl.split('/v/')[1];
+      packageName = response.data.name;
+      tarballUrl = response.data.dist.tarball;
+      }
+    else{
+        registryUrl = npmUrl.replace('https://www.npmjs.com/package/', 'https://registry.npmjs.org/');
+        response = await axios.get(registryUrl);
+        version = response.data['dist-tags'].latest;
+        tarballUrl = response.data.versions[version].dist.tarball;
+        packageName = response.data.name
 
+    }
+
+    const dresponse = await axios.get(tarballUrl, { responseType: 'stream' });
+    const tarballPath = `/tmp/${packageName}.tgz`;
+    const writer = fs.createWriteStream(tarballPath);
+    dresponse.data.pipe(writer);
+
+    await new Promise((resolve, reject) => {
+      writer.on('finish', resolve);
+      writer.on('error', reject);
+    });
+
+    // Step 2: Extract the tarball
+    const extractPath = `/tmp/${packageName}`;
+    await tar.x({
+      file: tarballPath,
+      cwd: extractPath,
+    });
+
+    const zipPath = `/tmp/${packageName}.zip`;
+    const output = fs.createWriteStream(zipPath);
+    const archive = archiver('zip', {
+      zlib: { level: 9 },
+    });
+
+    archive.pipe(output);
+    archive.directory(extractPath, false);
+    await archive.finalize();
+
+    let base64content = fs.readFileSync(zipPath).toString('base64');
+
+    uploadToS3(zipPath, BUCKET_NAME, `${packageName}-${version}`);
+    await cleanupTempFiles(tarballPath);
+    await cleanupTempFiles(extractPath);
+    await cleanupTempFiles(zipPath);
+    uploadDB(generatePackageId(packageName, version), packageName, version, '', npmUrl);
+    return [generatePackageId(packageName, version), packageName, version, npmUrl, base64content];
+  } catch (error) {
+    console.log('Error downloading npm package:', error);
+    throw error;
+  }
+}
+ 
 
 async function downloadAndExtractNpmPackage(npmUrl: string, destination: string): Promise<any> {
   // Convert npm URL to registry API URL
@@ -339,6 +392,7 @@ async function downloadAndExtractNpmPackage(npmUrl: string, destination: string)
 
   // Download the tarball
   const tarballPath = path.join(destination, 'package.tgz');
+  
   const writer = fs.createWriteStream(tarballPath);
   const downloadResponse = await axios.get(tarballUrl, { responseType: 'stream' });
   await new Promise((resolve, reject) => {
@@ -346,6 +400,8 @@ async function downloadAndExtractNpmPackage(npmUrl: string, destination: string)
       writer.on('finish', resolve);
       writer.on('error', reject);
   });
+
+  console.log(downloadResponse);
 
   // Extract tarball
   await tar.extract({ file: tarballPath, cwd: destination });
