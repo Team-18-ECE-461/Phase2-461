@@ -224,33 +224,62 @@ async function handleUpdatePackage(event: LambdaEvent) {
     };
   }
   else{
-    let zipBuffer: Buffer;
-    if (content) {
-      zipBuffer = Buffer.from(content, 'base64');
+
+    //let zipBuffer: Buffer;
+    let registryUrl = '';
+    let tarballUrl = '';
+    let response;
+    let zippath = '';
+    let tname, tversion;
+    if(url && url.includes('npm')){
+     
+        const tempDir = await fs.promises.mkdtemp(path.join(tmpdir(), 'package-'));
+        [zippath, tname, tversion] = await downloadAndExtractNpmPackage(url, tempDir, packageName, packageVersion);
+        const outputZipPath = path.join(tempDir, 'output.zip');
+        await zipFolder(zippath, outputZipPath);
+        const uploadkey = `${packageName}-${packageVersion}`;
+        const debloatID = generatePackageId(packageName, packageVersion);
+        const zipBuffer = fs.readFileSync(outputZipPath);
+        const base64Zip = zipBuffer.toString('base64');
+        await uploadToS3(outputZipPath, BUCKET_NAME, uploadkey);
+        await cleanupTempFiles(tempDir);
+        await uploadDB(debloatID, packageName, packageVersion, JSProgram, url);
+        return {
+          statusCode: 200,
+          body: "Package updated successfully",
+        };
+      
     }
-   else if (url) {
-      url = await urlhandler(url);
-      const response = await axios.get(`${url}/archive/refs/heads/main.zip`, { responseType: 'arraybuffer' });
-      zipBuffer = Buffer.from(response.data);
-    } else { 
-      throw new Error('No content or URL provided');
+    else{
+      let zipBuffer: Buffer;
+      if (content) {
+        zipBuffer = Buffer.from(content, 'base64');
+      }
+      else if (url) {
+        url = await urlhandler(url);
+        const response = await axios.get(`${url}/archive/refs/heads/main.zip`, { responseType: 'arraybuffer' });
+        zipBuffer = Buffer.from(response.data);
+      } else { 
+        throw new Error('No content or URL provided');
+      }
+
+      const packageId = generatePackageId(packageName, packageVersion);
+      let key = `${packageName}-${packageVersion}`;
+      await s3.putObject({
+        Bucket: BUCKET_NAME,
+        Key: key,
+        Body: zipBuffer,
+        ContentType: 'application/zip',
+      });
+      uploadDB(packageId, packageName, packageVersion, JSProgram, url);   
+      return {
+        statusCode: 200,
+        body: "Package updated successfully",
+      }; 
     }
 
-    const packageId = generatePackageId(packageName, packageVersion);
-    let key = `${packageName}-${packageVersion}`;
-    await s3.putObject({
-      Bucket: BUCKET_NAME,
-      Key: key,
-      Body: zipBuffer,
-      ContentType: 'application/zip',
-    });
-    uploadDB(packageId, packageName, packageVersion, JSProgram, url);   
-    return {
-      statusCode: 200,
-      body: "Package updated successfully",
-    }; 
-
-  }
+  
+}
   }
 
   catch (error) {
@@ -459,12 +488,7 @@ async function urlhandler(url:string){
         tarballUrl = response.data.versions[latestVersion].dist.tarball;
 
     }
-   
-    
-    // Fetch package metadata
-    
-    
-    
+  
   
     // Download the tarball
     const tarballPath = path.join(destination, 'package.tgz');
