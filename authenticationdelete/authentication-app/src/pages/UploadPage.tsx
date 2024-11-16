@@ -1,12 +1,10 @@
 // pages/UploadPage.tsx
 import React, { useState } from 'react';
-
 import './UploadPage.css';
 
 const UploadPage: React.FC = () => {
   const [packageName, setPackageName] = useState<string>('');
   const [version, setVersion] = useState<string>('');
-  const [url, setUrl] = useState<string>('');
   const [file, setFile] = useState<File | null>(null);
   const [debloat, setDebloat] = useState<boolean>(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -14,18 +12,10 @@ const UploadPage: React.FC = () => {
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
 
-    if (packageName === '' || version === '') {
-      setMessage('Please fill out all fields.');
-      return;
-    }
-    if (url !== '') {
-      setMessage('Please upload a package file or provide a URL, not both.');
-      return;
-    }
+  
+    // Here you’d typically send data to your server or backend API
     if (file) {
       // Mock successful submission
-      //call API to upload package
-
       setMessage(`Package "${packageName}" uploaded successfully!`);
     } else {
       setMessage('Please upload a valid package file.');
@@ -64,15 +54,6 @@ const UploadPage: React.FC = () => {
           />
         </label>
 
-        <label>
-          Package Url:
-          <input
-            type="text"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            required
-          />
-        </label>
         <label>
           Package File:
           <input type="file" onChange={handleFileChange} accept=".zip" required />

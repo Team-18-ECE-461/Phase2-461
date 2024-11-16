@@ -14,7 +14,8 @@ interface LambdaEvent {
 
 export const lambdaHandler = async (event: LambdaEvent) => {
     const body = JSON.parse(event.body);
-    const offset = event.queryStringParameters || {}; 
+    const soff = event.queryStringParameters.offset || {}; 
+    const offset = Number(soff);
     let totalresults = []
     const limit = 10
 
@@ -87,7 +88,7 @@ function buildParams(name: string, versionSchema: string, offset: any, limit: nu
         let params2 = {
             TableName: TABLE_NAME,
             Limit: limit,
-            FilterExpression: "VersionInt >= :start AND VersionInt <= :end",
+            FilterExpression: "VersionInt >= :start AND VersionInt < :end",
             ExpressionAttributeValues: {
                 ':name': { S: name },
                 ':start': { N: start.toString() },
@@ -123,7 +124,7 @@ function buildParams(name: string, versionSchema: string, offset: any, limit: nu
         let params2 = {
             TableName: TABLE_NAME,
             Limit: limit,
-            FilterExpression: "VersionInt >= :start AND VersionInt <= :end",
+            FilterExpression: "VersionInt >= :start AND VersionInt < :end",
             ExpressionAttributeValues: {
                 ':name': { S: name },
                 ':start': { N: start.toString() },
