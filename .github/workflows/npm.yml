@@ -31,6 +31,7 @@ jobs:
           cd lambda
           npm install
           cd ..
+          cd metrics
           npm install
 
       # - name: Install Authentication App Dependencies
@@ -53,7 +54,8 @@ jobs:
           zip -r upload.zip upload_package.js node_modules 
           zip -r function.zip packagesubendpoints.js node_modules
           cd ..
-          zip -r metrics.zip metrics/*.js node_modules
+          cd metrics
+          zip -r metrics.zip *.js node_modules
 
       - name: Update LambdaFunction_PackageUpload
         env:
@@ -100,7 +102,7 @@ jobs:
           retries=5
           delay=10
           for ((i=0; i<retries; i++)); do
-            if aws lambda update-function-code --function-name metrics --zip-file fileb://metrics.zip; then
+            if aws lambda update-function-code --function-name metrics --zip-file fileb://metrics/metrics.zip; then
               echo "Update successful for metrics"
               break
             else
