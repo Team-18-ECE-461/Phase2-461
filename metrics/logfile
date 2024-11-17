@@ -1,0 +1,19 @@
+1
+Table created successfully
+https://www.npmjs.com/package/browserify
+Inserted data into table.
+Processing link in db at index: 1
+Extracting owner and repo from URL: https://github.com/facebook/react
+Extracted owner: "facebook", repo: "react"
+Package name not found in package.json.
+Default branch for facebook/react is main
+package.json file found: C:\Users\kparv\Downloads\ece-461-actuallyusethis\Phase2-461\metrics\temp-repo-facebook-react-1731427489953\compiler\apps\playground\package.json
+package.json file found: C:\Users\kparv\Downloads\ece-461-actuallyusethis\Phase2-461\metrics\temp-repo-facebook-react-1731427489953\compiler\crates\react_napi\package.json
+License information found in package.json: C:\Users\kparv\Downloads\ece-461-actuallyusethis\Phase2-461\metrics\temp-repo-facebook-react-1731427489953\compiler\crates\react_napi\package.json
+{"top3":303,"commits/yr":2168,"downloads":0,"iss3":112,"iss7":30,"iss14":11,"iss31":9,"issuesClosed6mth":375,"issuesClosedYr":1000,"License":1,"issuesOpenedYr":718}
+Updated table.
+URL handling done
+{"id":1,"url":"https://www.npmjs.com/package/react","information":"{\"top3\":303,\"commits/yr\":2168,\"downloads\":0,\"iss3\":112,\"iss7\":30,\"iss14\":11,\"iss31\":9,\"issuesClosed6mth\":375,\"issuesClosedYr\":1000,\"License\":1,\"issuesOpenedYr\":718}","metrics":null}Updated table.
+Metrics done
+Outputting metrics for url at index: 1
+Database connection closed.
