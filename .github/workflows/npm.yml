@@ -31,6 +31,7 @@ jobs:
           cd lambda
           npm install
           cd ..
+          npm install
           cd metrics
           npm install
 
