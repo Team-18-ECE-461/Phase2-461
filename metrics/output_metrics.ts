@@ -3,6 +3,7 @@ import Database from 'better-sqlite3';
 import { RowInfo } from './calc_metrics';
 import { EventEmitter  } from 'stream';
 import { fstat } from 'fs';
+import { JSONOutput } from '@aws-sdk/client-s3';
 
 /**
  * Class representing output metrics functionality.
@@ -61,6 +62,7 @@ export class OutputMetrics extends EventEmitter {
                         ...formattedMetrics
                     };
                     console.log(JSON.stringify(output));
+                    return JSON.stringify(output);
                 });
             } else {
                 console.log('No data found in the database.');

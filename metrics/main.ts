@@ -8,6 +8,13 @@ import { UrlHandler } from './url_handler'
 import fs from 'fs'
 import path from 'path'
 import { log } from 'console'
+import JSZIP from 'jszip';
+import { S3, GetObjectCommand } from '@aws-sdk/client-s3';
+import { DynamoDBClient, GetItemCommand, PutItemCommand, DeleteItemCommand, QueryCommand } from '@aws-sdk/client-dynamodb';
+const s3 = new S3();
+const dynamoDBclient = new DynamoDBClient({});
+const BUCKET_NAME = 'packagesstorage';
+const TABLE_NAME = 'PackageInfo';
 
 
 // Getting environment variables for logfile and logLvl
@@ -56,10 +63,107 @@ async function processUrl(line: string, index: number) {
 }
 interface LamdaEvent {
     body: string;
+    pathParameters: { id: string },
 }
 
 
-exports.handler = async (event: LamdaEvent) => {
+exports.lambdaHandler = async (event: LamdaEvent) => {
+    let body = JSON.parse(event.body);
+    const packageId =event.pathParameters.id;
+    try {
+        if (!packageId) {
+            return { statusCode: 400, body: JSON.stringify({ message: 'Invalid request' }) };
+        }
+        const params = {
+          TableName: TABLE_NAME,               // The DynamoDB table to query
+          IndexName: "ID-index",               // Specify the GSI name here
+          KeyConditionExpression: "ID = :id",  // Search for items where ID equals a specific value
+          ExpressionAttributeValues: { 
+              ":id": { S: packageId },         // The actual value for the ID (a string type in this case)
+          },
+      };
+
+      const result = await dynamoDBclient.send(new QueryCommand(params));
+        const items = result.Items;
+        let packageVersion = 'No version';
+        let packageName = 'No name';
+        let JSProgram = 'No JSProgram';
+        let packageURL = 'No URL';
+        
+        if (!items || items.length === 0) {
+          return { statusCode: 404, body: JSON.stringify({ message: 'Package not found' }) };
+        }
+
+
+
+        items.forEach((item) => {
+            packageVersion = item.Version.S? item.Version.S : 'No version';
+            packageName = item.Name.S? item.Name.S : 'No name';
+            //JSProgram = item.JSProgram.S? item.JSProgram.S : 'No JSProgram';
+            packageURL = item.URL.S? item.URL.S : 'No URL';
+        });
+
+        if(packageVersion === 'No version' || packageName === 'No name') {
+            return { statusCode: 404, body: JSON.stringify({ message: 'package not found' }) };
+        }
+
+        if(packageURL.length > 0) {
+            line = packageURL;
+        }
+
+       else{
+        const s3Client = new S3();
+        const key = `${packageName}-${packageVersion}`;
+        const param = {
+            Bucket: BUCKET_NAME,
+            Key: key
+          };
+      
+        let buffer = Buffer.from('');
+        const data = await s3Client.send(new GetObjectCommand(param));
+        if(data && data.Body) {
+            const stream = data.Body as NodeJS.ReadableStream;
+            const chunks: Buffer[] = [];
+            let done, value;
+             // Collect data chunks from the stream
+            for await (const chunk of stream[Symbol.asyncIterator]()) {
+              chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+            }
+            buffer = Buffer.concat(chunks);
+        }
+        else{
+            return { statusCode: 404, body: JSON.stringify({ message: 'package not found' }) };
+        }
+
+        const zip = await JSZIP.loadAsync(buffer);
+        //content  = zipBuffer.toString('base64');
+
+        let tpackageJsonFile: JSZIP.JSZipObject | null = null;
+        zip.forEach((relativePath, file) => {
+        if (relativePath.endsWith('package.json')) {
+        tpackageJsonFile = zip.file(relativePath); // Capture the relative path to package.json
+        }
+        });
+        const packageJsonFile = tpackageJsonFile;
+
+        if(packageJsonFile){
+            const packageJsonContent = await (packageJsonFile as JSZIP.JSZipObject).async('string');
+            const packageInfo = JSON.parse(packageJsonContent);
+            let packageURL = packageInfo.repository.url;
+        }
+        else{
+            return { statusCode: 404, body: JSON.stringify({ message: 'packageJSON not found' }) };
+        }
+        line = packageURL;
+
+       }
+    } catch (error) {
+        console.error("Error during execution:", error);
+        return { statusCode: 500, body: "Execution failed" };
+    }
+
+    
+
     try {
         await processUrl(line, index);
         console.log("Process completed.");
@@ -72,105 +176,3 @@ exports.handler = async (event: LamdaEvent) => {
 
 
 
-// Creating new manager class to run the program
-//const manager = new Manager(fp, +logLvl);
-
-
-
-// Registering process command that takes a file and begins the scoring process for the urls
-// manager.registerCommand('process', 'Process a file of URLs for scoring', async(args) => {
-//     if(process.env.GITHUB_TOKEN as string == "") {
-//         console.error("No github token given");
-//         process.exit(1);
-//     }
-//     if (args.file) {
-//         const filePath = args.file;
-//         const data = fs.readFileSync(filePath, 'utf8');
-
-//         // Split url file into array of urls
-//         const lines = data.split('\n');
-//         // New connection
-//         const db = database.createConnection(fp, +logLvl);
-
-//         // New calculator
-//         const metric_calc = new Metrics(db, fp, +logLvl);
-//         if(+logLvl == 2) { 
-//             fs.writeFileSync(fp, `${lines.length}\n`);
-//         }
-        
-//         // New outputter
-//         const output_metrics = new OutputMetrics(db, lines.length, fp, +logLvl);
-
-//         // New url handler
-//         const urlHandler = new UrlHandler(db, fp, +logLvl);
-
-//         // New controller for concurrency
-//         //const controller = new Controller(manager, metric_calc, output_metrics, urlHandler, fp, +logLvl);
-//         database.createTable(db, fp, +logLvl);
-        
-//         // For each url, add it to the database and then using events, begin the process
-//         for (const [index, line] of lines.entries()) {
-//             if (+logLvl === 2) {
-//                 fs.writeFileSync(fp, `${line}\n`);
-//             }
-//             if (line !== "") {
-//                 await database.addEntry(db, line, fp, +logLvl);
-//                 await urlHandler.main(index + 1);
-//                 await metric_calc.calc(index + 1);
-//                 await output_metrics.output_Metrics(index + 1);
-//             }
-//         }
-        
-//     } else {
-//         fs.closeSync(fp);
-//         console.error('No file specified.');
-//         process.exit(1);
-//     }
-    
-    
-// });
-
-// // Register command for when test is invoked. Runs test suite using jest and outputs to stdout based on requested format
-// manager.registerCommand('test', 'Test suite', () => {
-//     exec('npx jest --silent --coverage --detectOpenHandles > jest-output.txt 2>&1', (error, stderr, stdout) => {
-//         // Read the Jest output from the file
-//         const jestOutput = fs.readFileSync('jest-output.txt', 'utf8');
-        
-//         // Extract the line coverage percentage from the output
-//         const allFilesLine = jestOutput.split('\n').find(line => line.startsWith('All files'));
-//         let lineCoverage = 0;
-
-//         if (allFilesLine) {
-//             const lineCoverageMatch = allFilesLine.match(/\s+(\d+\.\d+)\s+\|\s+\d+\.\d+\s+\|\s+\d+\.\d+\s+\|\s+(\d+\.\d+)\s+\|/);
-//             if (lineCoverageMatch && lineCoverageMatch[2]) {
-//                 lineCoverage = parseFloat(lineCoverageMatch[2]);
-//             }
-//         }
-
-//         // Extract total tests and passed tests from the Jest output
-//         const testsLine = jestOutput.split('\n').find(line => line.startsWith('Tests:'));
-//         let totalTests = 0;
-//         let passedTests = 0;
-//         if (testsLine) {
-//             const testsMatch = testsLine.match(/Tests:\s+(\d+)\s+passed,\s+(\d+)\s+total/);
-//             if (testsMatch) {
-//                 passedTests = parseInt(testsMatch[1], 10);
-//                 totalTests = parseInt(testsMatch[2], 10);
-//             }
-//         }
-
-//         // Output the results in the format: "X/Y test cases passed. Z% line coverage achieved."
-//         console.log(`Total: ${totalTests}`);
-//         console.log(`Passed: ${passedTests}`);
-//         console.log(`Coverage: ${lineCoverage.toFixed(0)}%`);
-//         console.log(`${passedTests}/${totalTests} test cases passed. ${lineCoverage.toFixed(0)}% line coverage achieved.`);
-//     });
-// });
-
-
-// console.log("here")
-// // Executes either test or process and if neither are somehow called, it will print the available commands
-// let newArgs = [...process.argv, 'process', 'URL_FILE']
-// console.log(newArgs);
-// console.log("here")
-// manager.execute(newArgs);

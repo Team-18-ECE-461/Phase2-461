@@ -56,35 +56,37 @@ export class Controller extends EventEmitter {
          * Outputs:
          * - None
          */
-        this.manger.on('startProcessing', (index: number) => {
-            if(this.loglvl == 1 || this.loglvl == 2) {
-                fs.writeFileSync(this.fp, `Processing link in db at index: ${index}\n`); // console.log(`Processing link in db at index: ${index}`);
-            }
-            this.urlHandler.main(index);
-        });
+
+        // this.manger.on('startProcessing', (index: number) => {
+        //     if(this.loglvl == 1 || this.loglvl == 2) {
+        //         fs.writeFileSync(this.fp, `Processing link in db at index: ${index}\n`); // console.log(`Processing link in db at index: ${index}`);
+        //     }
+        //     this.urlHandler.main(index);
+        // });
         
-        this.metrics.on('done', (index: number) => {
-            if(this.loglvl == 1 || this.loglvl == 2)  {
-                fs.writeFileSync(this.fp, `Metrics done\n`); // console.log(`Metrics done`);
-            }
-            this.outputMetrics.output_Metrics(index);
+        // this.metrics.on('done', (index: number) => {
+        //     if(this.loglvl == 1 || this.loglvl == 2)  {
+        //         fs.writeFileSync(this.fp, `Metrics done\n`); // console.log(`Metrics done`);
+        //     }
+        //     this.outputMetrics.output_Metrics(index);
             
-        });
-        this.urlHandler.on('done', (index: number) => {
-            if(this.loglvl == 1 || this.loglvl == 2)  {
-                fs.writeFileSync(this.fp, `URL handling done\n`); // console.log('URL handling done');
-            }
-            this.metrics.calc(index);
             
-        });
-        this.outputMetrics.on('done', (index: number) => {
-            if(this.loglvl == 1 || this.loglvl == 2)  {
-                fs.writeFileSync(this.fp, `Outputting metrics for url at index: ${index}\n`); // console.log(`Outputting metrics for url at index: ${index}`);
-            }
-        });
-        this.outputMetrics.on('close', (db: Database.Database) => {
-            database.closeConnection(db, this.fp, this.loglvl);
-            fs.closeSync(this.fp);
-        });
+        // });
+        // this.urlHandler.on('done', (index: number) => {
+        //     if(this.loglvl == 1 || this.loglvl == 2)  {
+        //         fs.writeFileSync(this.fp, `URL handling done\n`); // console.log('URL handling done');
+        //     }
+        //     this.metrics.calc(index);
+            
+        // });
+        // this.outputMetrics.on('done', (index: number) => {
+        //     if(this.loglvl == 1 || this.loglvl == 2)  {
+        //         fs.writeFileSync(this.fp, `Outputting metrics for url at index: ${index}\n`); // console.log(`Outputting metrics for url at index: ${index}`);
+        //     }
+        // });
+        // this.outputMetrics.on('close', (db: Database.Database) => {
+        //     database.closeConnection(db, this.fp, this.loglvl);
+        //     fs.closeSync(this.fp);
+        // });
     }
 }
