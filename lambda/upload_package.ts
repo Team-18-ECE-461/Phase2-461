@@ -89,6 +89,18 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
         [packagePath, version, packagedebloatName] = await downloadAndExtractNpmPackage(url, tempDir);
       }
 
+      if(url && url.includes('github')){
+        const [owner, repo]: [string, string] = parseGitHubUrl(url) as [string, string];
+        const response = await axios.get(`${url}/archive/refs/heads/main.zip`, { responseType: 'arraybuffer' });
+        const response2 = await axios.get(`https://api.github.com/repos/${owner}/${repo}/releases/latest`, {headers: { 'Accept': 'application/vnd.github.v3+json' }});
+        version = response2.data.tag_name || '1.0.0';
+        const zipBuffer = Buffer.from(response.data);
+        content = zipBuffer.toString('base64');
+        packagePath = await extractBase64ZipContent(content, tempDir);
+        packagedebloatName = name;
+        
+      }
+
       else if(content){
         packagePath = await extractBase64ZipContent(content, tempDir);
         packagedebloatName = name;
@@ -323,7 +335,6 @@ async function downloadNpm(npmUrl:string){
         version = response.data['dist-tags'].latest;
         tarballUrl = response.data.versions[version].dist.tarball;
         packageName = response.data.name
-
     }
 
     const dresponse = await axios.get(tarballUrl, { responseType: 'stream' });
@@ -340,10 +351,11 @@ async function downloadNpm(npmUrl:string){
     // Step 2: Extract the tarball
     const extractPath = path.join(tempDir, 'package');  //extractPath = /tmp/npm-/packageName
     await fs.promises.mkdir(extractPath);
-    await tar.x({
-        file: tarballPath,
-        cwd: extractPath,
-    });
+    // await tar.x({
+    //     file: tarballPath,
+    //     cwd: extractPath,
+    // });
+    await tar.extract({ file: tarballPath, cwd: extractPath });
     
 
     const zipPath = path.join(tempDir, `package.zip`); // /tmp/npm-/packageName.zip
@@ -372,6 +384,22 @@ async function downloadNpm(npmUrl:string){
   } catch (error) {
     console.log('Error downloading npm package:', error);
     throw error;
+  }
+}
+
+function parseGitHubUrl(url: string): [ owner: string, repo: string ] | null {
+  try {
+      const parsedUrl = new URL(url);
+      const pathSegments = parsedUrl.pathname.split('/').filter(Boolean);
+
+      if (pathSegments.length >= 2) {
+          const [owner, repo] = pathSegments;
+          return [ owner, repo.replace(/\.git$/, '') ]; // Remove ".git" if present
+      }
+      return null;
+  } catch (error) {
+      console.error('Invalid URL:', error);
+      return null;
   }
 }
  
@@ -410,7 +438,7 @@ async function downloadAndExtractNpmPackage(npmUrl: string, destination: string)
       writer.on('error', reject);
   });
 
-  console.log(downloadResponse);
+  //console.log(downloadResponse);
 
   // Extract tarball
   await tar.extract({ file: tarballPath, cwd: destination });
