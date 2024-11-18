@@ -91,17 +91,24 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
 
       if(url && url.includes('github')){
         const [owner, repo]: [string, string] = parseGitHubUrl(url) as [string, string];
-        const apiUrl = `https://api.github.com/repos/${owner}/${repo}`;
-        const response0 = await axios.get(apiUrl);
-        const branch = response0.data.default_branch;
-        const response = await axios.get(`${url}/archive/refs/heads/${branch}.zip`, { responseType: 'arraybuffer' });
-        // const response2 = await axios.get(`https://api.github.com/repos/${owner}/${repo}/releases/latest`, {headers: { 'Accept': 'application/vnd.github.v3+json' }});
-        // version = response2.data.tag_name.slice(1) || '1.0.0';
+        // const apiUrl = `https://api.github.com/repos/${owner}/${repo}`;
+        // const response0 = await axios.get(apiUrl);
+        // const branch = response0.data.default_branch;
+        // const response = await axios.get(`${url}/archive/refs/heads/${branch}.zip`, { responseType: 'arraybuffer' });
+        // // const response2 = await axios.get(`https://api.github.com/repos/${owner}/${repo}/releases/latest`, {headers: { 'Accept': 'application/vnd.github.v3+json' }});
+        // // version = response2.data.tag_name.slice(1) || '1.0.0';
+        // version = (await getVersionFromGithub(owner, repo)).slice(1) || '1.0.0';
+        // const zipBuffer = Buffer.from(response.data);
+        // content = zipBuffer.toString('base64');
+        // packagePath = await extractBase64ZipContent(content, tempDir, repo, branch);
+        // packagedebloatName = name;
+        packagePath = await downloadAndExtractGithubPackage(url, tempDir, owner, repo);
         version = (await getVersionFromGithub(owner, repo)).slice(1) || '1.0.0';
-        const zipBuffer = Buffer.from(response.data);
-        content = zipBuffer.toString('base64');
-        packagePath = await extractBase64ZipContent(content, tempDir, repo, branch);
+        if(!name){
+          name = repo;
+        }
         packagedebloatName = name;
+
         
       }
 
@@ -469,9 +476,35 @@ async function downloadAndExtractNpmPackage(npmUrl: string, destination: string)
 
   // Extract tarball
   await tar.extract({ file: tarballPath, cwd: destination });
-  return [path.join(destination, 'package'), packageName, version]; // Adjust this based on the extracted directory structure
+  return [path.join(destination, 'package'), version, packageName]; // Adjust this based on the extracted directory structure
 }
 
+async function downloadAndExtractGithubPackage(githubUrl: string, destination: string, owner: string, repo: string): Promise<string> {
+  const tarballUrl = `https://api.github.com/repos/${owner}/${repo}/tarball`;
+  const tarballPath = path.join(destination, 'package.tar.gz');
+  const writer = fs.createWriteStream(tarballPath);
+  const downloadResponse = await axios.get(tarballUrl, { responseType: 'stream' });
+  await new Promise((resolve, reject) => {
+      downloadResponse.data.pipe(writer);
+      writer.on('finish', resolve);
+      writer.on('error', reject);
+  });
+  await tar.extract({ file: tarballPath, cwd: destination });
+  
+  const extractedPath = path.join(destination);
+  const extractedFiles = await fs.promises.readdir(extractedPath);
+  const firstFolder = extractedFiles.find((file) => fs.statSync(path.join(extractedPath, file)).isDirectory());
+  
+  if (firstFolder) {
+    console.log('Found first folder:', firstFolder);
+    return path.join(extractedPath, firstFolder); // Return the path of the first folder
+  }
+
+  console.log('No first folder found');
+  return extractedPath // Adjust based on zip structure
+  //return path.join(destination); // Adjust this based on the extracted directory structure
+
+}
 
 function generatePackageId(name: string, version: string): string {
   const hash = crypto.createHash('sha256');
@@ -623,6 +656,16 @@ function getEntryPoint(packageJsonPath: string): string | null {
     return 'index.js';
   }
 
+  const sourceindexPath = path.join(path.dirname(packageJsonPath), 'source/index.js');
+  if (fs.existsSync(sourceindexPath)) {
+    return 'source/index.js';
+  }
+
+  const srcindexPath = path.join(path.dirname(packageJsonPath), 'src/index.js');
+  if (fs.existsSync(srcindexPath)) {
+    return 'src/index.js';
+  }
+
   // If index.js doesn't exist, check the bin category
   if (packageJson.bin && typeof packageJson.bin === 'object') {
     const binFiles = Object.values(packageJson.bin);
@@ -648,6 +691,11 @@ function getEntryPoint(packageJsonPath: string): string | null {
       return entryPoint;
     }
   }
+
+  if(packageJson.main){
+    return packageJson.main;
+  }
+
 
   
 
