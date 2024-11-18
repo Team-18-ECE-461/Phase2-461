@@ -91,18 +91,21 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
 
       if(url && url.includes('github')){
         const [owner, repo]: [string, string] = parseGitHubUrl(url) as [string, string];
-        const response = await axios.get(`${url}/archive/refs/heads/main.zip`, { responseType: 'arraybuffer' });
+        const apiUrl = `https://api.github.com/repos/${owner}/${repo}`;
+        const response0 = await axios.get(apiUrl);
+        const branch = response0.data.default_branch;
+        const response = await axios.get(`${url}/archive/refs/heads/${branch}.zip`, { responseType: 'arraybuffer' });
         const response2 = await axios.get(`https://api.github.com/repos/${owner}/${repo}/releases/latest`, {headers: { 'Accept': 'application/vnd.github.v3+json' }});
-        version = response2.data.tag_name || '1.0.0';
+        version = response2.data.tag_name.slice(1) || '1.0.0';
         const zipBuffer = Buffer.from(response.data);
         content = zipBuffer.toString('base64');
-        packagePath = await extractBase64ZipContent(content, tempDir);
+        packagePath = await extractBase64ZipContent(content, tempDir, repo, branch);
         packagedebloatName = name;
         
       }
 
       else if(content){
-        packagePath = await extractBase64ZipContent(content, tempDir);
+        packagePath = await extractBase64ZipContent(content, tempDir, name, 'main');
         packagedebloatName = name;
         version = '1.0.0';
 
@@ -503,17 +506,27 @@ async function createOptimizedZipStream(zipBuffer: Buffer, ignoredPatterns: any)
 
 
 
-async function extractBase64ZipContent(base64Content: string, destination: string): Promise<string> {
+async function extractBase64ZipContent(base64Content: string, destination: string, repo: string, branch: string): Promise<string> {
   const zipPath = path.join(destination, 'package.zip');
   const buffer = Buffer.from(base64Content, 'base64');
   await fs.promises.writeFile(zipPath, buffer);
 
   // Extract zip content
   await fs.createReadStream(zipPath)
-      .pipe(unzipper.Extract({ path: destination }))
+      .pipe(unzipper.Extract({ path: path.join(destination,'package') }))
       .promise();
 
-  return path.join(destination, 'package'); // Adjust based on zip structure
+  const extractedPath = path.join(destination, 'package');
+  const extractedFiles = await fs.promises.readdir(extractedPath);
+  const firstFolder = extractedFiles.find((file) => fs.statSync(path.join(extractedPath, file)).isDirectory());
+  
+  if (firstFolder) {
+    console.log('Found first folder:', firstFolder);
+    return path.join(extractedPath, firstFolder); // Return the path of the first folder
+  }
+
+  console.log('No first folder found');
+  return extractedPath // Adjust based on zip structure
 }
 
 async function zipFolder(source: string, out: string) {
