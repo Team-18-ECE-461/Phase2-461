@@ -69,7 +69,7 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
     let url = requestBody.URL;
     const JSProgram = requestBody.JSProgram;
     let name = requestBody.Name;
-    let debloat = requestBody.Debloat;
+    let debloat = requestBody.debloat;
 
     // Check if either content or url is set, but not both
     if ((!content && !url) || (content && url) || content && name.length === 0) {
@@ -95,8 +95,9 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
         const response0 = await axios.get(apiUrl);
         const branch = response0.data.default_branch;
         const response = await axios.get(`${url}/archive/refs/heads/${branch}.zip`, { responseType: 'arraybuffer' });
-        const response2 = await axios.get(`https://api.github.com/repos/${owner}/${repo}/releases/latest`, {headers: { 'Accept': 'application/vnd.github.v3+json' }});
-        version = response2.data.tag_name.slice(1) || '1.0.0';
+        // const response2 = await axios.get(`https://api.github.com/repos/${owner}/${repo}/releases/latest`, {headers: { 'Accept': 'application/vnd.github.v3+json' }});
+        // version = response2.data.tag_name.slice(1) || '1.0.0';
+        version = (await getVersionFromGithub(owner, repo)).slice(1) || '1.0.0';
         const zipBuffer = Buffer.from(response.data);
         content = zipBuffer.toString('base64');
         packagePath = await extractBase64ZipContent(content, tempDir, repo, branch);
@@ -317,6 +318,29 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
 function versionInt(version: string): number{
   const [major, minor, patch] = version.split('.').map(Number);
   return major * 1000000 + minor * 1000 + patch;
+}
+
+async function getVersionFromGithub(owner: string, repo: string): Promise<string> {
+  try {
+    // Attempt to fetch the latest release
+    const releaseUrl = `https://api.github.com/repos/${owner}/${repo}/releases/latest`;
+    const releaseResponse = await axios.get(releaseUrl);
+    return releaseResponse.data.tag_name; // or .name based on your preference
+} catch (error: any) { 
+    if (error.response?.status === 404) {
+        // Fallback to tags if no releases are found
+        console.warn(`No releases found. Falling back to tags.`);
+        const tagsUrl = `https://api.github.com/repos/${owner}/${repo}/tags`;
+        const tagsResponse = await axios.get(tagsUrl);
+        if (tagsResponse.data.length > 0) {
+            return tagsResponse.data[0].name; // Return the most recent tag
+        } else {
+            throw new Error(`No releases or tags found for ${owner}/${repo}.`);
+        }
+    } else {
+        throw error; // Re-throw for other errors
+    }
+}
 }
 async function downloadNpm(npmUrl:string){
   try {let registryUrl = npmUrl
