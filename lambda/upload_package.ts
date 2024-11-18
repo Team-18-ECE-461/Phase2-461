@@ -213,7 +213,13 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
       zipBuffer = Buffer.from(content, 'base64');
     }
    else if (url) {
-      const response = await axios.get(`${url}/archive/refs/heads/main.zip`, { responseType: 'arraybuffer' });
+      url = await urlhandler(url);
+      const [owner, repo]: [string, string] = parseGitHubUrl(url) as [string, string];
+      const apiUrl = `https://api.github.com/repos/${owner}/${repo}`;
+      const response0 = await axios.get(apiUrl);
+      const branch = response0.data.default_branch;
+      const response = await axios.get(`${url}/archive/refs/heads/${branch}.zip`, { responseType: 'arraybuffer' });
+      //const response = await axios.get(`${url}/archive/refs/heads/main.zip`, { responseType: 'arraybuffer' });
       zipBuffer = Buffer.from(response.data);
     } else {
       throw new Error('No content or URL provided');
