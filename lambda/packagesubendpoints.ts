@@ -232,7 +232,7 @@ async function handleUpdatePackage(event: LambdaEvent) {
     let response;
     let zippath = '';
     let tname, tversion;
-    if(url && url.includes('npm')){
+    if(url && url.includes('npmjs.com')){
      
         const tempDir = await fs.promises.mkdtemp(path.join(tmpdir(), 'package-'));
         [zippath, tname, tversion] = await downloadAndExtractNpmPackage(url, tempDir, packageName, packageVersion);
@@ -258,7 +258,11 @@ async function handleUpdatePackage(event: LambdaEvent) {
       }
       else if (url) {
         url = await urlhandler(url);
-        const response = await axios.get(`${url}/archive/refs/heads/main.zip`, { responseType: 'arraybuffer' });
+        const [owner, repo]: [string, string] = parseGitHubUrl(url) as [string, string];
+        const apiUrl = `https://api.github.com/repos/${owner}/${repo}`;
+        const response0 = await axios.get(apiUrl);
+        const branch = response0.data.default_branch;
+        const response = await axios.get(`${url}/archive/refs/heads/${branch}.zip`, { responseType: 'arraybuffer' });
         zipBuffer = Buffer.from(response.data);
       } else { 
         throw new Error('No content or URL provided');
@@ -365,6 +369,22 @@ async function checkValidVersionContent(version:string, mostRecentVersion:number
 
   // Otherwise, the incoming version is not valid
   return true;
+}
+
+function parseGitHubUrl(url: string): [ owner: string, repo: string ] | null {
+  try {
+      const parsedUrl = new URL(url);
+      const pathSegments = parsedUrl.pathname.split('/').filter(Boolean);
+
+      if (pathSegments.length >= 2) {
+          const [owner, repo] = pathSegments;
+          return [ owner, repo.replace(/\.git$/, '') ]; // Remove ".git" if present
+      }
+      return null;
+  } catch (error) {
+      console.error('Invalid URL:', error);
+      return null;
+  }
 }
 
 async function urlhandler(url:string){
