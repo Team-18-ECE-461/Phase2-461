@@ -256,7 +256,7 @@ async function handleUpdatePackage(event: LambdaEvent) {
       if (content) {
         zipBuffer = Buffer.from(content, 'base64');
       }
-      else if (url) {
+      else if (url && url.includes('github.com')) {
         url = await urlhandler(url);
         const [owner, repo]: [string, string] = parseGitHubUrl(url) as [string, string];
         const apiUrl = `https://api.github.com/repos/${owner}/${repo}`;
