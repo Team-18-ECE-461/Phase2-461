@@ -103,7 +103,7 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
         // packagePath = await extractBase64ZipContent(content, tempDir, repo, branch);
         // packagedebloatName = name;
         packagePath = await downloadAndExtractGithubPackage(url, tempDir, owner, repo);
-        version = (await getVersionFromGithub(owner, repo)).slice(1) || '1.0.0';
+        //version = (await getVersionFromGithub(owner, repo)).slice(1) || '1.0.0';
         if(!name){
           name = repo;
         }
@@ -187,10 +187,8 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
     // Retrieve zip file contents
     if(url && url.includes('npm')){
       let zippath: string;
-      let tname: string;
-      let tversion: string;
-      let tid
-      [tid, tname, tversion, url, base64Zip] = await downloadNpm(url);
+      
+      const [tid, tname, tversion, base64Zip] = await downloadNpm(url);
       return {
         statusCode: 201,
         body: JSON.stringify({
@@ -380,7 +378,7 @@ async function downloadNpm(npmUrl:string){
     const dresponse = await axios.get(tarballUrl, { responseType: 'stream' });
     const tarballPath = path.join(tempDir, `package.tgz`); // /tmp/npm-/packageName.tgz
     const writer = fs.createWriteStream(tarballPath); //write tarball to /tmp/npm-/packageName.tgz
-    dresponse.data.pipe(writer);
+   
 
     await new Promise((resolve, reject) => {
       dresponse.data.pipe(writer);
@@ -389,15 +387,14 @@ async function downloadNpm(npmUrl:string){
     });
 
     // Step 2: Extract the tarball
-    const extractPath = path.join(tempDir, 'package');  //extractPath = /tmp/npm-/packageName
+    const extractPath = path.join(tempDir, 'package');  //extractPath = /tmp/npm-/package
     await fs.promises.mkdir(extractPath);
     // await tar.x({
     //     file: tarballPath,
     //     cwd: extractPath,
     // });
-    await tar.extract({ file: tarballPath, cwd: extractPath });
+    await tar.extract({ file: tarballPath, cwd: tempDir });
     
-
     const zipPath = path.join(tempDir, `package.zip`); // /tmp/npm-/packageName.zip
     const output = fs.createWriteStream(zipPath);
     const archive = archiver('zip', {
@@ -420,7 +417,8 @@ async function downloadNpm(npmUrl:string){
     await cleanupTempFiles(extractPath);
     await cleanupTempFiles(zipPath);
     await uploadDB(generatePackageId(packageName, version), packageName, version, '', npmUrl);
-    return [generatePackageId(packageName, version), packageName, version, npmUrl, base64content];
+    let id = generatePackageId(packageName, version);
+    return [packageName, version, id, base64content];
   } catch (error) {
     console.log('Error downloading npm package:', error);
     throw error;
@@ -485,7 +483,7 @@ async function downloadAndExtractNpmPackage(npmUrl: string, destination: string)
   return [path.join(destination, 'package'), version, packageName]; // Adjust this based on the extracted directory structure
 }
 
-async function downloadAndExtractGithubPackage(githubUrl: string, destination: string, owner: string, repo: string): Promise<string> {
+async function downloadAndExtractGithubPackage(githubUrl: string, destination: string, owner: string, repo: string): Promise<any> {
   const tarballUrl = `https://api.github.com/repos/${owner}/${repo}/tarball`;
   const tarballPath = path.join(destination, 'package.tar.gz');
   const writer = fs.createWriteStream(tarballPath);
@@ -503,11 +501,32 @@ async function downloadAndExtractGithubPackage(githubUrl: string, destination: s
   
   if (firstFolder) {
     console.log('Found first folder:', firstFolder);
-    return path.join(extractedPath, firstFolder); // Return the path of the first folder
+    // return path.join(extractedPath, firstFolder); // Return the path of the first folder
+    try {
+      // Check if package.json exists and read it
+
+      const packagePath = path.join(extractedPath, firstFolder, 'package.json');
+      let version: string | undefined;
+
+      if (fs.existsSync(packagePath)) {
+        const packageJsonContent = await fs.promises.readFile(packagePath, 'utf-8');
+        const packageJson = JSON.parse(packageJsonContent);
+        version = packageJson.version;
+        console.log('Found version in package.json:', version);
+        return [path.join(extractedPath, firstFolder), version]
+      } else {
+        console.log('package.json not found in:', packagePath);
+      }
+    } catch (error) {
+      console.error('Error reading package.json:', error);
+    }
+  
   }
 
+
+
   console.log('No first folder found');
-  return extractedPath // Adjust based on zip structure
+  return [extractedPath, '1.0.0'] // Adjust based on zip structure
   //return path.join(destination); // Adjust this based on the extracted directory structure
 
 }

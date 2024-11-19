@@ -86,8 +86,9 @@ async function handleGetPackage(packageId: string) {
       
         const data = await s3Client.send(new GetObjectCommand(param));
         let base64Content = '';
+        
       
-          // Convert the Body stream to a Buffer
+        // Convert the Body stream to a Buffer
         if(data && data.Body) {
             const stream = data.Body as NodeJS.ReadableStream;
             const chunks: Buffer[] = [];
@@ -486,7 +487,6 @@ async function urlhandler(url:string){
         response = await axios.get(registryUrl);
         const latestVersion = response.data['dist-tags'].latest;
         tarballUrl = response.data.versions[latestVersion].dist.tarball;
-
     }
   
   
