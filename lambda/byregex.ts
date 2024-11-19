@@ -2,6 +2,7 @@ import { APIGatewayProxyEvent } from 'aws-lambda'
 import * as AWS from 'aws-sdk'
 
 import { DynamoDBClient, GetItemCommand, PutItemCommand, DeleteItemCommand, QueryCommand, ScanCommand } from '@aws-sdk/client-dynamodb';
+import { Interface } from 'readline';
 
 const dynamoDBclient = new DynamoDBClient({});
 const TABLE_NAME = 'PackageInfo';
@@ -88,8 +89,27 @@ function filterByRegex(scanResult: any,regexPattern: string): PackageItem[] {
       const name = item.Name?.S; // Extract the 'Name' field's value
       return name && regex.test(name);
     }) as PackageItem[]; // Type assertion
+
+    interface returnItem {
+        Name: string;
+        Version: string;
+        ID: string;
+    }
+
+
+    filteredItems.map((item: any) => {
+        const returnItem: returnItem = {
+            Name: item.Name.S,
+            Version: item.Version.S,
+            ID: item.ID.S
+        }
+        return returnItem;
+    })
+
+
+
   
-    return filteredItems || [];
+    return filteredItems;
   }
   
 
