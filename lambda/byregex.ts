@@ -24,7 +24,7 @@ try{
    const body = JSON.parse(event.body);
    const regexp = body.RegEx
 
-   if (!regexp || !/^[a-zA-Z0-9_]+$/.test(regexp)) {
+   if (!regexp ) {
     return {
       statusCode: 400,
       body: JSON.stringify({ message: 'RegEx parameter is missing or invalid.' }),
@@ -90,26 +90,18 @@ function filterByRegex(scanResult: any,regexPattern: string): PackageItem[] {
       return name && regex.test(name);
     }) as PackageItem[]; // Type assertion
 
-    interface returnItem {
-        Name: string;
-        Version: string;
-        ID: string;
-    }
 
-
-    filteredItems.map((item: any) => {
-        const returnItem: returnItem = {
-            Name: item.Name.S,
-            Version: item.Version.S,
-            ID: item.ID.S
-        }
-        return returnItem;
-    })
+     // Transform filtered items to desired format
+     const transformedItems = filteredItems.map((item: any) => ({
+      Name: item.Name?.S || "N/A",
+      Version: item.Version?.S || "N/A",
+      ID: item.ID?.S || "N/A", 
+    }));
 
 
 
   
-    return filteredItems;
+    return transformedItems;
   }
   
 
