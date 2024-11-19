@@ -42,7 +42,7 @@ jobs:
           tsc
           zip -r upload.zip upload_package.js node_modules 
           zip -r function.zip packagesubendpoints.js node_modules
-          zip -r regex.zip regex.js node_modules
+          zip -r regex.zip byregex.js node_modules
           cd ..
           cd metrics
           zip -r metrics.zip *.js node_modules
