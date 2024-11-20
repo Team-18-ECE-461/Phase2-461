@@ -30,6 +30,9 @@ jobs:
           npm install
           cd metrics
           npm install
+          cd..
+          cd authentication
+          npm install
 
       - name: Install AWS CLI
         run: |
