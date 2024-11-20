@@ -86,8 +86,9 @@ async function handleGetPackage(packageId: string) {
       
         const data = await s3Client.send(new GetObjectCommand(param));
         let base64Content = '';
+        
       
-          // Convert the Body stream to a Buffer
+        // Convert the Body stream to a Buffer
         if(data && data.Body) {
             const stream = data.Body as NodeJS.ReadableStream;
             const chunks: Buffer[] = [];
@@ -185,11 +186,15 @@ async function handleUpdatePackage(event: LambdaEvent) {
           let packagePath = ''
           let tempversion = ''
           let tempname = ''
-          if(url){
+          if(url && url.includes('npmjs.com')) {
             [packagePath, tempversion, tempname] =  await downloadAndExtractNpmPackage(url, tempDir, packageName, packageVersion);
           }
-          if(content){
+          else if(content){
             packagePath = await extractBase64ZipContent(content, tempDir);
+          }
+          else if(url && url.includes('github.com')){
+            const [owner, repo]: [string, string] = parseGitHubUrl(url) as [string, string];
+            packagePath = await downloadAndExtractGithubPackage(url, tempDir, owner, repo);
           }
           const outputDir = path.join(tempDir, 'debloated');
           fs.mkdirSync(outputDir, { recursive: true });
@@ -214,7 +219,7 @@ async function handleUpdatePackage(event: LambdaEvent) {
     const uploadkey = `${packagedebloatName}-${version}`;
     const debloatID = generatePackageId(packagedebloatName, version);
     const zipBuffer = fs.readFileSync(debloatedZipPath);
-    const base64Zip = zipBuffer.toString('base64');
+    //const base64Zip = zipBuffer.toString('base64');
     await uploadToS3(debloatedZipPath, BUCKET_NAME, uploadkey);
     await cleanupTempFiles(tempDir);
     await uploadDB(debloatID, packagedebloatName, version, JSProgram, url);
@@ -224,33 +229,66 @@ async function handleUpdatePackage(event: LambdaEvent) {
     };
   }
   else{
-    let zipBuffer: Buffer;
-    if (content) {
-      zipBuffer = Buffer.from(content, 'base64');
+
+    //let zipBuffer: Buffer;
+    let registryUrl = '';
+    let tarballUrl = '';
+    let response;
+    let zippath = '';
+    let tname, tversion;
+    if(url && url.includes('npmjs.com')){
+     
+        const tempDir = await fs.promises.mkdtemp(path.join(tmpdir(), 'package-'));
+        [zippath, tname, tversion] = await downloadAndExtractNpmPackage(url, tempDir, packageName, packageVersion);
+        const outputZipPath = path.join(tempDir, 'output.zip');
+        await zipFolder(zippath, outputZipPath);
+        const uploadkey = `${packageName}-${packageVersion}`;
+        const debloatID = generatePackageId(packageName, packageVersion);
+        const zipBuffer = fs.readFileSync(outputZipPath);
+        const base64Zip = zipBuffer.toString('base64');
+        await uploadToS3(outputZipPath, BUCKET_NAME, uploadkey);
+        await cleanupTempFiles(tempDir);
+        await uploadDB(debloatID, packageName, packageVersion, JSProgram, url);
+        return {
+          statusCode: 200,
+          body: "Package updated successfully",
+        };
+      
     }
-   else if (url) {
-      url = await urlhandler(url);
-      const response = await axios.get(`${url}/archive/refs/heads/main.zip`, { responseType: 'arraybuffer' });
-      zipBuffer = Buffer.from(response.data);
-    } else { 
-      throw new Error('No content or URL provided');
+    else{
+      let zipBuffer: Buffer;
+      if (content) {
+        zipBuffer = Buffer.from(content, 'base64');
+      }
+      else if (url && url.includes('github.com')) {
+        url = await urlhandler(url);
+        const [owner, repo]: [string, string] = parseGitHubUrl(url) as [string, string];
+        const apiUrl = `https://api.github.com/repos/${owner}/${repo}`;
+        const response0 = await axios.get(apiUrl);
+        const branch = response0.data.default_branch;
+        const response = await axios.get(`${url}/archive/refs/heads/${branch}.zip`, { responseType: 'arraybuffer' });
+        zipBuffer = Buffer.from(response.data);
+      } else { 
+        throw new Error('No content or URL provided');
+      }
+
+      const packageId = generatePackageId(packageName, packageVersion);
+      let key = `${packageName}-${packageVersion}`;
+      await s3.putObject({
+        Bucket: BUCKET_NAME,
+        Key: key,
+        Body: zipBuffer,
+        ContentType: 'application/zip',
+      });
+      uploadDB(packageId, packageName, packageVersion, JSProgram, url);   
+      return {
+        statusCode: 200,
+        body: "Package updated successfully",
+      }; 
     }
 
-    const packageId = generatePackageId(packageName, packageVersion);
-    let key = `${packageName}-${packageVersion}`;
-    await s3.putObject({
-      Bucket: BUCKET_NAME,
-      Key: key,
-      Body: zipBuffer,
-      ContentType: 'application/zip',
-    });
-    uploadDB(packageId, packageName, packageVersion, JSProgram, url);   
-    return {
-      statusCode: 200,
-      body: "Package updated successfully",
-    }; 
-
-  }
+  
+}
   }
 
   catch (error) {
@@ -289,6 +327,54 @@ async function handleDeletePackage(id:string){
         console.error('Error deleting package:', error);
         return { statusCode: 500, body: JSON.stringify({ message: 'Error deleting package' }) };
     }
+
+}
+
+async function downloadAndExtractGithubPackage(githubUrl: string, destination: string, owner: string, repo: string): Promise<any> {
+  const tarballUrl = `https://api.github.com/repos/${owner}/${repo}/tarball`;
+  const tarballPath = path.join(destination, 'package.tar.gz');
+  const writer = fs.createWriteStream(tarballPath);
+  const downloadResponse = await axios.get(tarballUrl, { responseType: 'stream' });
+  await new Promise((resolve, reject) => {
+      downloadResponse.data.pipe(writer);
+      writer.on('finish', resolve);
+      writer.on('error', reject);
+  });
+  await tar.extract({ file: tarballPath, cwd: destination });
+  
+  const extractedPath = path.join(destination);
+  const extractedFiles = await fs.promises.readdir(extractedPath);
+  const firstFolder = extractedFiles.find((file) => fs.statSync(path.join(extractedPath, file)).isDirectory());
+  
+  if (firstFolder) {
+    console.log('Found first folder:', firstFolder);
+    // return path.join(extractedPath, firstFolder); // Return the path of the first folder
+    try {
+      // Check if package.json exists and read it
+
+      const packagePath = path.join(extractedPath, firstFolder, 'package.json');
+      let version: string | undefined;
+
+      if (fs.existsSync(packagePath)) {
+        const packageJsonContent = await fs.promises.readFile(packagePath, 'utf-8');
+        const packageJson = JSON.parse(packageJsonContent);
+        version = packageJson.version;
+        console.log('Found version in package.json:', version);
+        return [path.join(extractedPath, firstFolder), version]
+      } else {
+        console.log('package.json not found in:', packagePath);
+      }
+    } catch (error) {
+      console.error('Error reading package.json:', error);
+    }
+  
+  }
+
+
+
+  console.log('No first folder found');
+  return [extractedPath, '1.0.0'] // Adjust based on zip structure
+  //return path.join(destination); // Adjust this based on the extracted directory structure
 
 }
 
@@ -335,6 +421,22 @@ async function checkValidVersionContent(version:string, mostRecentVersion:number
 
   // Otherwise, the incoming version is not valid
   return true;
+}
+
+function parseGitHubUrl(url: string): [ owner: string, repo: string ] | null {
+  try {
+      const parsedUrl = new URL(url);
+      const pathSegments = parsedUrl.pathname.split('/').filter(Boolean);
+
+      if (pathSegments.length >= 2) {
+          const [owner, repo] = pathSegments;
+          return [ owner, repo.replace(/\.git$/, '') ]; // Remove ".git" if present
+      }
+      return null;
+  } catch (error) {
+      console.error('Invalid URL:', error);
+      return null;
+  }
 }
 
 async function urlhandler(url:string){
@@ -444,13 +546,21 @@ async function urlhandler(url:string){
   }
   async function downloadAndExtractNpmPackage(npmUrl: string, destination: string, packageName: string, packageVersion:string): Promise<any> {
     // Convert npm URL to registry API URL
-   
-    const registryUrl = npmUrl.replace('https://www.npmjs.com/package/', 'https://registry.npmjs.org/').replace('/v/', '/');
-    
-    // Fetch package metadata
-    const response = await axios.get(registryUrl);
-    //const latestVersion = response.data['dist-tags'].latest;
-    const tarballUrl = response.data.dist.tarball;
+    let registryUrl = npmUrl
+    let response;
+    let tarballUrl;
+    if (npmUrl.includes( '/v/')){
+       registryUrl = npmUrl.replace('https://www.npmjs.com/package/', 'https://registry.npmjs.org/').replace('/v/', '/');
+       response = await axios.get(registryUrl);
+       tarballUrl = response.data.dist.tarball;
+      }
+    else{
+        registryUrl = npmUrl.replace('https://www.npmjs.com/package/', 'https://registry.npmjs.org/');
+        response = await axios.get(registryUrl);
+        const latestVersion = response.data['dist-tags'].latest;
+        tarballUrl = response.data.versions[latestVersion].dist.tarball;
+    }
+  
   
     // Download the tarball
     const tarballPath = path.join(destination, 'package.tgz');

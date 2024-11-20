@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x, 22.x]
+        node-version: [20.x]
 
     steps:
       - uses: actions/checkout@v4
@@ -22,29 +22,19 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      # - name: Install Dependencies
-      #   run: |
-      #     ./run install
-
       - name: Install Lambda Dependencies
         run: |
           cd lambda
           npm install
           cd ..
           npm install
-
-      # - name: Install Authentication App Dependencies
-      #   run: |
-      #     cd authentication/authentication-app
-      #     npm install
+          cd metrics
+          npm install
 
       - name: Install AWS CLI
         run: |
           sudo apt-get update
           sudo apt-get install awscli -y
-
-      # - name: Run Tests
-      #   run: ./run test
 
       - name: Zip Lambda files
         run: |
@@ -52,6 +42,10 @@ jobs:
           tsc
           zip -r upload.zip upload_package.js node_modules 
           zip -r function.zip packagesubendpoints.js node_modules
+          zip -r regex.zip byregex.js node_modules
+          cd ..
+          cd metrics
+          zip -r metrics.zip *.js node_modules
 
       - name: Update LambdaFunction_PackageUpload
         env:
@@ -82,6 +76,42 @@ jobs:
           for ((i=0; i<retries; i++)); do
             if aws lambda update-function-code --function-name packagesid --zip-file fileb://lambda/function.zip; then
               echo "Update successful for packagesid"
+              break
+            else
+              echo "Update failed, retrying in $delay seconds..."
+              sleep $delay
+            fi
+          done
+
+      - name: Update metrics Function
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: us-east-1
+        run: |
+          retries=5
+          delay=10
+          for ((i=0; i<retries; i++)); do
+            if aws lambda update-function-code --function-name metrics --zip-file fileb://metrics/metrics.zip; then
+              echo "Update successful for metrics"
+              break
+            else
+              echo "Update failed, retrying in $delay seconds..."
+              sleep $delay
+            fi
+          done
+
+      - name: Update regex Function
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: us-east-1
+        run: |
+          retries=5
+          delay=10
+          for ((i=0; i<retries; i++)); do
+            if aws lambda update-function-code --function-name regex --zip-file fileb://lambda/regex.zip; then
+              echo "Update successful for regex"
               break
             else
               echo "Update failed, retrying in $delay seconds..."

@@ -375,7 +375,8 @@ export class UrlHandler extends EventEmitter {
     if (this.logLvl == 1) fs.writeFileSync(this.fp, `Cloning repository from ${repoUrl}...\n`);
 
     // Create a unique temporary directory for each repository
-    const dir = path.join(__dirname, `temp-repo-${owner}-${repo}-${Date.now()}`);
+    //const dir = path.join(__dirname, `temp-repo-${owner}-${repo}-${Date.now()}`);
+    const dir = path.join('/tmp', `temp-repo-${owner}-${repo}-${Date.now()}`);
 
     // Remove the temp directory if it already exists
     if (fs.existsSync(dir)) {
