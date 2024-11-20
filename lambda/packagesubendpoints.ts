@@ -186,11 +186,15 @@ async function handleUpdatePackage(event: LambdaEvent) {
           let packagePath = ''
           let tempversion = ''
           let tempname = ''
-          if(url){
+          if(url && url.includes('npmjs.com')) {
             [packagePath, tempversion, tempname] =  await downloadAndExtractNpmPackage(url, tempDir, packageName, packageVersion);
           }
-          if(content){
+          else if(content){
             packagePath = await extractBase64ZipContent(content, tempDir);
+          }
+          else if(url && url.includes('github.com')){
+            const [owner, repo]: [string, string] = parseGitHubUrl(url) as [string, string];
+            packagePath = await downloadAndExtractGithubPackage(url, tempDir, owner, repo);
           }
           const outputDir = path.join(tempDir, 'debloated');
           fs.mkdirSync(outputDir, { recursive: true });
@@ -215,7 +219,7 @@ async function handleUpdatePackage(event: LambdaEvent) {
     const uploadkey = `${packagedebloatName}-${version}`;
     const debloatID = generatePackageId(packagedebloatName, version);
     const zipBuffer = fs.readFileSync(debloatedZipPath);
-    const base64Zip = zipBuffer.toString('base64');
+    //const base64Zip = zipBuffer.toString('base64');
     await uploadToS3(debloatedZipPath, BUCKET_NAME, uploadkey);
     await cleanupTempFiles(tempDir);
     await uploadDB(debloatID, packagedebloatName, version, JSProgram, url);
@@ -323,6 +327,54 @@ async function handleDeletePackage(id:string){
         console.error('Error deleting package:', error);
         return { statusCode: 500, body: JSON.stringify({ message: 'Error deleting package' }) };
     }
+
+}
+
+async function downloadAndExtractGithubPackage(githubUrl: string, destination: string, owner: string, repo: string): Promise<any> {
+  const tarballUrl = `https://api.github.com/repos/${owner}/${repo}/tarball`;
+  const tarballPath = path.join(destination, 'package.tar.gz');
+  const writer = fs.createWriteStream(tarballPath);
+  const downloadResponse = await axios.get(tarballUrl, { responseType: 'stream' });
+  await new Promise((resolve, reject) => {
+      downloadResponse.data.pipe(writer);
+      writer.on('finish', resolve);
+      writer.on('error', reject);
+  });
+  await tar.extract({ file: tarballPath, cwd: destination });
+  
+  const extractedPath = path.join(destination);
+  const extractedFiles = await fs.promises.readdir(extractedPath);
+  const firstFolder = extractedFiles.find((file) => fs.statSync(path.join(extractedPath, file)).isDirectory());
+  
+  if (firstFolder) {
+    console.log('Found first folder:', firstFolder);
+    // return path.join(extractedPath, firstFolder); // Return the path of the first folder
+    try {
+      // Check if package.json exists and read it
+
+      const packagePath = path.join(extractedPath, firstFolder, 'package.json');
+      let version: string | undefined;
+
+      if (fs.existsSync(packagePath)) {
+        const packageJsonContent = await fs.promises.readFile(packagePath, 'utf-8');
+        const packageJson = JSON.parse(packageJsonContent);
+        version = packageJson.version;
+        console.log('Found version in package.json:', version);
+        return [path.join(extractedPath, firstFolder), version]
+      } else {
+        console.log('package.json not found in:', packagePath);
+      }
+    } catch (error) {
+      console.error('Error reading package.json:', error);
+    }
+  
+  }
+
+
+
+  console.log('No first folder found');
+  return [extractedPath, '1.0.0'] // Adjust based on zip structure
+  //return path.join(destination); // Adjust this based on the extracted directory structure
 
 }
 
