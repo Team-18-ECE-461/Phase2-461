@@ -185,7 +185,7 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
     let zipBuffer: Buffer;
     let base64Zip: string;
     // Retrieve zip file contents
-    if(url && url.includes('npm')){
+    if(url && url.includes('npmjs.com')){
       let zippath: string;
       
       const [tid, tname, tversion, base64Zip] = await downloadNpm(url);
@@ -225,11 +225,8 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
 
     // Load zip content to inspect package.json
     const zip = await JSZIP.loadAsync(zipBuffer);
-    
-
-
     content  = zipBuffer.toString('base64');
-
+    
     let tpackageJsonFile: JSZIP.JSZipObject | null = null;
     zip.forEach((relativePath, file) => {
     if (relativePath.endsWith('package.json')) {
