@@ -194,34 +194,53 @@ async function handleUpdatePackage(event: LambdaEvent) {
           }
           else if(url && url.includes('github.com')){
             const [owner, repo]: [string, string] = parseGitHubUrl(url) as [string, string];
-            packagePath = await downloadAndExtractGithubPackage(url, tempDir, owner, repo);
+            [packagePath, tempversion] = await downloadAndExtractGithubPackage(url, tempDir, owner, repo);
           }
           const outputDir = path.join(tempDir, 'debloated');
-          fs.mkdirSync(outputDir, { recursive: true });
-          let entryPath = getEntryPoint(path.join(packagePath, 'package.json'));
-          entryPath = entryPath ? path.join(packagePath, entryPath) : null;
-          if (!entryPath) {
-            return {
-              statusCode: 400,
-              body: JSON.stringify('No entry point found'),
-            };
-          }
-          await esbuild.build({
-            entryPoints: [entryPath], 
-            bundle: false,
-            outdir: outputDir,
-            minify: true,
-            treeShaking: true,
-        });
+      fs.mkdirSync(outputDir, { recursive: true });
+
+
+      
+      let entryPath = getEntryPoint(path.join(packagePath, 'package.json'));
+      entryPath = entryPath ? path.join(packagePath, entryPath) : null;
+
+      if (!entryPath) {
+        return {
+          statusCode: 400,
+          body: JSON.stringify('No entry point found'),
+        };
+      }
+
+      //unzipPackageForDependencies(packagePath);
+
+      await esbuild.build({
+        entryPoints: [entryPath], 
+        bundle: false,
+        outdir: outputDir,
+        minify: true,
+        treeShaking: true,
+    });
 
     const debloatedZipPath = path.join(tempDir, 'debloated.zip');
     await zipFolder(outputDir, debloatedZipPath);
     const uploadkey = `${packagedebloatName}-${version}`;
     const debloatID = generatePackageId(packagedebloatName, version);
-    const zipBuffer = fs.readFileSync(debloatedZipPath);
-    //const base64Zip = zipBuffer.toString('base64');
-    await uploadToS3(debloatedZipPath, BUCKET_NAME, uploadkey);
-    await cleanupTempFiles(tempDir);
+    
+    let base64Zip ;
+
+    if(await checkexistingPackage(packagedebloatName, version) === false){
+      const zipBuffer = fs.readFileSync(debloatedZipPath);
+      base64Zip = zipBuffer.toString('base64');
+      await uploadToS3(debloatedZipPath, BUCKET_NAME, uploadkey);
+      await cleanupTempFiles(tempDir);
+    }
+    else{
+      await cleanupTempFiles(tempDir);
+      return {
+        statusCode: 409,
+        body: JSON.stringify('Package already exists'),
+      };
+    }
     await uploadDB(debloatID, packagedebloatName, version, JSProgram, url);
     return {
       statusCode: 200,
@@ -237,18 +256,19 @@ async function handleUpdatePackage(event: LambdaEvent) {
     let zippath = '';
     let tname, tversion;
     if(url && url.includes('npmjs.com')){
+        const [tid, tname, tversion, base64Zip] = await downloadNpm(url);
      
-        const tempDir = await fs.promises.mkdtemp(path.join(tmpdir(), 'package-'));
-        [zippath, tname, tversion] = await downloadAndExtractNpmPackage(url, tempDir, packageName, packageVersion);
-        const outputZipPath = path.join(tempDir, 'output.zip');
-        await zipFolder(zippath, outputZipPath);
-        const uploadkey = `${packageName}-${packageVersion}`;
-        const debloatID = generatePackageId(packageName, packageVersion);
-        const zipBuffer = fs.readFileSync(outputZipPath);
-        const base64Zip = zipBuffer.toString('base64');
-        await uploadToS3(outputZipPath, BUCKET_NAME, uploadkey);
-        await cleanupTempFiles(tempDir);
-        await uploadDB(debloatID, packageName, packageVersion, JSProgram, url);
+        // const tempDir = await fs.promises.mkdtemp(path.join(tmpdir(), 'package-'));
+        // [zippath, tname, tversion] = await downloadAndExtractNpmPackage(url, tempDir, packageName, packageVersion);
+        // const outputZipPath = path.join(tempDir, 'output.zip');
+        // await zipFolder(zippath, outputZipPath);
+        // const uploadkey = `${packageName}-${packageVersion}`;
+        // const debloatID = generatePackageId(packageName, packageVersion);
+        // const zipBuffer = fs.readFileSync(outputZipPath);
+        // const base64Zip = zipBuffer.toString('base64');
+        // await uploadToS3(outputZipPath, BUCKET_NAME, uploadkey);
+        // await cleanupTempFiles(tempDir);
+        // await uploadDB(debloatID, packageName, packageVersion, JSProgram, url);
         return {
           statusCode: 200,
           body: "Package updated successfully",
@@ -376,6 +396,27 @@ async function downloadAndExtractGithubPackage(githubUrl: string, destination: s
   return [extractedPath, '1.0.0'] // Adjust based on zip structure
   //return path.join(destination); // Adjust this based on the extracted directory structure
 
+}
+
+async function checkexistingPackage(packageName: string, packageVersion: string){
+  const existingPackage = await dynamoDBclient.send(
+    new QueryCommand({
+      TableName: TABLE_NAME,
+      KeyConditionExpression: '#name = :name and Version = :version',
+      ExpressionAttributeNames: {
+          '#name': 'Name', // Alias for reserved keyword 'Name'
+      },
+      ExpressionAttributeValues: {
+          ':name': { S: packageName },
+          ':version': { S: packageVersion },
+      },
+    }));
+
+  if (existingPackage.Items && existingPackage.Items.length > 0) {
+    return true;
+  }
+
+  return false;
 }
 
 async function getMostRecentVersion(packageName: string) {
@@ -627,11 +668,11 @@ async function urlhandler(url:string){
   async function uploadToS3(filePath: string, bucketName: string, key: string) {
     const fileStream = fs.createReadStream(filePath);
     await s3.putObject({
-        Bucket: bucketName,
-        Key: key,
-        Body: fileStream,
-        ContentType: 'application/zip',
-    })
+      Bucket: bucketName,
+      Key: key,
+      Body: fileStream,
+      ContentType: 'application/zip',
+  })
   
   }
 
@@ -658,6 +699,78 @@ async function urlhandler(url:string){
     } catch (error) {
         console.error('Error checking version:', error);
         return false;
+    }
+  }
+
+  async function downloadNpm(npmUrl:string){
+    try {let registryUrl = npmUrl
+      let response;
+      let tarballUrl;
+      let version;
+      let packageName;
+      const tempDir = await fs.promises.mkdtemp(path.join(tmpdir(), 'npm-'));  //tmpdir = /tmp/npm-
+      if (npmUrl.includes( '/v/')){
+        registryUrl = npmUrl.replace('https://www.npmjs.com/package/', 'https://registry.npmjs.org/').replace('/v/', '/');
+        response = await axios.get(registryUrl);
+        version = npmUrl.split('/v/')[1];
+        packageName = response.data.name;
+        tarballUrl = response.data.dist.tarball;
+        }
+      else{
+          registryUrl = npmUrl.replace('https://www.npmjs.com/package/', 'https://registry.npmjs.org/');
+          response = await axios.get(registryUrl);
+          version = response.data['dist-tags'].latest;
+          tarballUrl = response.data.versions[version].dist.tarball;
+          packageName = response.data.name
+      }
+  
+      const dresponse = await axios.get(tarballUrl, { responseType: 'stream' });
+      const tarballPath = path.join(tempDir, `package.tgz`); // /tmp/npm-/packageName.tgz
+      const writer = fs.createWriteStream(tarballPath); //write tarball to /tmp/npm-/packageName.tgz
+     
+  
+      await new Promise((resolve, reject) => {
+        dresponse.data.pipe(writer);
+        writer.on('finish', resolve);
+        writer.on('error', reject);
+      });
+  
+      // Step 2: Extract the tarball
+      const extractPath = path.join(tempDir, 'package');  //extractPath = /tmp/npm-/package
+      await fs.promises.mkdir(extractPath);
+      // await tar.x({
+      //     file: tarballPath,
+      //     cwd: extractPath,
+      // });
+      await tar.extract({ file: tarballPath, cwd: tempDir });
+      
+      const zipPath = path.join(tempDir, `package.zip`); // /tmp/npm-/packageName.zip
+      const output = fs.createWriteStream(zipPath);
+      const archive = archiver('zip', {
+        zlib: { level: 9 },
+      });
+  
+      archive.pipe(output);
+      archive.directory(extractPath, false);  //zip from /tmp/npm-/packageName to /tmp/npm-/packageName.zip
+      await archive.finalize();
+  
+      await new Promise((resolve, reject) => {
+        output.on('finish', resolve);
+        output.on('error', reject);
+    });
+  
+      let base64content = fs.readFileSync(zipPath).toString('base64');  //read from /tmp/npm-/packageName.zip to content
+  
+      await uploadToS3(zipPath, BUCKET_NAME, `${packageName}-${version}`);
+      await cleanupTempFiles(tarballPath);
+      await cleanupTempFiles(extractPath);
+      await cleanupTempFiles(zipPath);
+      await uploadDB(generatePackageId(packageName, version), packageName, version, '', npmUrl);
+      let id = generatePackageId(packageName, version);
+      return [packageName, version, id, base64content];
+    } catch (error) {
+      console.log('Error downloading npm package:', error);
+      throw error;
     }
   }
   

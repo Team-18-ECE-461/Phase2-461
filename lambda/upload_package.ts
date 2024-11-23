@@ -6,7 +6,6 @@ import getgithuburl from 'get-github-url'
 import * as UglifyJS from 'uglify-js';
 import * as crypto from 'crypto';
 import { relative } from 'path';
-import Terser from 'terser';
 import fs from 'fs';
 import path from 'path';
 import * as esbuild from 'esbuild';
@@ -79,13 +78,13 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
       };
     }
 
-    let packagePath = null;
-    let version = null;
-    let packagedebloatName = null;
+    let packagePath;
+    let version ;
+    let packagedebloatName ;
 
     if(debloat){
       const tempDir = await fs.promises.mkdtemp(path.join(tmpdir(), 'package-')); 
-      if(url && url.includes('npm')){
+      if(url && url.includes('npmjs.com')){
         [packagePath, version, packagedebloatName] = await downloadAndExtractNpmPackage(url, tempDir);
       }
 
@@ -148,7 +147,7 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
     const uploadkey = `${packagedebloatName}-${version}`;
     const debloatID = generatePackageId(packagedebloatName, version);
     
-    let base64Zip = null;
+    let base64Zip ;
 
     if(await checkexistingPackage(packagedebloatName, version) === false){
       const zipBuffer = fs.readFileSync(debloatedZipPath);
