@@ -9,6 +9,36 @@ ZIP_FILE_PATH2="function.zip"
 LAMBDA_FUNCTION_NAME3="packages"
 ZIP_FILE_PATH3="packages.zip"
 
+# Retry parameters
+MAX_RETRIES=3
+RETRY_DELAY=5 # seconds
+
+# Function to retry AWS Lambda update-function-code
+retry_update_lambda() {
+  local function_name=$1
+  local zip_file=$2
+  local retries=0
+
+  while [ $retries -lt $MAX_RETRIES ]; do
+    echo "Attempting to update Lambda function '$function_name' (attempt $((retries + 1))/$MAX_RETRIES)..."
+    aws lambda update-function-code \
+      --function-name "$function_name" \
+      --zip-file "fileb://$zip_file" \
+      --region "$AWS_REGION"
+    
+    if [ $? -eq 0 ]; then
+      echo "Lambda function '$function_name' updated successfully."
+      return 0
+    else
+      echo "Failed to update Lambda function '$function_name'. Retrying in $RETRY_DELAY seconds..."
+      retries=$((retries + 1))
+      sleep $RETRY_DELAY
+    fi
+  done
+
+  echo "Failed to update Lambda function '$function_name' after $MAX_RETRIES attempts."
+  exit 1
+}
 
 # Check for AWS credentials in environment variables
 if [[ -z "$AWS_ACCESS_KEY_ID" || -z "$AWS_SECRET_ACCESS_KEY" ]]; then
@@ -26,27 +56,7 @@ else
   echo "No package.json found; skipping npm install"
 fi
 
-# Create the zip file containing the Lambda function and dependencies
-
-# Update the Lambda function code in AWS
-
-aws lambda update-function-code \
-  --function-name "$LAMBDA_FUNCTION_NAME" \
-  --zip-file "fileb://$ZIP_FILE_PATH" \
-  --region "$AWS_REGION" || { echo "Failed to update Lambda function"; exit 1; }
-
-aws lambda update-function-code \
-  --function-name "$LAMBDA_FUNCTION_NAME3" \
-  --zip-file "fileb://$ZIP_FILE_PATH3" \
-  --region "$AWS_REGION" || { echo "Failed to update Lambda function"; exit 1; }
-
-
-
-aws lambda update-function-code \
-  --function-name "$LAMBDA_FUNCTION_NAME2" \
-  --zip-file "fileb://$ZIP_FILE_PATH2" \
-  --region "$AWS_REGION" || { echo "Failed to update Lambda function"; exit 1; }
-
-
-
-echo "Lambda function '$LAMBDA_FUNCTION_NAME3' updated successfully."
+# Retry updating Lambda functions
+retry_update_lambda "$LAMBDA_FUNCTION_NAME" "$ZIP_FILE_PATH"
+retry_update_lambda "$LAMBDA_FUNCTION_NAME3" "$ZIP_FILE_PATH3"
+retry_update_lambda "$LAMBDA_FUNCTION_NAME2" "$ZIP_FILE_PATH2"
