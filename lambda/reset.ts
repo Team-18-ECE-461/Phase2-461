@@ -10,7 +10,7 @@ const defaultUser = {
     role: { S: 'admin' }, // Optional: Add any additional attributes relevant for your system
 };
 
-export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+export const resetRegistry = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     try {
         // Step 1: Scan to retrieve all items in the table
         const scanCommand = new ScanCommand({ TableName: tableName });
