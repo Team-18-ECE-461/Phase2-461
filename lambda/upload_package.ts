@@ -127,6 +127,17 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
         entryPath[i] = path.join(packagePath, entryPath[i]);
       }
 
+      const updatedEntryPath = [];
+      for (const entry of entryPath) {
+        const stats = await fs.promises.stat(entry);
+        if (stats.isDirectory()) {
+          updatedEntryPath.push(path.join(entry, '*.js'));
+        } else {
+          updatedEntryPath.push(entry);
+        }
+      }
+      entryPath = updatedEntryPath;
+
       
 
       if (entryPath.length === 0) {
@@ -137,6 +148,7 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
       }
 
       //unzipPackageForDependencies(packagePath);
+      
       console.log(entryPath)
 
       await esbuild.build({
@@ -146,6 +158,11 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
         minify: true,
         treeShaking: true,
     });
+
+    // Copy package.json to the output directory
+    const packageJsonPath = path.join(packagePath, 'package.json');
+    const outputPackageJsonPath = path.join(outputDir, 'package.json');
+    await fs.promises.copyFile(packageJsonPath, outputPackageJsonPath);
 
     const debloatedZipPath = path.join(tempDir, 'debloated.zip');
     await zipFolder(outputDir, debloatedZipPath);
