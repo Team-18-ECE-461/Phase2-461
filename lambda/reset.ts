@@ -10,22 +10,25 @@ const defaultUser = {
 
 export const resetRegistry = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     try {
-        // Step 1: Scan to retrieve all items in the table
+        // Scan the table to retrieve all items
         const scanCommand = new ScanCommand({ TableName: tableName });
         const scanResult = await client.send(scanCommand);
 
+        // Check if there are any items to delete
         if (scanResult.Items && scanResult.Items.length > 0) {
-            // Step 2: Delete each item in the table
             for (const item of scanResult.Items) {
-                if (!item.ID || !item.ID.S) {
-                    console.warn(`Skipping item without valid ID: ${JSON.stringify(item)}`);
+                // Ensure both Name (partition key) and Version (sort key) exist
+                if (!item.Name?.S || !item.Version?.S) {
+                    console.warn(`Skipping item without valid keys: ${JSON.stringify(item)}`);
                     continue;
                 }
 
+                // Delete each item using both partition and sort keys
                 const deleteCommand = new DeleteItemCommand({
                     TableName: tableName,
                     Key: {
-                        Name: { S: item.ID.S }, // Use ID as the partition key
+                        Name: { S: item.Name.S }, // Partition key
+                        Version: { S: item.Version.S }, // Sort key
                     },
                 });
                 await client.send(deleteCommand);
