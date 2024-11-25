@@ -4,13 +4,8 @@ import { DynamoDBClient, ScanCommand, DeleteItemCommand, PutItemCommand } from '
 const client = new DynamoDBClient({});
 const tableName = 'PackageInfo';
 const defaultUser = {
-    ID: { S: 'defaultadminuser' }, // Ensure this matches the schema's primary key name
-    Name: { S: 'Default Admin User' },
-    Version: { S: '1.0' },
-    CreatedAt: { S: new Date().toISOString() },
-    JSProgram: { S: '' },
-    URL: { S: '' },
-    VersionInt: { N: '1' }, // Assuming VersionInt is numeric
+    username: { S: 'ece30861defaultadminuser' },
+    role: { S: 'admin' }, // Optional: Add any additional attributes relevant for your system
 };
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
@@ -30,7 +25,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
                 const deleteCommand = new DeleteItemCommand({
                     TableName: tableName,
                     Key: {
-                        ID: { S: item.ID.S }, // Use ID as the partition key
+                        Name: { S: item.ID.S }, // Use ID as the partition key
                     },
                 });
                 await client.send(deleteCommand);
@@ -39,7 +34,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
         // Step 3: Set the default user
         const putCommand = new PutItemCommand({
-            TableName: tableName,
+            TableName: 'Users',
             Item: defaultUser,
         });
         await client.send(putCommand);
