@@ -44,7 +44,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         console.error('Error resetting table:', error);
         return {
             statusCode: 500,
-            body: JSON.stringify({ message: 'Failed to reset table.', error: error.message }),
+            body: JSON.stringify({ message: 'Failed to reset table.', error: (error as any).message }),
         };
     }
 };
