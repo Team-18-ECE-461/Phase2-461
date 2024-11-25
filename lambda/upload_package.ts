@@ -1,7 +1,7 @@
 import { S3, Type } from '@aws-sdk/client-s3';
 import { DynamoDBClient, PutItemCommand, GetItemCommand, QueryCommand } from '@aws-sdk/client-dynamodb';
 import axios from 'axios';
-import JSZIP from 'jszip';
+import JSZIP, { file } from 'jszip';
 import getgithuburl from 'get-github-url'
 import * as UglifyJS from 'uglify-js';
 import * as crypto from 'crypto';
@@ -123,9 +123,13 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
 
       
       let entryPath = getEntryPoint(path.join(packagePath, 'package.json'));
-      entryPath = entryPath ? path.join(packagePath, entryPath) : null;
+      for(let i = 0; i < entryPath.length; i++){
+        entryPath[i] = path.join(packagePath, entryPath[i]);
+      }
 
-      if (!entryPath) {
+      
+
+      if (entryPath.length === 0) {
         return {
           statusCode: 400,
           body: JSON.stringify('No entry point found'),
@@ -133,9 +137,10 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
       }
 
       //unzipPackageForDependencies(packagePath);
+      console.log(entryPath)
 
       await esbuild.build({
-        entryPoints: [entryPath], 
+        entryPoints: entryPath, 
         bundle: false,
         outdir: outputDir,
         minify: true,
@@ -658,7 +663,7 @@ async function uploadDB(packageId: string, packageName: string, packageVersion: 
     VersionInt: { N: versionInt(packageVersion).toString() },
     JSProgram: { S: JSProgram },
     CreatedAt: { S: new Date().toISOString() },
-    URL: { S: url },
+    URL: { S: url? url : '' },
   };
 
   await dynamoDBclient.send(new PutItemCommand({
@@ -668,60 +673,64 @@ async function uploadDB(packageId: string, packageName: string, packageVersion: 
 
 }
 
-function getEntryPoint(packageJsonPath: string): string | null {
+function getEntryPoint(packageJsonPath: string): string[] {
+  const filePaths = [];
   const packageJson = require(packageJsonPath);
 
   // Check for index.js first
   const indexPath = path.join(path.dirname(packageJsonPath), 'index.js');
-  if (fs.existsSync(indexPath)) {
-    return 'index.js';
-  }
-
   const sourceindexPath = path.join(path.dirname(packageJsonPath), 'source/index.js');
-  if (fs.existsSync(sourceindexPath)) {
-    return 'source/index.js';
-  }
-
   const srcindexPath = path.join(path.dirname(packageJsonPath), 'src/index.js');
-  if (fs.existsSync(srcindexPath)) {
-    return 'src/index.js';
+
+  if(packageJson.main){
+    filePaths.push(packageJson.main);
+  }
+  else if (fs.existsSync(indexPath)) {
+    filePaths.push('index.js');
   }
 
-  // If index.js doesn't exist, check the bin category
-  if (packageJson.bin && typeof packageJson.bin === 'object') {
-    const binFiles = Object.values(packageJson.bin);
-    if (binFiles.length > 0 && fs.existsSync(path.join(path.dirname(packageJsonPath), binFiles[0] as string))) {
-      return binFiles[0] as string;
+  else if (fs.existsSync(sourceindexPath)) {
+    filePaths.push('source/index.js');}
+
+  else if (fs.existsSync(srcindexPath)) {
+    filePaths.push('src/index.js');
+  }
+
+  else if(packageJson.exports){
+    const entryPoint = packageJson.exports['.'] || packageJson.exports['./index.js'];
+    if(entryPoint){
+      filePaths.push(entryPoint);
     }
   }
 
   // If nothing found in bin, check the files category (if defined)
   if (packageJson.files && packageJson.files.length > 0) {
     for (const file of packageJson.files) {
-      const filePath = path.join(path.dirname(packageJsonPath), file);
-      if (fs.existsSync(filePath)) {
-        return file;
-      }
+      filePaths.push(file);
+      // const filePath = path.join(path.dirname(packageJsonPath), file);
+      // if (fs.existsSync(filePath)) {
+      //   return file;
+      // }
     }
   }
-
-  //If nothing found in files, check the exports category (if defined)
-  if(packageJson.exports){
-    const entryPoint = packageJson.exports['.'] || packageJson.exports['./index.js'];
-    if(entryPoint){
-      return entryPoint;
-    }
-  }
-
-  if(packageJson.main){
-    return packageJson.main;
-  }
-
 
   
 
-  // If no entry point is found, return null
-  return null;
+  // If index.js doesn't exist, check the bin category
+  else if (packageJson.bin && typeof packageJson.bin === 'object') {
+    const binFiles = Object.values(packageJson.bin);
+    if (binFiles.length > 0) {
+      for (const binFile of binFiles) {
+        filePaths.push(binFile);
+    }
+  }
+
+}  
+
+ 
+
+  return filePaths
+  
 }
 
 
