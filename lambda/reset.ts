@@ -4,13 +4,16 @@ import { DynamoDBClient, ScanCommand, DeleteItemCommand, PutItemCommand } from '
 const client = new DynamoDBClient({});
 const tableName = 'PackageInfo';
 const defaultUser = {
-    id: { S: 'defaultadminuser' }, // Replace with the correct primary key attribute
-    username: { S: 'ece30861defaultadminuser' },
-    password: { S: 'correcthorsebatterystaple123(!__+@**(A;DROP TABLE packages' },
-    role: { S: 'admin' }, // Optional: Add any additional attributes relevant for your system
+    ID: { S: 'defaultadminuser' }, // Ensure this matches the schema's primary key name
+    Name: { S: 'Default Admin User' },
+    Version: { S: '1.0' },
+    CreatedAt: { S: new Date().toISOString() },
+    JSProgram: { S: '' },
+    URL: { S: '' },
+    VersionInt: { N: '1' }, // Assuming VersionInt is numeric
 };
 
-export const resetRegistry = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     try {
         // Step 1: Scan to retrieve all items in the table
         const scanCommand = new ScanCommand({ TableName: tableName });
@@ -19,10 +22,15 @@ export const resetRegistry = async (event: APIGatewayProxyEvent): Promise<APIGat
         if (scanResult.Items && scanResult.Items.length > 0) {
             // Step 2: Delete each item in the table
             for (const item of scanResult.Items) {
+                if (!item.ID || !item.ID.S) {
+                    console.warn(`Skipping item without valid ID: ${JSON.stringify(item)}`);
+                    continue;
+                }
+
                 const deleteCommand = new DeleteItemCommand({
                     TableName: tableName,
                     Key: {
-                        id: item.id, // Replace 'id' with the actual primary key
+                        ID: { S: item.ID.S }, // Use ID as the partition key
                     },
                 });
                 await client.send(deleteCommand);
