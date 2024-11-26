@@ -129,12 +129,13 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
 
       const updatedEntryPath = [];
       for (const entry of entryPath) {
-        const stats = await fs.promises.stat(entry);
-        if (stats.isDirectory()) {
-          updatedEntryPath.push(path.join(entry, '*.js'));
-        } else {
-          updatedEntryPath.push(entry);
-        }
+        if(fs.existsSync(entry)){
+          const stats = await fs.promises.stat(entry);
+          if (stats.isDirectory()) {
+            updatedEntryPath.push(path.join(entry, '*.js'));
+          } else {
+            updatedEntryPath.push(entry);
+          }}
       }
       entryPath = updatedEntryPath;
 
