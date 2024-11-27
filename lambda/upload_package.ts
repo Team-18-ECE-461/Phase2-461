@@ -90,24 +90,12 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
 
       if(url && url.includes('github')){
         const [owner, repo]: [string, string] = parseGitHubUrl(url) as [string, string];
-        // const apiUrl = `https://api.github.com/repos/${owner}/${repo}`;
-        // const response0 = await axios.get(apiUrl);
-        // const branch = response0.data.default_branch;
-        // const response = await axios.get(`${url}/archive/refs/heads/${branch}.zip`, { responseType: 'arraybuffer' });
-        // // const response2 = await axios.get(`https://api.github.com/repos/${owner}/${repo}/releases/latest`, {headers: { 'Accept': 'application/vnd.github.v3+json' }});
-        // // version = response2.data.tag_name.slice(1) || '1.0.0';
-        // version = (await getVersionFromGithub(owner, repo)).slice(1) || '1.0.0';
-        // const zipBuffer = Buffer.from(response.data);
-        // content = zipBuffer.toString('base64');
-        // packagePath = await extractBase64ZipContent(content, tempDir, repo, branch);
-        // packagedebloatName = name;
         packagePath = await downloadAndExtractGithubPackage(url, tempDir, owner, repo);
         //version = (await getVersionFromGithub(owner, repo)).slice(1) || '1.0.0';
         if(!name){
           name = repo;
         }
         packagedebloatName = name;
-
         
       }
 
@@ -119,10 +107,14 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
       }
       const outputDir = path.join(tempDir, 'debloated');
       fs.mkdirSync(outputDir, { recursive: true });
+      let entryPath = fs.existsSync(path.join(packagePath, 'package.json')) ? getEntryPoint(path.join(packagePath, 'package.json')) : [];
+      if (entryPath.length === 0) {
+        return {
+          statusCode: 400,
+          body: JSON.stringify('No entry point found'),
+        };
+      }
 
-
-      
-      let entryPath = getEntryPoint(path.join(packagePath, 'package.json'));
       for(let i = 0; i < entryPath.length; i++){
         entryPath[i] = path.join(packagePath, entryPath[i]);
       }
@@ -161,7 +153,23 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
     });
 
     // Copy package.json to the output directory
-    const packageJsonPath = path.join(packagePath, 'package.json');
+    let packageJsonPath = '';
+    if(fs.existsSync(path.join(packagePath, 'package.json'))){
+      packageJsonPath = path.join(packagePath, 'package.json');
+    }
+    else if (fs.existsSync(path.join(tempDir, 'package.json'))){
+      packageJsonPath = path.join(tempDir, 'package.json');
+    }
+    else if(fs.existsSync(path.join(packagePath, 'package/package.json'))){
+      packageJsonPath = path.join(packagePath, 'package/package.json');
+    }
+    else{
+      return {
+        statusCode: 400,
+        body: JSON.stringify('No package.json found'),
+      };
+    }
+
     const outputPackageJsonPath = path.join(outputDir, 'package.json');
     await fs.promises.copyFile(packageJsonPath, outputPackageJsonPath);
 

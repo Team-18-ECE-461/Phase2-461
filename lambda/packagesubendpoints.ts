@@ -201,9 +201,16 @@ async function handleUpdatePackage(event: LambdaEvent) {
 
 
       
-      let entryPath = getEntryPoint(path.join(packagePath, 'package.json'));
+      let entryPath = fs.existsSync(path.join(packagePath, 'package.json')) ? getEntryPoint(path.join(packagePath, 'package.json')) : [];
       for(let i = 0; i < entryPath.length; i++){
         entryPath[i] = path.join(packagePath, entryPath[i]);
+      }
+
+      if (entryPath.length === 0) {
+        return {
+          statusCode: 400,
+          body: JSON.stringify('No entry point found'),
+        };
       }
 
       const updatedEntryPath = [];
@@ -241,7 +248,23 @@ async function handleUpdatePackage(event: LambdaEvent) {
     });
 
     // Copy package.json to the output directory
-    const packageJsonPath = path.join(packagePath, 'package.json');
+    let packageJsonPath = '';
+    if(fs.existsSync(path.join(packagePath, 'package.json'))){
+      packageJsonPath = path.join(packagePath, 'package.json');
+    }
+    else if (fs.existsSync(path.join(tempDir, 'package.json'))){
+      packageJsonPath = path.join(tempDir, 'package.json');
+    }
+    else if(fs.existsSync(path.join(packagePath, 'package/package.json'))){
+      packageJsonPath = path.join(packagePath, 'package/package.json');
+    }
+    else{
+      return {
+        statusCode: 400,
+        body: JSON.stringify('No package.json found'),
+      };
+    }
+
     const outputPackageJsonPath = path.join(outputDir, 'package.json');
     await fs.promises.copyFile(packageJsonPath, outputPackageJsonPath);
     const debloatedZipPath = path.join(tempDir, 'debloated.zip');
@@ -272,26 +295,8 @@ async function handleUpdatePackage(event: LambdaEvent) {
   }
   else{
 
-    //let zipBuffer: Buffer;
-    let registryUrl = '';
-    let tarballUrl = '';
-    let response;
-    let zippath = '';
-    let tname, tversion;
     if(url && url.includes('npmjs.com')){
         const [tid, tname, tversion, base64Zip] = await downloadNpm(url);
-     
-        // const tempDir = await fs.promises.mkdtemp(path.join(tmpdir(), 'package-'));
-        // [zippath, tname, tversion] = await downloadAndExtractNpmPackage(url, tempDir, packageName, packageVersion);
-        // const outputZipPath = path.join(tempDir, 'output.zip');
-        // await zipFolder(zippath, outputZipPath);
-        // const uploadkey = `${packageName}-${packageVersion}`;
-        // const debloatID = generatePackageId(packageName, packageVersion);
-        // const zipBuffer = fs.readFileSync(outputZipPath);
-        // const base64Zip = zipBuffer.toString('base64');
-        // await uploadToS3(outputZipPath, BUCKET_NAME, uploadkey);
-        // await cleanupTempFiles(tempDir);
-        // await uploadDB(debloatID, packageName, packageVersion, JSProgram, url);
         return {
           statusCode: 200,
           body: "Package updated successfully",
@@ -476,7 +481,6 @@ async function checkValidVersionContent(version:string, mostRecentVersion:number
   const mostRecentMinor = Math.floor((mostRecentVersion % 1000000) / 1000);
   const mostRecentPatch = mostRecentVersion % 1000;
 
-  
 
   // If the major and minor versions are the same, check for sequential patch updates
   if (major === mostRecentMajor && minor === mostRecentMinor) {
