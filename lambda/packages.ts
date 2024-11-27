@@ -16,7 +16,7 @@ export const lambdaHandler = async (event: LambdaEvent) => {
     const body = JSON.parse(event.body);
     const soff = event.queryStringParameters.offset || {}; 
     const offset = Number(soff);
-    let totalresults = []
+    let totalresults: any = []
     const limit = 10
 
     
@@ -24,6 +24,27 @@ export const lambdaHandler = async (event: LambdaEvent) => {
     for (const query of body){
         let name = query.Name;
         let versionSchema = query.Version;
+        let queryParams;
+        if(!name || !versionSchema){
+            return {
+                statusCode: 400,
+                body: JSON.stringify({ message: 'Invalid input.' }),
+            };
+        }
+        if(!version && name){
+             queryParams = {
+                TableName: TABLE_NAME,
+                KeyConditionExpression: '#name = :name',
+                ExpressionAttributeNames: {
+                    '#name': 'Name',  // Alias for reserved keyword 'Name'
+                },
+                ExpressionAttributeValues: {
+                    ':name': { S: name },
+                },
+            }
+        
+        }
+
         versionSchema = parsetovalidversion(versionSchema);
         if(versionSchema === 'Invalid version'){
             return {
@@ -33,12 +54,8 @@ export const lambdaHandler = async (event: LambdaEvent) => {
         }
 
        
-        let queryParams = buildParams(name, versionSchema, offset, limit);
-        
-
+        queryParams = buildParams(name, versionSchema, offset, limit);
         const data = await dynamoDBclient.send(new QueryCommand(queryParams));
-        
-        
         const items = (data.Items || []).map(item => {
             return {
                 Name: item.Name.S,
