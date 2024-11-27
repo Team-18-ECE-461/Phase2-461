@@ -24,6 +24,13 @@ export const lambdaHandler = async (event: LambdaEvent) => {
     for (const query of body){
         let name = query.Name;
         let versionSchema = query.Version;
+        versionSchema = parsetovalidversion(versionSchema);
+        if(versionSchema === 'Invalid version'){
+            return {
+                statusCode: 400,
+                body: JSON.stringify({ message: 'Invalid version schema.' }),
+            };
+        }
 
        
         let queryParams = buildParams(name, versionSchema, offset, limit);
@@ -67,6 +74,18 @@ export const lambdaHandler = async (event: LambdaEvent) => {
 
     
 
+}
+
+function parsetovalidversion(versionSchema: string): string{
+    if(versionSchema.includes('(') && versionSchema.includes(')')){
+        versionSchema = versionSchema.slice(1, -1);
+    }
+    let major, minor, patch;
+    [major, minor, patch] = versionSchema.split('.').map(Number);
+    if(isNaN(major) || isNaN(minor) || isNaN(patch)){
+        return 'Invalid version';
+    }
+    return versionSchema;
 }
 
 function buildParams(name: string, versionSchema: string, offset: any, limit: number) {
