@@ -257,7 +257,11 @@ describe('Helper Functions', () => {
 
             jest.spyOn(fs.promises, 'writeFile').mockResolvedValueOnce(undefined);
             jest.spyOn(fs,'createReadStream').mockReturnValueOnce({ pipe: jest.fn().mockReturnValueOnce({ promise: jest.fn().mockResolvedValueOnce('') }), close: jest.fn(), bytesRead: 0, path: '', pending: false } as any);
-
+            jest.spyOn(fs.promises, 'readdir').mockResolvedValueOnce([
+                { name: 'folder1', isDirectory: () => true } as fs.Dirent,
+                { name: 'file1.txt', isDirectory: () => false } as fs.Dirent
+            ]);
+            jest.spyOn(fs, 'statSync').mockReturnValueOnce({ isDirectory: () => true } as any);
             const result = await extractBase64ZipContent(base64Content, destination);
 
             expect(result).toBe(path.join(destination, 'package'));

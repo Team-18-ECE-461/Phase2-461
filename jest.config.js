@@ -1,6 +1,7 @@
 /** @type {import('ts-jest').JestConfigWithTsJest} **/
 module.exports = {
     preset: 'ts-jest', // This ensures TypeScript files are processed with ts-jest
+    maxWorkers: 1,
     testEnvironment: 'node', // Sets the test environment to Node.js
     transform: {
       "^.+\\.tsx?$": ["ts-jest", {}], // Handles TypeScript files (.ts and .tsx)

@@ -48,6 +48,7 @@ const createMockEvent = (data: MockEventData): MockEvent => ({
 
       const result = await lambdaHandler(event);
 
+
       // Assertions
       expect(result.statusCode).toBe(201);
       
@@ -66,10 +67,11 @@ const createMockEvent = (data: MockEventData): MockEvent => ({
           '#name': 'Name'
         },
         ExpressionAttributeValues: {
-          ':name': 'test-package'
+          ':name': 'test-package_version2'
         },
 
       }).promise();
+      console.log(dynamoResult);
 
       expect(dynamoResult.Items && dynamoResult.Items.length).toBeGreaterThanOrEqual(1);
       //expect(dynamoResult.Items[0].Version).toBe('1.0.0');

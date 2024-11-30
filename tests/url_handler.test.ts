@@ -9,7 +9,7 @@ import * as database from '../metrics/database'; // Import the database module
 jest.mock('axios');
 jest.mock('fs');
 jest.mock('isomorphic-git');
-jest.mock('../database');
+jest.mock('../metrics/database');
 jest.mock('better-sqlite3');
 
 // Mock the database module with separate mocks for prepare and all
