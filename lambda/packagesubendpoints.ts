@@ -613,7 +613,7 @@ export async function urlhandler(url:string){
     
   
     // If index.js doesn't exist, check the bin category
-    else if (packageJson.bin && typeof packageJson.bin === 'object') {
+    if (packageJson.bin && typeof packageJson.bin === 'object') {
       const binFiles = Object.values(packageJson.bin);
       if (binFiles.length > 0) {
         for (const binFile of binFiles) {
@@ -718,10 +718,20 @@ export async function urlhandler(url:string){
   
     // Extract zip content
     await fs.createReadStream(zipPath)
-        .pipe(unzipper.Extract({ path: destination }))
+        .pipe(unzipper.Extract({ path: path.join(destination,'package') }))
         .promise();
   
-    return path.join(destination, 'package'); // Adjust based on zip structure
+    const extractedPath = path.join(destination, 'package');
+    const extractedFiles = await fs.promises.readdir(extractedPath);
+    const firstFolder = extractedFiles.find((file) => fs.statSync(path.join(extractedPath, file)).isDirectory());
+    
+    if (firstFolder) {
+      console.log('Found first folder:', firstFolder);
+      return path.join(extractedPath, firstFolder); // Return the path of the first folder
+    }
+  
+    console.log('No first folder found');
+    return extractedPath // Adjust based on zip structure
   }
   export async function zipFolder(source: string, out: string) {
     const archive = fs.createWriteStream(out);
