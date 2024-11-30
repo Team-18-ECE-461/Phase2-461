@@ -75,7 +75,7 @@ catch (err) {
 }
 }
 
-function filterByRegex(scanResult: any,regexPattern: string): PackageItem[] {
+export function filterByRegex(scanResult: any,regexPattern: string): PackageItem[] {
     // Compile the regex pattern
     let regex: RegExp;
     try {
