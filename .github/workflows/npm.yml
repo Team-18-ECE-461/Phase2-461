@@ -47,6 +47,7 @@ jobs:
           zip -r function.zip packagesubendpoints.js node_modules
           zip -r regex.zip byregex.js node_modules
           zip -r reset.zip reset.js node_modules
+          zip -r cost.zip cost.js node_modules
           cd ..
           cd metrics
           zip -r metrics.zip *.js node_modules
@@ -132,6 +133,23 @@ jobs:
           delay=10
           for ((i=0; i<retries; i++)); do
             if aws lambda update-function-code --function-name resetDatabase --zip-file fileb://lambda/reset.zip; then
+              echo "Update successful for regex"
+              break
+            else
+              echo "Update failed, retrying in $delay seconds..."
+              sleep $delay
+            fi
+          done
+      - name: Update reset Function
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: us-east-1
+        run: |
+          retries=5
+          delay=10
+          for ((i=0; i<retries; i++)); do
+            if aws lambda update-function-code --function-name cost --zip-file fileb://lambda/cost.zip; then
               echo "Update successful for regex"
               break
             else
