@@ -9,15 +9,18 @@ const client = new DynamoDBClient({ region: "us-east-1" });
  * @param visited A set to track visited packages (avoid circular dependencies).
  * @returns The cumulative size of the package and its dependencies.
  */
-const calculateCost = async (packageId: string, visited: Set<string>): Promise<number> => {
+const calculateCost = async (packageId: string, visited: Set<string>, cache: Map<string, number>): Promise<number> => {
   if (visited.has(packageId)) {
     console.warn(`Circular dependency detected for package: ${packageId}`);
     return 0; // Avoid infinite recursion
   }
 
+  if (cache.has(packageId)) {
+    return cache.get(packageId)!; // Return cached result
+  }
+
   visited.add(packageId);
 
-  // Fetch the package data
   const result = await client.send(
     new GetItemCommand({
       TableName: "PackageInfo",
@@ -34,23 +37,28 @@ const calculateCost = async (packageId: string, visited: Set<string>): Promise<n
   const size = parseInt(packageData.size?.N || "0", 10);
   const dependencies = packageData.dependencies?.L?.map((dep) => dep.S) || [];
 
-  // Recursively calculate the size for all dependencies
   let totalDependencySize = 0;
   for (const dep of dependencies) {
-    if (dep) {
-      totalDependencySize += await calculateCost(dep, visited);
-    }
+    totalDependencySize += await calculateCost(dep, visited, cache);
   }
 
-  return size + totalDependencySize;
+  const totalSize = size + totalDependencySize;
+  cache.set(packageId, totalSize); // Cache result
+  return totalSize;
 };
+
 
 export const cost: APIGatewayProxyHandler = async (event) => {
   try {
     // Parse the input (list of package IDs)
     const body = JSON.parse(event.body || "{}");
     const packageIds: string[] = body.packageIds || [];
-
+    if (!packageIds) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: "Package ID is required in the path." }),
+      };
+    }
     if (!Array.isArray(packageIds) || packageIds.length === 0) {
       return {
         statusCode: 400,
