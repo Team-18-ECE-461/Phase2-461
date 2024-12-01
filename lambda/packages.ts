@@ -93,7 +93,7 @@ export const lambdaHandler = async (event: LambdaEvent) => {
 
 }
 
-function parsetovalidversion(versionSchema: string): string{
+export function parsetovalidversion(versionSchema: string): string{
     if(versionSchema.includes('(') && versionSchema.includes(')')){
         versionSchema = versionSchema.slice(1, -1);
     }
@@ -105,7 +105,7 @@ function parsetovalidversion(versionSchema: string): string{
     return versionSchema;
 }
 
-function buildParams(name: string, versionSchema: string, offset: any, limit: number) {
+export function buildParams(name: string, versionSchema: string, offset: any, limit: number) {
     
 
     if(versionSchema === '*'){
@@ -192,19 +192,22 @@ function buildParams(name: string, versionSchema: string, offset: any, limit: nu
     
 }
 
-const versionToInt = (version: string) => {
+export const versionToInt = (version: string) => {
     const [major, minor, patch] = version.split('.').map(Number);
     return major * 1000000 + minor * 1000 + patch;}
 
-const parseRange = (range: string) => {
+export const parseRange = (range: string) => {
     const strippedInput = range
     let [start, end] = strippedInput.split('-');
     const s  = versionToInt(start);
     const e = versionToInt(end);
+    if (isNaN(s) || isNaN(e) || s > e) {
+        throw new Error('Invalid range version');
+    }
     return [s, e];
 }
 
-function parseCaretVersion(versionSchema: string) {
+export function parseCaretVersion(versionSchema: string) {
     versionSchema = versionSchema.slice(1);
     const [major, minor, patch] = versionSchema.split('.').map(Number);
 
@@ -227,7 +230,7 @@ function parseCaretVersion(versionSchema: string) {
     return [start,end] ;
 }
 
-function parseTildeVersion(versionSchema:string) {
+export function parseTildeVersion(versionSchema:string) {
     versionSchema = versionSchema.slice(1);
     const parts = versionSchema.split('.').map(Number);
     const major = parts[0] || 0;

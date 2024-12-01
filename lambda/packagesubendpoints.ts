@@ -26,6 +26,7 @@ export const lambdaHandler = async (event: LambdaEvent) => {
   const httpMethod = event.httpMethod;
   const requestBody = JSON.parse(event.body);
   const packageId =event.pathParameters.id;
+  console.log(packageId)
 
   switch (httpMethod) {
     case 'GET':
@@ -42,7 +43,7 @@ export const lambdaHandler = async (event: LambdaEvent) => {
   }
 };
 
-async function handleGetPackage(packageId: string) {
+export async function handleGetPackage(packageId: string) {
     try {
         if (!packageId) {
             return { statusCode: 400, body: JSON.stringify({ message: 'Invalid request' }) };
@@ -119,12 +120,12 @@ async function handleGetPackage(packageId: string) {
       }
 }
 
-async function handleUpdatePackage(event: LambdaEvent) {
+export async function handleUpdatePackage(event: LambdaEvent) {
     try {
         const requestBody = JSON.parse(event.body);
         const packageId = requestBody.metadata.ID;
         const packageName = requestBody.metadata.Name;
-        const packageVersion = requestBody.metadata.Version;
+        let packageVersion = requestBody.metadata.Version;
         let content = requestBody.data.Content;
         let url = requestBody.data.URL;
         const JSProgram = requestBody.data.JSProgram;
@@ -164,17 +165,19 @@ async function handleUpdatePackage(event: LambdaEvent) {
 
 
         if(content){
-          if (checkResult.Items.some(item => item.URL)) { //check if the package has a URL(was not uploaded by content)
-            return { statusCode: 400, body: JSON.stringify({ message: "Invalid request" }) };
-          }
-
-          const mostRecentVersion  = await getMostRecentVersion(packageName);
-          if (mostRecentVersion && !checkValidVersionContent(packageVersion, mostRecentVersion)) {  //check for invalid patch
+            if (checkResult.Items.some(item => item.URL.S && item.URL.S.length > 0)) { //check if the package has a URL(was not uploaded by content)
+            return { statusCode: 400, body: JSON.stringify({ message: `Package cannot be uploaded by content. It was uploaded with url` }) };
+            }
+          let major: number, minor: number, patch: number;
+          [major, minor, patch] = packageVersion.split('.').map(Number);
+          const mostRecentVersion  = await getMostRecentVersion(packageName, major, minor);
+          console.log("most recent version", mostRecentVersion)
+          if (await checkValidVersionContent(packageVersion, mostRecentVersion) === false) {  //check for invalid patch
             return { statusCode: 400, body: JSON.stringify({ message: "Invalid version" }) };
           }
         }
         if(url){
-          if(!checkResult.Items.some(item => item.URL)) { //check if the package has a URL(was not uploaded by content)
+          if(!checkResult.Items.some(item => item.URL.S && item.URL.S.length > 0)) { //check if the package has a URL(was not uploaded by content)
             return { statusCode: 400, body: JSON.stringify({ message: "Invalid request" }) };
           }
         }
@@ -187,14 +190,22 @@ async function handleUpdatePackage(event: LambdaEvent) {
           let tempversion = ''
           let tempname = ''
           if(url && url.includes('npmjs.com')) {
-            [packagePath, tempversion, tempname] =  await downloadAndExtractNpmPackage(url, tempDir, packageName, packageVersion);
+            try{
+            [packagePath, tempversion, tempname] =  await downloadAndExtractNpmPackage(url, tempDir, packageName, packageVersion);}
+            catch (error) {
+              console.error('Error downloading and extracting package:', error);
+              throw new Error('Error downloading and extracting package');
           }
+        }
           else if(content){
             packagePath = await extractBase64ZipContent(content, tempDir);
           }
           else if(url && url.includes('github.com')){
             const [owner, repo]: [string, string] = parseGitHubUrl(url) as [string, string];
-            [packagePath, tempversion] = await downloadAndExtractGithubPackage(url, tempDir, owner, repo);
+            const apiUrl = `https://api.github.com/repos/${owner}/${repo}`;
+            const response0 = await axios.get(apiUrl);
+            const branch = response0.data.default_branch;
+            [packagePath, tempversion] = await downloadAndExtractGithubPackage(url, tempDir, owner, repo, branch);
           }
           const outputDir = path.join(tempDir, 'debloated');
       fs.mkdirSync(outputDir, { recursive: true });
@@ -213,7 +224,7 @@ async function handleUpdatePackage(event: LambdaEvent) {
         };
       }
 
-      const updatedEntryPath = [];
+      const updatedEntryPath: string[] = [];
       for (const entry of entryPath) {
         if(fs.existsSync(entry)){
           const stats = await fs.promises.stat(entry);
@@ -314,6 +325,9 @@ async function handleUpdatePackage(event: LambdaEvent) {
         const apiUrl = `https://api.github.com/repos/${owner}/${repo}`;
         const response0 = await axios.get(apiUrl);
         const branch = response0.data.default_branch;
+        let version  = await getVersionFromGithub(owner, repo);
+        if(version !== ''){packageVersion = version;}
+        console.log('Branch:', branch);
         const response = await axios.get(`${url}/archive/refs/heads/${branch}.zip`, { responseType: 'arraybuffer' });
         zipBuffer = Buffer.from(response.data);
       } else { 
@@ -328,6 +342,7 @@ async function handleUpdatePackage(event: LambdaEvent) {
         Body: zipBuffer,
         ContentType: 'application/zip',
       });
+      if(packageVersion.length === 0){ packageVersion = '1.0.0';}
       uploadDB(packageId, packageName, packageVersion, JSProgram, url);   
       return {
         statusCode: 200,
@@ -345,7 +360,7 @@ async function handleUpdatePackage(event: LambdaEvent) {
     }
 }
 
-async function handleDeletePackage(id:string){
+export async function handleDeletePackage(id:string){
     try {
         const params = {
             TableName: TABLE_NAME,
@@ -378,11 +393,11 @@ async function handleDeletePackage(id:string){
 
 }
 
-async function downloadAndExtractGithubPackage(githubUrl: string, destination: string, owner: string, repo: string): Promise<any> {
-  const tarballUrl = `https://api.github.com/repos/${owner}/${repo}/tarball`;
+export async function downloadAndExtractGithubPackage(githubUrl: string, destination: string, owner: string, repo: string, branch:string): Promise<any> {
+  const tarballUrl = `https://api.github.com/repos/${owner}/${repo}/tarball/${branch}`;
   const tarballPath = path.join(destination, 'package.tar.gz');
   const writer = fs.createWriteStream(tarballPath);
-  const downloadResponse = await axios.get(tarballUrl, { responseType: 'stream' });
+  const downloadResponse = await axios.get(tarballUrl, { responseType: 'stream'});
   await new Promise((resolve, reject) => {
       downloadResponse.data.pipe(writer);
       writer.on('finish', resolve);
@@ -406,7 +421,7 @@ async function downloadAndExtractGithubPackage(githubUrl: string, destination: s
       if (fs.existsSync(packagePath)) {
         const packageJsonContent = await fs.promises.readFile(packagePath, 'utf-8');
         const packageJson = JSON.parse(packageJsonContent);
-        version = packageJson.version;
+        version = packageJson.version || '1.0.0'; // Default to 1.0.0 if version not found
         console.log('Found version in package.json:', version);
         return [path.join(extractedPath, firstFolder), version]
       } else {
@@ -426,7 +441,9 @@ async function downloadAndExtractGithubPackage(githubUrl: string, destination: s
 
 }
 
-async function checkexistingPackage(packageName: string, packageVersion: string){
+export async function checkexistingPackage(packageName: string, packageVersion: string){
+  console.log("packageversion: ", packageVersion)
+  console.log("packagename: ", packageName)
   const existingPackage = await dynamoDBclient.send(
     new QueryCommand({
       TableName: TABLE_NAME,
@@ -447,7 +464,7 @@ async function checkexistingPackage(packageName: string, packageVersion: string)
   return false;
 }
 
-async function getMostRecentVersion(packageName: string) {
+export async function getMostRecentVersion(packageName: string, majorVersion: number, minorVersion: number): Promise<number> {
   const params = {
       TableName: TABLE_NAME,                 // Replace with your table name
       KeyConditionExpression: "#name = :name",
@@ -455,27 +472,44 @@ async function getMostRecentVersion(packageName: string) {
       ExpressionAttributeValues: {
           ":name": { S: packageName },       // The name you're querying for
       },
-      ProjectionExpression: "VersionInt"     // Only retrieve the versionInt attribute
+      ProjectionExpression: "Version"     // Only retrieve the version attribute
   };
 
   try {
       const result = await dynamoDBclient.send(new QueryCommand(params));
-      
+      console.log("Query result:", result);
+
+      if (result.Items && result.Items.length > 0) {
+        console.log(result.Items[0].Version);
+      } else {
+        console.log("No items found");
+      }
       if (result.Items && result.Items.length > 0) {
           // Extract versionInt values from each item
-          const versionInts = result.Items.map(item => Number(item.VersionInt.N));
+            const versionInts = result.Items
+            .filter(item => {
+              if (item.Version && item.Version.S) {
+                const [major, minor, patch] = item.Version.S.split('.').map(Number);
+                console.log("major: ", major, "minor: ", minor)
+                return major === majorVersion && minor === minorVersion;
+              }
+              return false;
+            })
+            .map(item => versionInt(item.Version.S || ''));
+            console.log("versionInts: ", versionInts)
           return Math.max(...versionInts);
       } else {
           console.log("No versions found for this package.");
-          return null;
+          return 0;
       }
   } catch (error) {
       console.error("Error querying DynamoDB:", error);
-      return null;
+      return 0;
   }
 }
 
-async function checkValidVersionContent(version:string, mostRecentVersion:number) {
+export async function checkValidVersionContent(version:string, mostRecentVersion:number) {
+  console.log("most Recent version", mostRecentVersion)
   const [major, minor, patch] = version.split('.').map(Number);
   const mostRecentMajor: number = Math.floor((mostRecentVersion) / 1000000);
   const mostRecentMinor = Math.floor((mostRecentVersion % 1000000) / 1000);
@@ -487,11 +521,11 @@ async function checkValidVersionContent(version:string, mostRecentVersion:number
     return patch > mostRecentPatch;
   }
 
-  // Otherwise, the incoming version is not valid
+  // Otherwise, the incoming version is valid
   return true;
 }
 
-function parseGitHubUrl(url: string): [ owner: string, repo: string ] | null {
+export function parseGitHubUrl(url: string): [ owner: string, repo: string ] | null {
   try {
       const parsedUrl = new URL(url);
       const pathSegments = parsedUrl.pathname.split('/').filter(Boolean);
@@ -507,7 +541,7 @@ function parseGitHubUrl(url: string): [ owner: string, repo: string ] | null {
   }
 }
 
-async function urlhandler(url:string){
+export async function urlhandler(url:string){
   if(url.includes('github')){
     const repoNameMatch = url.match(/github\.com\/[^\/]+\/([^\/]+)/);
     if (repoNameMatch && repoNameMatch[1]) {
@@ -535,8 +569,8 @@ async function urlhandler(url:string){
     
   }
   }
-  function getEntryPoint(packageJsonPath: string): string[] {
-    const filePaths = [];
+  export function getEntryPoint(packageJsonPath: string): string[] {
+    const filePaths: string[] = [];
     const packageJson = require(packageJsonPath);
   
     // Check for index.js first
@@ -579,11 +613,11 @@ async function urlhandler(url:string){
     
   
     // If index.js doesn't exist, check the bin category
-    else if (packageJson.bin && typeof packageJson.bin === 'object') {
+    if (packageJson.bin && typeof packageJson.bin === 'object') {
       const binFiles = Object.values(packageJson.bin);
       if (binFiles.length > 0) {
         for (const binFile of binFiles) {
-          filePaths.push(binFile);
+          filePaths.push(binFile as string);
       }
     }
   
@@ -595,7 +629,11 @@ async function urlhandler(url:string){
     
   }
 
-  async function uploadDB(packageId: string, packageName: string, packageVersion: string, JSProgram: string, url: string){
+  export async function uploadDB(packageId: string, packageName: string, packageVersion: string, JSProgram: string, url: string){
+    console.log("packageversion: ", packageVersion)
+    if(packageVersion.includes('v')){
+      packageVersion = packageVersion.replace('v', '');
+    }
     const item = {
       ID: { S: packageId },
       Name: { S: packageName },
@@ -603,20 +641,20 @@ async function urlhandler(url:string){
       VersionInt: { N: versionInt(packageVersion).toString() },
       JSProgram: { S: JSProgram },
       CreatedAt: { S: new Date().toISOString() },
-      URL: { S: url },
+      URL: { S: url || '' },
     };
-  
+    console.log("item: ", item)
     await dynamoDBclient.send(new PutItemCommand({
       TableName: TABLE_NAME,
       Item: item
     }));
   
   }
-  function versionInt(version: string): number{
+  export function versionInt(version: string): number{
     const [major, minor, patch] = version.split('.').map(Number);
     return major * 1000000 + minor * 1000 + patch;
   }
-  async function downloadAndExtractNpmPackage(npmUrl: string, destination: string, packageName: string, packageVersion:string): Promise<any> {
+  export async function downloadAndExtractNpmPackage(npmUrl: string, destination: string, packageName: string, packageVersion:string): Promise<any> {
     // Convert npm URL to registry API URL
     let registryUrl = npmUrl
     let response;
@@ -650,14 +688,14 @@ async function urlhandler(url:string){
   }
   
   
-  function generatePackageId(name: string, version: string): string {
+  export function generatePackageId(name: string, version: string): string {
     const hash = crypto.createHash('sha256');
     hash.update(`${name}-${version}`);
     return hash.digest('hex').slice(0, 12); // Truncate for a shorter ID
   }
   
   // Function to clean up temporary files
-  async function cleanupTempFiles(tempFilePath: string): Promise<void> {
+  export async function cleanupTempFiles(tempFilePath: string): Promise<void> {
     try {
       // Check if the path exists
       await fs.promises.access(tempFilePath);
@@ -673,19 +711,29 @@ async function urlhandler(url:string){
       console.error(`Error cleaning up temporary file or directory at ${tempFilePath}:`, error);
     }
   }
-  async function extractBase64ZipContent(base64Content: string, destination: string): Promise<string> {
+  export async function extractBase64ZipContent(base64Content: string, destination: string): Promise<string> {
     const zipPath = path.join(destination, 'package.zip');
     const buffer = Buffer.from(base64Content, 'base64');
     await fs.promises.writeFile(zipPath, buffer);
   
     // Extract zip content
     await fs.createReadStream(zipPath)
-        .pipe(unzipper.Extract({ path: destination }))
+        .pipe(unzipper.Extract({ path: path.join(destination,'package') }))
         .promise();
   
-    return path.join(destination, 'package'); // Adjust based on zip structure
+    const extractedPath = path.join(destination, 'package');
+    const extractedFiles = await fs.promises.readdir(extractedPath);
+    const firstFolder = extractedFiles.find((file) => fs.statSync(path.join(extractedPath, file)).isDirectory());
+    
+    if (firstFolder) {
+      console.log('Found first folder:', firstFolder);
+      return path.join(extractedPath, firstFolder); // Return the path of the first folder
+    }
+  
+    console.log('No first folder found');
+    return extractedPath // Adjust based on zip structure
   }
-  async function zipFolder(source: string, out: string) {
+  export async function zipFolder(source: string, out: string) {
     const archive = fs.createWriteStream(out);
     const zipper = archiver('zip', {
         zlib: { level: 9 }  // High compression level
@@ -696,7 +744,7 @@ async function urlhandler(url:string){
     await zipper.finalize();
   }
 
-  async function uploadToS3(filePath: string, bucketName: string, key: string) {
+  export async function uploadToS3(filePath: string, bucketName: string, key: string) {
     const fileStream = fs.createReadStream(filePath);
     await s3.putObject({
       Bucket: bucketName,
@@ -707,7 +755,7 @@ async function urlhandler(url:string){
   
   }
 
-  async function checkValidVersion(packageName: string, version: string): Promise<boolean> {
+  export async function checkValidVersion(packageName: string, version: string): Promise<boolean> {
     const params = {
         TableName: TABLE_NAME,
         KeyConditionExpression: "#name = :name",
@@ -733,7 +781,7 @@ async function urlhandler(url:string){
     }
   }
 
-  async function downloadNpm(npmUrl:string){
+  export async function downloadNpm(npmUrl:string){
     try {let registryUrl = npmUrl
       let response;
       let tarballUrl;
@@ -780,6 +828,7 @@ async function urlhandler(url:string){
       const archive = archiver('zip', {
         zlib: { level: 9 },
       });
+      console.log(archive)
   
       archive.pipe(output);
       archive.directory(extractPath, false);  //zip from /tmp/npm-/packageName to /tmp/npm-/packageName.zip
@@ -805,4 +854,25 @@ async function urlhandler(url:string){
     }
   }
   
-
+  export async function getVersionFromGithub(owner: string, repo: string): Promise<string> {
+    try {
+      // Attempt to fetch the latest release
+      const releaseUrl = `https://api.github.com/repos/${owner}/${repo}/releases/latest`;
+      const releaseResponse = await axios.get(releaseUrl);
+      return releaseResponse.data.tag_name; // or .name based on your preference
+  } catch (error: any) { 
+      if (error.response?.status === 404) {
+          // Fallback to tags if no releases are found
+          console.warn(`No releases found. Falling back to tags.`);
+          const tagsUrl = `https://api.github.com/repos/${owner}/${repo}/tags`;
+          const tagsResponse = await axios.get(tagsUrl);
+          if (tagsResponse.data.length > 0) {
+              return tagsResponse.data[0].name; // Return the most recent tag
+          } else {
+              return '';
+          }
+      } else {
+          throw error; // Re-throw for other errors
+      }
+  }
+  }

@@ -46,17 +46,30 @@ try{
 
   const command = new ScanCommand(params);
   const results = await dynamoDBclient.send(command);
-  
-  if (!results.Items || results.Items.length === 0) {
+  console.log(results)
+
+  if(results.Count === 0){
     return {
       statusCode: 404,
       body: JSON.stringify({ message: 'No packages found.' }),
     };
   }
- 
 
+if (!results.Items) {
+  return {
+    statusCode: 404,
+    body: JSON.stringify({ message: 'No packages found.' }),
+  };
+}
 
 const filteredResults = filterByRegex(results, regexp);
+
+if(filteredResults.length === 0){
+  return {
+    statusCode: 404,
+    body: JSON.stringify({ message: 'No packages found.' }),
+  };
+}
 
   const response = {
     statusCode: 200,
@@ -68,6 +81,7 @@ const filteredResults = filterByRegex(results, regexp);
   return response;
 }
 catch (err) {
+  console.error(err);
   return {
     statusCode: 500,
     body: JSON.stringify({ message: 'Internal server error' }),
@@ -75,7 +89,7 @@ catch (err) {
 }
 }
 
-function filterByRegex(scanResult: any,regexPattern: string): PackageItem[] {
+export function filterByRegex(scanResult: any,regexPattern: string): PackageItem[] {
     // Compile the regex pattern
     let regex: RegExp;
     try {
@@ -92,6 +106,8 @@ function filterByRegex(scanResult: any,regexPattern: string): PackageItem[] {
 
 
      // Transform filtered items to desired format
+     if (!filteredItems) {
+      return [];}
      const transformedItems = filteredItems.map((item: any) => ({
       Name: item.Name?.S || "N/A",
       Version: item.Version?.S || "N/A",

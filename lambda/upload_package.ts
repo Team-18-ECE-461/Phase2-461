@@ -24,7 +24,7 @@ interface LambdaEvent {
   // JSProgram: string;
 }
 
-async function urlhandler(url:string){
+export async function urlhandler(url:string){
   if(url.includes('github')){
     const repoNameMatch = url.match(/github\.com\/[^\/]+\/([^\/]+)/);
     if (repoNameMatch && repoNameMatch[1]) {
@@ -90,8 +90,7 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
 
       if(url && url.includes('github')){
         const [owner, repo]: [string, string] = parseGitHubUrl(url) as [string, string];
-        packagePath = await downloadAndExtractGithubPackage(url, tempDir, owner, repo);
-        //version = (await getVersionFromGithub(owner, repo)).slice(1) || '1.0.0';
+        [packagePath,version] = await downloadAndExtractGithubPackage(url, tempDir, owner, repo);
         if(!name){
           name = repo;
         }
@@ -119,7 +118,7 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
         entryPath[i] = path.join(packagePath, entryPath[i]);
       }
 
-      const updatedEntryPath = [];
+      const updatedEntryPath: string[] = [];
       for (const entry of entryPath) {
         if(fs.existsSync(entry)){
           const stats = await fs.promises.stat(entry);
@@ -218,7 +217,14 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
     if(url && url.includes('npmjs.com')){
       let zippath: string;
       
-      const [tid, tname, tversion, base64Zip] = await downloadNpm(url);
+      const [tid, tname, tversion, base64Zip, existing] = await downloadNpm(url);
+      if(existing){
+        return {
+          statusCode: 409,
+          body: JSON.stringify('Package already exists'),
+        };
+      }
+     
       return {
         statusCode: 201,
         body: JSON.stringify({
@@ -344,7 +350,7 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
 
    
 }catch (error) {
-    console.error('Error processing request:', error);
+    // console.error('Error processing request:', error);
     return {
       statusCode: 500,
       body: JSON.stringify('Failed to process the request.'),
@@ -353,12 +359,12 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
 };
 
 
-function versionInt(version: string): number{
+export function versionInt(version: string): number{
   const [major, minor, patch] = version.split('.').map(Number);
   return major * 1000000 + minor * 1000 + patch;
 }
 
-async function getVersionFromGithub(owner: string, repo: string): Promise<string> {
+export async function getVersionFromGithub(owner: string, repo: string): Promise<string> {
   try {
     // Attempt to fetch the latest release
     const releaseUrl = `https://api.github.com/repos/${owner}/${repo}/releases/latest`;
@@ -380,7 +386,7 @@ async function getVersionFromGithub(owner: string, repo: string): Promise<string
     }
 }
 }
-async function downloadNpm(npmUrl:string){
+export async function downloadNpm(npmUrl:string){
   try {let registryUrl = npmUrl
     let response;
     let tarballUrl;
@@ -389,7 +395,12 @@ async function downloadNpm(npmUrl:string){
     const tempDir = await fs.promises.mkdtemp(path.join(tmpdir(), 'npm-'));  //tmpdir = /tmp/npm-
     if (npmUrl.includes( '/v/')){
       registryUrl = npmUrl.replace('https://www.npmjs.com/package/', 'https://registry.npmjs.org/').replace('/v/', '/');
-      response = await axios.get(registryUrl);
+      try{
+      response = await axios.get(registryUrl);}
+      catch(error){
+        //console.log('Error fetching package data:', error);
+        throw error;
+      }
       version = npmUrl.split('/v/')[1];
       packageName = response.data.name;
       tarballUrl = response.data.dist.tarball;
@@ -438,21 +449,37 @@ async function downloadNpm(npmUrl:string){
   });
 
     let base64content = fs.readFileSync(zipPath).toString('base64');  //read from /tmp/npm-/packageName.zip to content
+    const existingPackage = await dynamoDBclient.send(
+      new QueryCommand({
+        TableName: TABLE_NAME,
+        KeyConditionExpression: '#name = :name and Version = :version',
+        ExpressionAttributeNames: {
+            '#name': 'Name', // Alias for reserved keyword 'Name'
+        },
+        ExpressionAttributeValues: {
+            ':name': { S: packageName },
+            ':version': { S: version },
+        },
+      })
+  );
 
+  if (existingPackage.Items && existingPackage.Items.length > 0) {
+    return [packageName, version, generatePackageId(packageName, version), base64content, true];
+  }
     await uploadToS3(zipPath, BUCKET_NAME, `${packageName}-${version}`);
     await cleanupTempFiles(tarballPath);
     await cleanupTempFiles(extractPath);
     await cleanupTempFiles(zipPath);
     await uploadDB(generatePackageId(packageName, version), packageName, version, '', npmUrl);
     let id = generatePackageId(packageName, version);
-    return [packageName, version, id, base64content];
+    return [packageName, version, id, base64content, false];
   } catch (error) {
-    console.log('Error downloading npm package:', error);
+    //console.log('Error downloading npm package:', error);
     throw error;
   }
 }
 
-function parseGitHubUrl(url: string): [ owner: string, repo: string ] | null {
+export function parseGitHubUrl(url: string): [ owner: string, repo: string ] | null {
   try {
       const parsedUrl = new URL(url);
       const pathSegments = parsedUrl.pathname.split('/').filter(Boolean);
@@ -463,14 +490,17 @@ function parseGitHubUrl(url: string): [ owner: string, repo: string ] | null {
       }
       return null;
   } catch (error) {
-      console.error('Invalid URL:', error);
+      
+      // console.error('Invalid URL:', error);
       return null;
   }
 }
  
 
-async function downloadAndExtractNpmPackage(npmUrl: string, destination: string): Promise<any> {
+export async function downloadAndExtractNpmPackage(npmUrl: string, destination: string): Promise<any> {
   // Convert npm URL to registry API URL
+  console.log(destination, "is destination")
+  console.log("should return", path.join(destination, 'package'))
   let registryUrl = npmUrl
   let response;
   let tarballUrl;
@@ -510,7 +540,7 @@ async function downloadAndExtractNpmPackage(npmUrl: string, destination: string)
   return [path.join(destination, 'package'), version, packageName]; // Adjust this based on the extracted directory structure
 }
 
-async function downloadAndExtractGithubPackage(githubUrl: string, destination: string, owner: string, repo: string): Promise<any> {
+export async function downloadAndExtractGithubPackage(githubUrl: string, destination: string, owner: string, repo: string): Promise<any> {
   const tarballUrl = `https://api.github.com/repos/${owner}/${repo}/tarball`;
   const tarballPath = path.join(destination, 'package.tar.gz');
   const writer = fs.createWriteStream(tarballPath);
@@ -558,14 +588,14 @@ async function downloadAndExtractGithubPackage(githubUrl: string, destination: s
 
 }
 
-function generatePackageId(name: string, version: string): string {
+export function generatePackageId(name: string, version: string): string {
   const hash = crypto.createHash('sha256');
   hash.update(`${name}-${version}`);
   return hash.digest('hex').slice(0, 12); // Truncate for a shorter ID
 }
 
 // Function to clean up temporary files
-async function cleanupTempFiles(tempFilePath: string): Promise<void> {
+export async function cleanupTempFiles(tempFilePath: string): Promise<void> {
   try {
     // Check if the path exists
     await fs.promises.access(tempFilePath);
@@ -582,40 +612,8 @@ async function cleanupTempFiles(tempFilePath: string): Promise<void> {
   }
 }
 
-async function createOptimizedZipStream(zipBuffer: Buffer, ignoredPatterns: any) {
-  const buffers : Buffer[] = [];
-  const optimizedZipStream = archiver('zip', { zlib: { level: 9 } });
 
-  // Collect data into the buffer array as it is generated
-  optimizedZipStream.on('data', (data) => buffers.push(data));
-  
-  const zipStream = new stream.PassThrough();
-  zipStream.end(zipBuffer);
-
-  const zipContents = zipStream.pipe(unzipper.Parse({ forceStream: true }));
-  zipContents.on('entry', (entry) => {
-    const shouldIgnore = ignoredPatterns.some((pattern: string) => entry.path.includes(pattern));
-    if (!shouldIgnore) {
-      optimizedZipStream.append(entry, { name: entry.path });
-    } else {
-      entry.autodrain();
-    }
-  });
-
-  // Ensure the archive finalizes once done
-  await new Promise((resolve, reject) => {
-    zipContents.on('close', resolve);
-    zipContents.on('error', reject);
-  });
-  optimizedZipStream.finalize();
-
-  // Return combined data as a Buffer
-  return Buffer.concat(buffers);
-}
-
-
-
-async function extractBase64ZipContent(base64Content: string, destination: string, repo: string, branch: string): Promise<string> {
+export async function extractBase64ZipContent(base64Content: string, destination: string, repo: string, branch: string): Promise<string> {
   const zipPath = path.join(destination, 'package.zip');
   const buffer = Buffer.from(base64Content, 'base64');
   await fs.promises.writeFile(zipPath, buffer);
@@ -638,7 +636,7 @@ async function extractBase64ZipContent(base64Content: string, destination: strin
   return extractedPath // Adjust based on zip structure
 }
 
-async function zipFolder(source: string, out: string) {
+export async function zipFolder(source: string, out: string) {
   const archive = fs.createWriteStream(out);
   const zipper = archiver('zip', {
       zlib: { level: 9 }  // High compression level
@@ -649,18 +647,22 @@ async function zipFolder(source: string, out: string) {
   await zipper.finalize();
 }
 
-async function uploadToS3(filePath: string, bucketName: string, key: string) {
+export async function uploadToS3(filePath: string, bucketName: string, key: string) {
+  try{
   const fileStream = fs.createReadStream(filePath);
   await s3.putObject({
       Bucket: bucketName,
       Key: key,
       Body: fileStream,
       ContentType: 'application/zip',
-  })
+  });}
+  catch(error){
+    throw error
+  }
 
 }
 
-async function checkexistingPackage(packageName: string, packageVersion: string){
+export async function checkexistingPackage(packageName: string, packageVersion: string){
   const existingPackage = await dynamoDBclient.send(
     new QueryCommand({
       TableName: TABLE_NAME,
@@ -681,7 +683,7 @@ async function checkexistingPackage(packageName: string, packageVersion: string)
   return false;
 }
 
-async function uploadDB(packageId: string, packageName: string, packageVersion: string, JSProgram: string, url: string){
+export async function uploadDB(packageId: string, packageName: string, packageVersion: string, JSProgram: string, url: string){
   const item = {
     ID: { S: packageId },
     Name: { S: packageName },
@@ -699,8 +701,8 @@ async function uploadDB(packageId: string, packageName: string, packageVersion: 
 
 }
 
-function getEntryPoint(packageJsonPath: string): string[] {
-  const filePaths = [];
+export function getEntryPoint(packageJsonPath: string): string[] {
+  const filePaths: string[] = [];
   const packageJson = require(packageJsonPath);
 
   // Check for index.js first
@@ -747,7 +749,7 @@ function getEntryPoint(packageJsonPath: string): string[] {
     const binFiles = Object.values(packageJson.bin);
     if (binFiles.length > 0) {
       for (const binFile of binFiles) {
-        filePaths.push(binFile);
+        filePaths.push(binFile as string);
     }
   }
 
@@ -760,39 +762,3 @@ function getEntryPoint(packageJsonPath: string): string[] {
 }
 
 
-function unzipPackageForDependencies(zipFilePath: string) {
-  // Create a stream to read the zip file
-  const unzipStream = fs.createReadStream(zipFilePath).pipe(unzipper.Parse());
-  const tmpDir = fs.mkdtempSync(path.join(tmpdir(), 'package-'));
-  
-  unzipStream.on('entry', entry => {
-    // If we encounter package.json, extract it temporarily for installation
-    if(entry.type === 'File'){
-      if (entry.path === 'package.json') {
-        entry.pipe(fs.createWriteStream(path.join(tmpDir, 'package.json')));
-      }
-      else{
-        entry.autodrain();
-      }
-    } 
-    else {
-        entry.autodrain(); // Ignore other files
-      }
-    });
-
-  unzipStream.on('close', () => {
-    console.log('package.json extracted temporarily');
-    installDependencies(tmpDir);  // Install dependencies in temp directory
-  });
-}
-
-
-function installDependencies(dir:string) {
-  exec('npm install', { cwd: dir }, (err, stdout, stderr) => {
-    if (err) {
-      console.error('Error installing dependencies:', stderr);
-      return;
-    }
-    console.log('Dependencies installed:', stdout);
-  });
-}

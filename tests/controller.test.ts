@@ -9,11 +9,11 @@ import fs from 'fs';
 import { EventEmitter } from 'events';
 
 jest.mock('fs');
-jest.mock('../manager');
-jest.mock('../calc_metrics');
-jest.mock('../url_handler');
-jest.mock('../output_metrics');
-jest.mock('../database');
+jest.mock('../metrics/manager');
+jest.mock('../metrics/calc_metrics');
+jest.mock('../metrics/url_handler');
+jest.mock('../metrics/output_metrics');
+jest.mock('../metrics/database');
 
 // Mock better-sqlite3
 jest.mock('better-sqlite3', () => {
