@@ -18,7 +18,11 @@ export interface RowInfo {
 
 export class Metrics extends EventEmitter {
     private _db: Database.Database;
-    private _info: Map<string, Map<string, number>>; // URL -> Information
+    //private _info: Map<string, Map<string, number>>; // URL -> Information
+
+    //changed for dependencyMetrics.ts
+    private _info: Map<string, Map<string, any>>; // URL -> Information
+
     done: boolean = false;
     private fp: number;
     private loglvl: number;
@@ -51,7 +55,10 @@ export class Metrics extends EventEmitter {
         try { // catch JSON.parse errors
             if (row.information) {
                 // if rowInformation is NULL, don't interact
-                const parsedInfo = new Map<string, number>(Object.entries(JSON.parse(row.information))); // Parse the information from the JSON string
+
+                //const parsedInfo = new Map<string, number>(Object.entries(JSON.parse(row.information))); // Parse the information from the JSON string
+                const parsedInfo = new Map<string, any>(Object.entries(JSON.parse(row.information))); // Parse the information from the JSON string
+
                 this._info.set(row.url,parsedInfo); // Add the information to the map
             }
         } catch(e) {
@@ -107,7 +114,7 @@ export class Metrics extends EventEmitter {
                 metrics.set('Correctness', 1); // if there are no issues, correctness is 1?
                 return 1;
             }
-            const correctness = resolved / issues;
+            const correctness = Math.min(resolved / issues, 1);
             metrics.set('Correctness', correctness);
             return correctness;
         } else {
@@ -170,21 +177,71 @@ export class Metrics extends EventEmitter {
         const iss14 = packInfo.get('iss14');
         const iss31 = packInfo.get('iss31');
         const issues = packInfo.get('issuesOpenedYr');
-        if (iss3 != undefined && iss7 != undefined && iss14 != undefined && iss31 != undefined && issues != undefined) {
-            if (issues == 0){
-                metrics.set('ResponsiveMaintainer', 1); // if there are no issues, responsiveness is 1?
-                return 1;
+        const issuesClosed = packInfo.get('issuesClosedYr');
+        if (iss3 != undefined && iss7 != undefined && iss14 != undefined && iss31 != undefined && issuesClosed != undefined) {
+            if (issuesClosed == 0){
+                metrics.set('ResponsiveMaintainer', 0);
+                return 0;
             }
-            const responsiveness = (iss3 + iss7 * 0.7 + iss14 * 0.4 + iss31 * 0.1) / issues;
-            metrics.set('ResponsiveMaintainer', responsiveness);
-            return responsiveness;
-        } else {
+        const totalWeighted = iss3 + iss7 * 0.7 + iss14 * 0.4 + iss31 * 0.1;
+        const responsiveness = issuesClosed > 0 ? Math.min(totalWeighted / issuesClosed, 1) : 0;
+        metrics.set('ResponsiveMaintainer', responsiveness);
+        return responsiveness;
+        } 
+        else {
             console.error('Error calculating responsiveness: resolved issues or total issues not found');
             process.exit(1);
         }
     }
 
-    private _netScore (bus: number, correct: number, ramp: number, response: number, license: number): number {
+    //for dependencyMetrics.ts
+    private _dependencyPinning(packInfo: Map<string, any>, metrics: Map<string, number>): number {
+        const packageJsonContent = packInfo.get('packageJson');
+        if (!packageJsonContent) {
+            console.error('Error calculating dependency pinning: packageJson not found');
+            process.exit(1);
+        }
+        let packageJson: any;
+        try {
+            packageJson = JSON.parse(packageJsonContent);
+        } catch (error) {
+            console.error('Error parsing packageJson content:', error);
+            process.exit(1);
+        }
+        const dependencies = packageJson.dependencies || {};
+        const totalDependencies = Object.keys(dependencies).length;
+        if (totalDependencies === 0) {
+            metrics.set('DependencyPinning', 1.0);
+            return 1.0;
+        }
+        let pinnedCount = 0;
+        for (const depVersion of Object.values(dependencies)) {
+            if (typeof depVersion !== 'string') continue;
+            const match = depVersion.match(/^[\^~]?(\d+)\.(\d+)/);
+            if (match) {
+                pinnedCount++;
+            }
+        }
+        const score = pinnedCount / totalDependencies;
+        metrics.set('DependencyPinning', score);
+        return score;
+    }
+
+    private _codeReviewFraction(packInfo: Map<string, any>, metrics: Map<string, number>): number {
+        const fraction = packInfo.get('CodeReviewFraction');
+        if (fraction !== undefined) {
+          metrics.set('CodeReview', fraction);
+          return fraction;
+        } else {
+          console.error('Error calculating code review fraction: data not found');
+          metrics.set('CodeReview', 0);
+          return 0;
+        }
+      }
+      
+
+
+    private _netScore (bus: number, correct: number, ramp: number, response: number, license: number, depPin: number, code_review_fraction: number): number {
         /**
          * Calculates the net score for one package
          * (Sum of weight x metric score) x license factor
@@ -204,7 +261,10 @@ export class Metrics extends EventEmitter {
          * Outputs:
          * - number - net score for the package
          */
-        return (0.1 * bus + 0.3 * correct + 0.2 * ramp + 0.4 * response) * license;
+
+        //adding dependencyMetrics (depPin) into this equation:
+
+        return (0.1 * bus + 0.2 * correct + 0.1 * ramp + 0.3 * response + 0.1 * depPin + 0.2 * code_review_fraction) * license;
     }
 
     private _calculateMetrics(): void {
@@ -214,35 +274,84 @@ export class Metrics extends EventEmitter {
         this._info.forEach((value, key) => {
             if (value) {
                 const metrics = new Map<string, number>();
-                const before_bus = now();
+                const start_net = now();
+
+                // Bus Factor
+                const start_bus = now();
                 const bus = this._busFactor(value, metrics);
-                const before_correct = now();
-                metrics.set('BusFactor_Latency', before_correct - before_bus);
+                const end_bus = now();
+                metrics.set('BusFactor_Latency', end_bus - start_bus);
+    
+                // Correctness
+                const start_correct = now();
                 const correct = this._correctness(value, metrics);
-                const before_ramp = now();
-                metrics.set('Correctness_Latency', before_ramp - before_correct);
+                const end_correct = now();
+                metrics.set('Correctness_Latency', end_correct - start_correct);
+    
+                // Ramp Up
+                const start_ramp = now();
                 const ramp = this._rampUp(value, metrics);
-                const before_response = now();
-                metrics.set('RampUp_Latency', before_response - before_ramp);
+                const end_ramp = now();
+                metrics.set('RampUp_Latency', end_ramp - start_ramp);
+    
+                // Responsive Maintainer
+                const start_response = now();
                 const response = this._responsiveness(value, metrics);
-                const before_license = now();
-                metrics.set("ResponsiveMaintainer_Latency", before_license - before_response);
+                const end_response = now();
+                metrics.set('ResponsiveMaintainer_Latency', end_response - start_response);
+    
+                // License
+                const start_license = now();
                 const license = value.get('License');
-                const before_net = now();
                 metrics.set('License', license ? license : 0);
-                metrics.set('License_Latency', before_net - before_license);
-                const net = this._netScore(bus, correct, ramp, response, license ? license : 0);
+                const end_license = now();
+                metrics.set('License_Latency', end_license - start_license);
+    
+                // Dependency Pinning
+                const start_dep_pinning = now();
+                const dep_pinning = this._dependencyPinning(value, metrics);
+                const end_dep_pinning = now();
+                metrics.set('DependencyPinning_Latency', end_dep_pinning - start_dep_pinning);
+    
+                // Code Review Fraction
+                const start_code_review = now();
+                const code_review_fraction = this._codeReviewFraction(value, metrics);
+                const end_code_review = now();
+                metrics.set('CodeReview_Latency', end_code_review - start_code_review);
+    
+                // Net Score
+                //const start_net = now();
+                const net = this._netScore(
+                    bus,
+                    correct,
+                    ramp,
+                    response,
+                    license ? license : 0,
+                    dep_pinning,
+                    code_review_fraction
+                );
                 metrics.set('NetScore', net);
-                const after_net = now();
-                metrics.set('NetScore_Latency', after_net - before_net);
-                database.updateEntry(this._db, key, this.fp, this.loglvl, undefined, JSON.stringify(Object.fromEntries(metrics)));
+                const end_net = now();
+                metrics.set('NetScore_Latency', end_net - start_net);
+    
+                // Update the database
+                database.updateEntry(
+                    this._db,
+                    key,
+                    this.fp,
+                    this.loglvl,
+                    undefined,
+                    JSON.stringify(Object.fromEntries(metrics))
+                );
+    
             } else {
-                console.error('Error calculating metrics for ${key}: information not found');
+                console.error(`Error calculating metrics for ${key}: information not found`);
                 process.exit(1);
             }
         });
         this.done = true;
     }
+    
 
     public calc(index: number): void {
         /**
