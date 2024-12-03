@@ -1,9 +1,9 @@
-import * as database from './database';
+//import * as database from './database';
 import Database from 'better-sqlite3';
 import { RowInfo } from './calc_metrics';
 import { EventEmitter  } from 'stream';
-import { fstat } from 'fs';
-import { JSONOutput } from '@aws-sdk/client-s3';
+//import { fstat } from 'fs';
+//import { JSONOutput } from '@aws-sdk/client-s3';
 
 /**
  * Class representing output metrics functionality.
@@ -49,14 +49,18 @@ export class OutputMetrics extends EventEmitter {
                         RampUp_Latency: parseFloat(metrics.RampUp_Latency?.toFixed(3)),
                         ResponsiveMaintainer_Latency: parseFloat(metrics.ResponsiveMaintainer_Latency?.toFixed(3)),
                         License_Latency: parseFloat(metrics.License_Latency?.toFixed(3)),
+                        DependencyPinning_Latency: parseFloat(metrics.DependencyPinning_Latency?.toFixed(3)),
+                        CodeReview_Latency: parseFloat(metrics.CodeReview_Latency?.toFixed(3)), // Added this line
                         NetScore_Latency: parseFloat(metrics.NetScore_Latency?.toFixed(3)),
                         BusFactor: parseFloat(metrics.BusFactor?.toFixed(3)),
                         Correctness: parseFloat(metrics.Correctness?.toFixed(3)),
                         RampUp: parseFloat(metrics.RampUp?.toFixed(3)),
                         ResponsiveMaintainer: parseFloat(metrics.ResponsiveMaintainer?.toFixed(3)),
+                        DependencyPinning: parseFloat(metrics.DependencyPinning?.toFixed(3)),
+                        CodeReview: parseFloat(metrics.CodeReview?.toFixed(3)), // And this line
                         NetScore: parseFloat(metrics.NetScore?.toFixed(3)),
-                        
                     };
+                    
                     const output = {
                         URL: typedRow.url,
                         ...formattedMetrics
