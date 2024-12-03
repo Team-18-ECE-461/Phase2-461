@@ -22,23 +22,51 @@ const fetchDependencies = async (dependencyIds: string[]) => {
  * @returns The cumulative size of the package and its dependencies.
  */
 const calculateCost = async (packageId: string, visited: Set<string>, cache: Map<string, number>): Promise<number> => {
-  if (visited.has(packageId)) return 0;
-  if (cache.has(packageId)) return cache.get(packageId)!;
+    if (visited.has(packageId)) return 0;
+    if (cache.has(packageId)) return cache.get(packageId)!;
 
-  visited.add(packageId);
+    visited.add(packageId);
 
-  const result = await client.send(new GetItemCommand({ TableName: "PackageInfo", Key: { packageId: { S: packageId } } }));
-  const packageData = result.Item;
-  if (!packageData) return 0;
+    const result = await client.send(new client_dynamodb_1.GetItemCommand({
+        TableName: "PackageInfo",
+        Key: { packageId: { S: packageId } }
+    }));
 
-  const size = parseInt(packageData.size?.N || "0", 10);
-  const dependencies = (packageData.dependencies?.L?.map((dep) => dep.S) || []).filter((dep): dep is string => !!dep);
+    const packageData = result.Item;
+    if (!packageData) return 0;
 
-  const dependencyCosts = await Promise.all(dependencies.map((dep) => calculateCost(dep, visited, cache)));
-  const totalSize = size + dependencyCosts.reduce((sum, cost) => sum + cost, 0);
+    const size = parseInt(packageData.size?.N || "0", 10);
+    const dependencies = packageData.dependencies?.L?.map((dep) => dep.S) || [];
 
-  cache.set(packageId, totalSize);
-  return totalSize;
+    const uniqueDependencies = [...new Set(dependencies.filter(dep => dep))];
+
+    // Fetch dependencies in bulk
+    const dependencyData = await fetchDependencies(uniqueDependencies);
+
+    // Cache the dependency sizes to avoid recalculating
+    const dependencyMap = new Map<string, number>();
+    dependencyData.forEach(dep => {
+        const depId = dep.packageId.S;
+        const depSize = parseInt(dep.size?.N || "0", 10);
+        dependencyMap.set(depId, depSize);
+    });
+
+    // Calculate the total cost using both direct and cached sizes
+    let totalSize = size;
+    const dependencyCosts = await Promise.all(
+        uniqueDependencies.map(async dep => {
+            if (!dependencyMap.has(dep)) {
+                return await calculateCost(dep, visited, cache); // Recursive calculation
+            } else {
+                return dependencyMap.get(dep)!;
+            }
+        })
+    );
+
+    totalSize += dependencyCosts.reduce((sum, cost) => sum + cost, 0);
+
+    cache.set(packageId, totalSize);
+    return totalSize;
 };
 
 
