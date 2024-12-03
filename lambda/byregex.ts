@@ -73,9 +73,9 @@ if(filteredResults.length === 0){
 
   const response = {
     statusCode: 200,
-    body: JSON.stringify({
-      items: filteredResults,
-    }),
+    body: JSON.stringify(
+     filteredResults,
+    ),
   };
 
   return response;
