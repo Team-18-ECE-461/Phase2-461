@@ -60,7 +60,7 @@ export async function handleGetPackage(packageId: string) {
         const items = result.Items;
         let packageVersion = 'No version';
         let packageName = 'No name';
-        let JSProgram = 'No JSProgram';
+        let JSProgram = '';
         
         if (!items || items.length === 0) {
           return { statusCode: 404, body: JSON.stringify({ message: 'Package not found' }) };
@@ -71,7 +71,7 @@ export async function handleGetPackage(packageId: string) {
         items.forEach((item) => {
             packageVersion = item.Version.S? item.Version.S : 'No version';
             packageName = item.Name.S? item.Name.S : 'No name';
-            JSProgram = item.JSProgram.S? item.JSProgram.S : 'No JSProgram';
+            JSProgram = item.JSProgram.S? item.JSProgram.S : '';
         });
 
         if(packageVersion === 'No version') {
@@ -307,7 +307,7 @@ export async function handleUpdatePackage(event: LambdaEvent) {
   else{
 
     if(url && url.includes('npmjs.com')){
-        const [tid, tname, tversion, base64Zip] = await downloadNpm(url);
+        const [tid, tname, tversion, base64Zip] = await downloadNpm(url, JSProgram);
         return {
           statusCode: 200,
           body: "Package updated successfully",
@@ -781,7 +781,7 @@ export async function urlhandler(url:string){
     }
   }
 
-  export async function downloadNpm(npmUrl:string){
+  export async function downloadNpm(npmUrl:string, JSProgram: string){
     try {let registryUrl = npmUrl
       let response;
       let tarballUrl;
@@ -845,7 +845,7 @@ export async function urlhandler(url:string){
       await cleanupTempFiles(tarballPath);
       await cleanupTempFiles(extractPath);
       await cleanupTempFiles(zipPath);
-      await uploadDB(generatePackageId(packageName, version), packageName, version, '', npmUrl);
+      await uploadDB(generatePackageId(packageName, version), packageName, version, JSProgram, npmUrl);
       let id = generatePackageId(packageName, version);
       return [packageName, version, id, base64content];
     } catch (error) {
