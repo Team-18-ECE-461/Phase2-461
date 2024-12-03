@@ -158,6 +158,8 @@ jobs:
             else
               echo "Update failed, retrying in $delay seconds..."
               sleep $delay
+            fi
+          done
       - name: Update packages Function
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
