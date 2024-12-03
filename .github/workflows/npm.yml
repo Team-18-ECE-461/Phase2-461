@@ -156,7 +156,9 @@ jobs:
               echo "Update successful for regex"
               break
             else
-      - name: Update cost Function
+              echo "Update failed, retrying in $delay seconds..."
+              sleep $delay
+      - name: Update packages Function
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
