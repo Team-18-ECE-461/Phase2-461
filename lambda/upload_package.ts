@@ -3,7 +3,7 @@ import { DynamoDBClient, PutItemCommand, GetItemCommand, QueryCommand } from '@a
 import axios from 'axios';
 import JSZIP, { file } from 'jszip';
 import getgithuburl from 'get-github-url'
-import * as UglifyJS from 'uglify-js';
+//import * as UglifyJS from 'uglify-js';
 import * as crypto from 'crypto';
 import { relative } from 'path';
 import fs from 'fs';
