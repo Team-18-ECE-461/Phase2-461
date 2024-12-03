@@ -24,6 +24,7 @@ export const lambdaHandler = async (event: LambdaEvent) => {
     else{offset = 0}
     let totalresults = [];
     const limit = 10;
+
     
 
     for (const query of body){
@@ -37,7 +38,7 @@ export const lambdaHandler = async (event: LambdaEvent) => {
                 body: JSON.stringify({ message: 'Invalid input.' }),
             };
         }
-        if(!version && name){
+        if(!version && name || name === '*'){
              queryParams = {
                 TableName: TABLE_NAME,
                 KeyConditionExpression: '#name = :name',
