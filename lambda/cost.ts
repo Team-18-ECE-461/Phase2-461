@@ -27,7 +27,7 @@ const calculateCost = async (packageId: string, visited: Set<string>, cache: Map
 
     visited.add(packageId);
 
-    const result = await client.send(new client_dynamodb_1.GetItemCommand({
+    const result = await client.send(new GetItemCommand({
         TableName: "PackageInfo",
         Key: { packageId: { S: packageId } }
     }));
@@ -41,29 +41,31 @@ const calculateCost = async (packageId: string, visited: Set<string>, cache: Map
     const uniqueDependencies = [...new Set(dependencies.filter(dep => dep))];
 
     // Fetch dependencies in bulk
-    const dependencyData = await fetchDependencies(uniqueDependencies);
+    const dependencyData = await fetchDependencies(uniqueDependencies.filter((dep): dep is string => !!dep));
 
     // Cache the dependency sizes to avoid recalculating
     const dependencyMap = new Map<string, number>();
     dependencyData.forEach(dep => {
-        const depId = dep.packageId.S;
-        const depSize = parseInt(dep.size?.N || "0", 10);
-        dependencyMap.set(depId, depSize);
-    });
+            const depId = dep.packageId.S;
+            if (depId) {
+                const depSize = parseInt(dep.size?.N || "0", 10);
+                dependencyMap.set(depId, depSize);
+            }
+        });
 
     // Calculate the total cost using both direct and cached sizes
     let totalSize = size;
     const dependencyCosts = await Promise.all(
         uniqueDependencies.map(async dep => {
-            if (!dependencyMap.has(dep)) {
+            if (dep && !dependencyMap.has(dep)) {
                 return await calculateCost(dep, visited, cache); // Recursive calculation
-            } else {
+            } else if (dep) {
                 return dependencyMap.get(dep)!;
             }
         })
     );
 
-    totalSize += dependencyCosts.reduce((sum, cost) => sum + cost, 0);
+    totalSize += dependencyCosts.filter((cost): cost is number => cost !== undefined).reduce((sum, cost) => sum + cost, 0);
 
     cache.set(packageId, totalSize);
     return totalSize;
