@@ -1,101 +1,101 @@
-import { APIGatewayProxyHandler } from "aws-lambda";
-import { DynamoDBClient, GetItemCommand, BatchGetItemCommand } from "@aws-sdk/client-dynamodb";
+import { DynamoDB } from 'aws-sdk';
+import { APIGatewayProxyHandler, APIGatewayProxyEvent } from 'aws-lambda';
 
-const client = new DynamoDBClient({ region: "us-east-1" });
+const dynamoDb = new DynamoDB.DocumentClient();
 
-const fetchDependencies = async (dependencyIds: string[]) => {
-  const result = await client.send(
-    new BatchGetItemCommand({
-      RequestItems: {
-        PackageInfo: {
-          Keys: dependencyIds.map((id) => ({ packageId: { S: id } })),
-        },
-      },
-    })
-  );
-  return result.Responses?.PackageInfo || [];
-};
-/**
- * Recursively calculates the size cost of a package's dependencies.
- * @param packageId The ID of the package.
- * @param visited A set to track visited packages (avoid circular dependencies).
- * @returns The cumulative size of the package and its dependencies.
- */
-const calculateCost = async (packageId: string, visited: Set<string>, cache: Map<string, number>): Promise<number> => {
-    if (visited.has(packageId)) return 0;
-    if (cache.has(packageId)) return cache.get(packageId)!;
+interface PackageData {
+    Name: string;
+    Version: string;
+    Size: number;
+    Dependencies: { Name: string; Version: string }[];
+}
 
-    visited.add(packageId);
+interface PackageRequestBody {
+    packages: { Name: string; Version: string }[];
+}
 
-    const result = await client.send(new GetItemCommand({
-        TableName: "PackageInfo",
-        Key: { packageId: { S: packageId } }
-    }));
+interface APIGatewayProxyResult {
+    statusCode: number;
+    body: string;
+}
 
-    const packageData = result.Item;
-    if (!packageData) return 0;
 
-    const size = parseInt(packageData.size?.N || "0", 10);
-    const dependencies = packageData.dependencies?.L?.map((dep) => dep.S) || [];
+export const cost: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    try {
+        const body: PackageRequestBody = JSON.parse(event.body || '{}');
+        const packages: { Name: string; Version: string }[] = body.packages;
 
-    const uniqueDependencies = [...new Set(dependencies.filter(dep => dep))];
+        if (!Array.isArray(packages) || packages.length === 0) {
+            return {
+                statusCode: 400,
+                body: JSON.stringify({ error: 'Invalid packages array' }),
+            };
+        }
 
-    // Fetch dependencies in bulk
-    const dependencyData = await fetchDependencies(uniqueDependencies.filter((dep): dep is string => !!dep));
+        // Fetch package data for the given list
+        const packageData: PackageData[] = await fetchPackageData(packages);
 
-    // Cache the dependency sizes to avoid recalculating
-    const dependencyMap = new Map<string, number>();
-    dependencyData.forEach(dep => {
-            const depId = dep.packageId.S;
-            if (depId) {
-                const depSize = parseInt(dep.size?.N || "0", 10);
-                dependencyMap.set(depId, depSize);
-            }
-        });
+        // Compute cumulative size, avoiding duplicates
+        const cumulativeSize: number = computeCumulativeSize(packageData);
 
-    // Calculate the total cost using both direct and cached sizes
-    let totalSize = size;
-    const dependencyCosts = await Promise.all(
-        uniqueDependencies.map(async dep => {
-            if (dep && !dependencyMap.has(dep)) {
-                return await calculateCost(dep, visited, cache); // Recursive calculation
-            } else if (dep) {
-                return dependencyMap.get(dep)!;
-            }
-        })
-    );
-
-    totalSize += dependencyCosts.filter((cost): cost is number => cost !== undefined).reduce((sum, cost) => sum + cost, 0);
-
-    cache.set(packageId, totalSize);
-    return totalSize;
+        return {
+            statusCode: 200,
+            body: JSON.stringify({ cumulativeSize }),
+        };
+    } catch (error) {
+        console.error('Error processing request:', error);
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ error: 'Internal Server Error' }),
+        };
+    }
 };
 
+const fetchPackageData = async (
+    packages: { Name: string; Version: string }[]
+): Promise<PackageData[]> => {
+    const results: PackageData[] = [];
 
-export const cost: APIGatewayProxyHandler = async (event) => {
-  try {
-    const packageId = event.pathParameters?.id;
+    for (const pkg of packages) {
+        const params = {
+            TableName: 'PackageInfo', // Table name from your screenshot
+            Key: {
+                Name: pkg.Name,
+                Version: pkg.Version,
+            },
+            ProjectionExpression: 'Name, Version, Size, Dependencies',
+        };
 
-    if (!packageId) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: "Package ID is required in the path." }),
-      };
+        const result = await dynamoDb.get(params).promise();
+        if (result.Item) {
+            results.push(result.Item as PackageData);
+        } else {
+            throw new Error(`Package not found: ${pkg.Name}@${pkg.Version}`);
+        }
     }
 
-    const visited = new Set<string>();
-    const cache = new Map<string, number>();
-    const totalCost = await calculateCost(packageId, visited, cache);
+    return results;
+};
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ packageId, totalCost }),
+const computeCumulativeSize = (packageData: PackageData[]): number => {
+    const seen = new Set<string>();
+    let totalSize = 0;
+
+    const traverse = (pkg: PackageData) => {
+        const uniqueId = `${pkg.Name}@${pkg.Version}`;
+        if (seen.has(uniqueId)) return;
+        seen.add(uniqueId);
+
+        totalSize += pkg.Size;
+
+        pkg.Dependencies?.forEach(dep => {
+            const depData = packageData.find(
+                p => p.Name === dep.Name && p.Version === dep.Version
+            );
+            if (depData) traverse(depData);
+        });
     };
-  } catch (error) {
-    console.error("Error calculating package cost:", error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: "Failed to calculate package cost. Check server logs." }),
-    };
-  }
+
+    packageData.forEach(traverse);
+    return totalSize;
 };
