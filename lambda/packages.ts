@@ -1,5 +1,5 @@
 import { S3, GetObjectCommand } from '@aws-sdk/client-s3';
-import { DynamoDBClient, GetItemCommand, PutItemCommand, DeleteItemCommand, QueryCommand } from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient, GetItemCommand, PutItemCommand, ScanCommand, QueryCommand } from '@aws-sdk/client-dynamodb';
 import { version } from 'os';
 
 const s3 = new S3();
@@ -29,47 +29,67 @@ export const lambdaHandler = async (event: LambdaEvent) => {
 
     for (const query of body){
         let name = query.Name;
-        let version = query.Version || '*';
-        let versionSchema = query.Version;
+        let version = query.Version || '';
+        let versionSchema = query.Version || '';
         let queryParams;
-        if(!name || !versionSchema){
+        let items;
+        if(!name){
             return {
                 statusCode: 400,
                 body: JSON.stringify({ message: 'Invalid input.' }),
             };
         }
-        if(!version && name || name === '*'){
-             queryParams = {
+        if(name === '*'){
+            const scanParams = {
+                TableName: TABLE_NAME,
+                Limit: limit,
+              };
+              const scan = new ScanCommand(scanParams);
+              const scanResults = await dynamoDBclient.send(scan);
+              items = scanResults.Items?.map((item: any) => ({
+                Name: item.Name.S,
+                Version: item.Version?.S || 'N/A',
+                ID: item.ID?.S || 'N/A',
+              })) || [];
+        }
+        else if(name && !version){
+            queryParams = {
                 TableName: TABLE_NAME,
                 KeyConditionExpression: '#name = :name',
                 ExpressionAttributeNames: {
-                    '#name': 'Name',  // Alias for reserved keyword 'Name'
+                    '#name': 'Name',
                 },
                 ExpressionAttributeValues: {
                     ':name': { S: name },
                 },
-            }
-        
-        }
-
-        versionSchema = parsetovalidversion(versionSchema);
-        if(versionSchema === 'Invalid version'){
-            return {
-                statusCode: 400,
-                body: JSON.stringify({ message: 'Invalid version schema.' }),
+                Limit: limit,
             };
-        }
-
-       
-        queryParams = buildParams(name, versionSchema, offset, limit);
-        const data = await dynamoDBclient.send(new QueryCommand(queryParams));
-        const items = (data.Items || []).map(item => {
-            return {
-                Version: item.Version.S,
-                Name: item.Name.S,
-                ID: item.ID.S,
+            const data = await dynamoDBclient.send(new QueryCommand(queryParams));
+            items = (data.Items || []).map(item => {
+                return {
+                    Version: item.Version.S,
+                    Name: item.Name.S,
+                    ID: item.ID.S,
+                }
+            });}
+        else{
+            versionSchema = parsetovalidversion(versionSchema);
+            if(versionSchema === 'Invalid version'){
+                return {
+                    statusCode: 400,
+                    body: JSON.stringify({ message: 'Invalid version schema.' }),
+                };
             }
-        });
+            queryParams = buildParams(name, versionSchema, offset, limit);
+            const data = await dynamoDBclient.send(new QueryCommand(queryParams));
+            items = (data.Items || []).map(item => {
+                return {
+                    Version: item.Version.S,
+                    Name: item.Name.S,
+                    ID: item.ID.S,
+                }
+            });
+        }
 
         totalresults.push(...items);
         if(totalresults.length >= 1000){
