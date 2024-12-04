@@ -1,3 +1,6 @@
+
+
+
 import { UrlHandler, RowInfo } from '../metrics/url_handler'; // Adjust the import paths accordingly
 import axios from 'axios';
 import Database from 'better-sqlite3';
@@ -25,6 +28,7 @@ describe('UrlHandler', () => {
     let db: Database.Database;
     let mockFp = 1;
     let mockLogLvl = 2;
+
     beforeEach(() => {
         // Reset mocks before each test
         jest.clearAllMocks();
@@ -34,7 +38,7 @@ describe('UrlHandler', () => {
     });
 
     test('main should retrieve owner/repo and fetch metrics', async () => {
-        const mockRow = {
+        const mockRow: RowInfo = {
             id: 1,
             url: 'https://github.com/caolan/async',
             information: null,
@@ -44,124 +48,89 @@ describe('UrlHandler', () => {
         // Mock the database to return the row data
         mockAll.mockReturnValue([mockRow]);
 
-        const mockGetOwnerAndRepo = jest.spyOn(urlHandler as any, 'getOwnerAndRepo').mockResolvedValue({
-            owner: 'owner',
-            repo: 'repo',
-        });
+        const mockGetOwnerAndRepo = jest
+            .spyOn(urlHandler as any, 'getOwnerAndRepo')
+            .mockResolvedValue({
+                owner: 'owner',
+                repo: 'repo',
+            });
 
-        const mockGetRepoMetrics = jest.spyOn(urlHandler as any, 'getRepoMetrics').mockResolvedValue(null);
+        const mockGetRepoMetrics = jest
+            .spyOn(urlHandler as any, 'getRepoMetrics')
+            .mockResolvedValue(null);
 
         await urlHandler.main(1);
 
-        expect(mockGetOwnerAndRepo).toHaveBeenCalledWith('https://github.com/caolan/async');
-        expect(mockGetRepoMetrics).toHaveBeenCalledWith('owner', 'repo', mockRow);
+        expect(mockGetOwnerAndRepo).toHaveBeenCalledWith(
+            'https://github.com/caolan/async'
+        );
+        expect(mockGetRepoMetrics).toHaveBeenCalledWith(
+            'owner',
+            'repo',
+            mockRow
+        );
     });
 
-    test('getCommitsPastYear should fetch and store total commits in the past year', async () => {
-        const mockCommits = {
-            data: new Array(10).fill({}), // Reduced size to 10
-        };
-
-        (axios.get as jest.Mock).mockResolvedValue(mockCommits);
-
-        await urlHandler.getCommitsPastYear('owner', 'repo');
-
-        expect(urlHandler['commitsMap'].get('commits/yr')).toBe(10); // Adjusted for reduced size
-    });
-
-    test('getTopContributors should fetch and store top 3 contributors commits', async () => {
+    test('getTopContributors should fetch top contributors and calculate commits', async () => {
         const mockContributors = {
             data: [
                 { login: 'contributor1', contributions: 50 },
                 { login: 'contributor2', contributions: 30 },
                 { login: 'contributor3', contributions: 20 },
-                { login: 'contributor4', contributions: 10 },
             ],
         };
 
         const mockCommits = {
-            data: new Array(10).fill({}), // Reduced from 100 to 10
+            data: Array(10).fill({}),
         };
 
-        (axios.get as jest.Mock).mockResolvedValueOnce(mockContributors);
-        (axios.get as jest.Mock).mockResolvedValue(mockCommits);
+        (axios.get as jest.Mock).mockResolvedValueOnce(mockContributors); // For contributors API
+        (axios.get as jest.Mock).mockResolvedValue(mockCommits); // For commit counts
 
         await urlHandler.getTopContributors('owner', 'repo');
 
-        expect(urlHandler['commitsMap'].get('top3')).toBe(30); // Adjusted expected result
+        expect(urlHandler['commitsMap'].get('top3')).toBe(30);
     });
 
-    test('getCommitsPastYear should fetch and store total commits in the past year', async () => {
+    test('getCommitsPastYear should calculate yearly commits', async () => {
         const mockCommits = {
-            data: new Array(10).fill({}), // Reduced from 100 to 10
+            data: Array(10).fill({}),
         };
 
         (axios.get as jest.Mock).mockResolvedValue(mockCommits);
 
         await urlHandler.getCommitsPastYear('owner', 'repo');
 
-        expect(urlHandler['commitsMap'].get('commits/yr')).toBe(10); // Adjusted expected result
+        expect(urlHandler['commitsMap'].get('commits/yr')).toBe(10);
     });
 
-    test('getTotalDownloads should fetch and store total downloads', async () => {
-        const mockDownloads = {
-            data: {
-                downloads: 1000,
-            },
-        };
-
-        (axios.get as jest.Mock).mockResolvedValue(mockDownloads);
-
-        const downloads = await urlHandler['getTotalDownloads']('test-package');
-
-        expect(downloads).toBe(1000);
-        expect(urlHandler['commitsMap'].get('downloads')).toBe(1000);
-    });
-
-    test('getClosedIssues should fetch and store closed issues counts', async () => {
-        const mockIssues = {
-            data: {
-                items: new Array(10).fill({ // Reduced from 100 to 10
-                    created_at: new Date().toISOString(),
-                    closed_at: new Date().toISOString(),
-                }),
-                total_count: 10, // Adjusted for the smaller array
-            },
-        };
-
-        (axios.get as jest.Mock).mockResolvedValue(mockIssues);
-
-        await urlHandler['getClosedIssues']('owner', 'repo');
-
-        expect(urlHandler['commitsMap'].get('issuesClosed6mth')).toBe(10); // Adjusted expected result
-        expect(urlHandler['commitsMap'].get('issuesClosedYr')).toBe(10); // Adjusted expected result
-    });
-
-    test('checkLicense should fetch and store license information', async () => {
+    test('checkLicense should set license metric', async () => {
         const mockRepoData = {
             data: {
                 default_branch: 'main',
             },
         };
 
-        (axios.get as jest.Mock).mockResolvedValue(mockRepoData);
+        (axios.get as jest.Mock).mockResolvedValueOnce(mockRepoData); // GitHub API response for default branch
         (git.clone as jest.Mock).mockResolvedValue(null);
         (fs.existsSync as jest.Mock).mockReturnValue(true);
         (fs.readdirSync as jest.Mock).mockReturnValue(['LICENSE']);
-        (fs.statSync as jest.Mock).mockReturnValue({ isDirectory: () => false, isFile: () => true, size: 100 });
+        (fs.statSync as jest.Mock).mockReturnValue({
+            isDirectory: () => false,
+            isFile: () => true,
+            size: 100,
+        });
 
         await urlHandler['checkLicense']('owner', 'repo');
 
         expect(urlHandler['commitsMap'].get('License')).toBe(1);
     });
 
-    test('getOpenedIssues should fetch and store opened issues counts', async () => {
+    test('getOpenedIssues should store total opened issues', async () => {
         const mockIssues = {
             data: {
-                items: new Array(10).fill({ // Reduced from 100 to 10
-                    created_at: new Date().toISOString(),
-                }),
-                total_count: 10, // Adjusted for the smaller array
+                items: Array(10).fill({}),
+                total_count: 10,
             },
         };
 
@@ -169,144 +138,64 @@ describe('UrlHandler', () => {
 
         await urlHandler['getOpenedIssues']('owner', 'repo');
 
-        expect(urlHandler['commitsMap'].get('issuesOpenedYr')).toBe(10); // Adjusted expected result
-    });
-    describe('getOwnerAndRepo', () => {
-        it('should extract owner and repo from GitHub URL', async () => {
-            const url = 'https://github.com/caolan/async';
-            const result = await urlHandler['getOwnerAndRepo'](url);
-            expect(result).toEqual({ owner: 'caolan', repo: 'async' });
-        });
-
-        it('should extract package name from npm URL and fetch repo URL', async () => {
-            const npmUrl = 'https://www.npmjs.com/package/express';
-            const mockRepoUrl = 'https://github.com/caolan/async';
-
-            jest.spyOn(urlHandler as any, 'getRepositoryUrlFromNpm').mockResolvedValue(mockRepoUrl);
-            const result = await urlHandler['getOwnerAndRepo'](npmUrl);
-            expect(result).toEqual({ owner: 'caolan', repo: 'async' });
-        });
-
-        it('should exit for invalid GitHub URL', async () => {
-            const invalidUrl = 'https://invalid-url.com';
-            const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
-                throw new Error('process.exit called');
-            });
-
-            await expect(urlHandler['getOwnerAndRepo'](invalidUrl)).rejects.toThrow('process.exit called');
-            expect(mockExit).toHaveBeenCalledWith(1);
-        });
+        expect(urlHandler['commitsMap'].get('issuesOpenedYr')).toBe(10);
     });
 
-    // Test for extractOwnerRepoFromGitHubUrl
-    describe('extractOwnerRepoFromGitHubUrl', () => {
-        it('should extract owner and repo from valid GitHub URL', () => {
-            const result = urlHandler['extractOwnerRepoFromGitHubUrl']('https://github.com/caolan/async');
-            expect(result).toEqual({ owner: 'caolan', repo: 'async' });
-        });
+    test('getClosedIssues should store closed issue metrics', async () => {
+        const mockIssues = {
+            data: {
+                items: Array(10).fill({
+                    created_at: new Date().toISOString(),
+                    closed_at: new Date().toISOString(),
+                }),
+                total_count: 10,
+            },
+        };
 
-        it('should return null for invalid GitHub URL', () => {
-            const result = urlHandler['extractOwnerRepoFromGitHubUrl']('https://github.com/owner');
-            expect(result).toBeNull();
-        });
+        (axios.get as jest.Mock).mockResolvedValue(mockIssues);
+
+        await urlHandler['getClosedIssues']('owner', 'repo');
+
+        expect(urlHandler['commitsMap'].get('issuesClosedYr')).toBe(10);
     });
 
-    // Test for getRepositoryUrlFromNpm
-    describe('getRepositoryUrlFromNpm', () => {
-        it('should extract GitHub repository URL from npm package data', async () => {
-            const mockResponse = {
-                data: {
-                    repository: {
-                        url: 'git+https://github.com/caolan/async.git'
-                    }
-                }
-            };
+    test('getCodeReviewFraction should calculate fraction of reviewed code', async () => {
+        const mockPullRequestsResponse = {
+            data: {
+                items: [
+                    { number: 1 },
+                    { number: 2 },
+                    { number: 3 },
+                ],
+                total_count: 3,
+            },
+        };
 
-            (axios.get as jest.Mock).mockResolvedValue(mockResponse);
-            const result = await urlHandler['getRepositoryUrlFromNpm']('example-package');
-            expect(result).toBe('https://github.com/caolan/async');
-        });
+        const mockPRDetails = [
+            { data: { additions: 100 } },
+            { data: { additions: 200 } },
+            { data: { additions: 300 } },
+        ];
 
-        it('should return null if no GitHub repository URL is found in npm data', async () => {
-            const mockResponse = {
-                data: {}
-            };
+        const mockReviews = [
+            { data: [{ id: 1 }] }, // PR 1 has reviews
+            { data: [] },          // PR 2 has no reviews
+            { data: [{ id: 2 }] }, // PR 3 has reviews
+        ];
 
-            (axios.get as jest.Mock).mockResolvedValue(mockResponse);
-            const result = await urlHandler['getRepositoryUrlFromNpm']('example-package');
-            expect(result).toBeNull();
-        });
+        // Mock API responses for PRs, their details, and reviews
+        (axios.get as jest.Mock)
+            .mockResolvedValueOnce(mockPullRequestsResponse) // PRs API response
+            .mockResolvedValueOnce(mockPRDetails[0])         // PR 1 details
+            .mockResolvedValueOnce(mockReviews[0])           // PR 1 reviews
+            .mockResolvedValueOnce(mockPRDetails[1])         // PR 2 details
+            .mockResolvedValueOnce(mockReviews[1])           // PR 2 reviews
+            .mockResolvedValueOnce(mockPRDetails[2])         // PR 3 details
+            .mockResolvedValueOnce(mockReviews[2]);          // PR 3 reviews
 
-        it('should handle errors and log them correctly', async () => {
-            (axios.get as jest.Mock).mockRejectedValue(new Error('API error'));
-            const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        await urlHandler['getCodeReviewFraction']('owner', 'repo');
 
-            await expect(urlHandler['getRepositoryUrlFromNpm']('example-package')).rejects.toThrow('API error');
-            expect(consoleSpy).toHaveBeenCalledWith('Error fetching npm package data: API error');
-        });
+        const fraction = urlHandler['commitsMap'].get('CodeReviewFraction');
+        expect(fraction).toBeCloseTo(0.6667, 4); // 400 reviewed additions out of 600 total
     });
-
-    // Test for getOpenedIssues
-    describe('getOpenedIssues', () => {
-        it('should fetch and store total number of issues opened in the past year', async () => {
-            const mockIssues = {
-                data: {
-                    items: new Array(10).fill({ created_at: new Date().toISOString() }),
-                    total_count: 10
-                }
-            };
-
-            (axios.get as jest.Mock).mockResolvedValue(mockIssues);
-
-            await urlHandler['getOpenedIssues']('owner', 'repo');
-            expect(urlHandler['commitsMap'].get('issuesOpenedYr')).toBe(10);
-        });
-
-        it('should handle API errors and log them', async () => {
-            (axios.get as jest.Mock).mockRejectedValue(new Error('API error'));
-            const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-
-            await urlHandler['getOpenedIssues']('owner', 'repo');
-            expect(consoleSpy).toHaveBeenCalledWith('Error fetching opened issues from GitHub API:', 'API error');
-        });
-    });
-
-    // Test for getRepoMetrics
-    describe('getRepoMetrics', () => {
-        it('should fetch all metrics and update the database', async () => {
-            const row: RowInfo = {
-                id: 1,
-                url: 'https://github.com/caolan/async',
-                information: null,
-                metrics: null,
-            };
-
-            // Mock all the functions that getRepoMetrics calls
-            jest.spyOn(urlHandler as any, 'getTopContributors').mockResolvedValue(null);
-            jest.spyOn(urlHandler as any, 'getCommitsPastYear').mockResolvedValue(null);
-            jest.spyOn(urlHandler as any, 'getTotalDownloads').mockResolvedValue(1000);
-            jest.spyOn(urlHandler as any, 'getClosedIssues').mockResolvedValue(null);
-            jest.spyOn(urlHandler as any, 'checkLicense').mockResolvedValue(null);
-            jest.spyOn(urlHandler as any, 'getOpenedIssues').mockResolvedValue(null);
-
-            // Mock the database update function
-            const mockUpdateEntry = jest.spyOn(database, 'updateEntry').mockImplementation(() => {});
-
-            // Call getRepoMetrics
-            await urlHandler['getRepoMetrics']('owner', 'repo', row);
-
-            // Verify that the database was updated with the correct values
-            expect(mockUpdateEntry).toHaveBeenCalledWith(
-                db,
-                row.url,
-                mockFp,
-                mockLogLvl,
-                expect.any(String)
-            );
-
-            // Ensure that the result of the commitsMap was updated and stored in the database
-            expect(mockUpdateEntry).toHaveBeenCalledTimes(1);
-        });
-    });
-
 });

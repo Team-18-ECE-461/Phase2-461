@@ -16,6 +16,7 @@ export function createConnection(fp: number, loglvl: number): Database.Database 
      * Outputs:
      * - Database.Database - better-sqlite3 type for connection to database
      */
+
     const db = new Database('/tmp/metrics.db');
     db.pragma('journal_mode = WAL');
     return db;
