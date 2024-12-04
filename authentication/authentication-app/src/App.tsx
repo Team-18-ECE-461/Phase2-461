@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate} from 'react-router-dom';
 import { Amplify } from 'aws-amplify';
 import awsExports from './aws-exports';
 import SignInPage from './pages/SignInPage';
@@ -13,6 +13,7 @@ import UserManagementPage from './pages/UserManagementPage';
 import Navbar from './components/NavBar';
 //import ErrorPage from './pages/ErrorPage';
 Amplify.configure(awsExports);
+
 const App: React.FC = () => {
   //const location = useLocation();
   return (
@@ -38,3 +39,5 @@ const App: React.FC = () => {
   );
 };
 export default App;
+
+
