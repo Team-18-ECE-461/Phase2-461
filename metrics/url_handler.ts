@@ -897,8 +897,17 @@ export class UrlHandler extends EventEmitter {
           hasMore = false;
           break;
         }
+
+        let count = 0;
+        for (const prItem of pullRequests) {
+          count += 1
+          if (count > 10) {
+            break;
+          }
+
   
         for (const prItem of pullRequests) {
+
           const prNumber = prItem.number;
   
           // Get PR details to get additions
@@ -952,10 +961,13 @@ export class UrlHandler extends EventEmitter {
     const rows: RowInfo[] = this._db.prepare(`SELECT * FROM package_scores WHERE id = ?`).all(id) as RowInfo[];
     const { owner, repo } = await this.getOwnerAndRepo(rows[0].url);
     await this.getRepoMetrics(owner, repo, rows[0]);
-    this.emit('done', id);
+    //this.emit('done', id);
   }
 
+
 }
+
+
 
 
 
