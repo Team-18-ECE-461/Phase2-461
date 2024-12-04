@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import { exec } from 'child_process';
 
 exec(
-    'npx jest tests tests/feature tests/unit --coverage --detectOpenHandles --json --outputFile=jest-results.json --coverageReporters="json-summary"',
+    'npx jest tests --coverage --detectOpenHandles --json --outputFile=jest-results.json --coverageReporters="json-summary"',
     (error, stdout, stderr) => {
         try {
             // Read and parse Jest results
