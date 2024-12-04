@@ -364,6 +364,7 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
 
 
 export function versionInt(version: string): number{
+
   let [major, minor, patch] = version.split('.').map(Number);
   if (isNaN(major) || isNaN(minor) || isNaN(patch)) {
     [major, minor, patch] = version.split('-')[0].split('.').map(Number);
