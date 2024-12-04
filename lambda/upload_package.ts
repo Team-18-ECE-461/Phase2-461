@@ -213,6 +213,7 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
   else{ //no debloat
     let zipBuffer: Buffer;
     let base64Zip: string;
+    let packageVersion = '1.0.0'; // Default package version if content is provided
     // Retrieve zip file contents
     if(url && url.includes('npmjs.com')){
       let zippath: string;
@@ -254,6 +255,8 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
       const branch = response0.data.default_branch;
       const response = await axios.get(`${url}/archive/refs/heads/${branch}.zip`, { responseType: 'arraybuffer' });
       //const response = await axios.get(`${url}/archive/refs/heads/main.zip`, { responseType: 'arraybuffer' });
+      version = await getVersionFromGithub(owner, repo);
+      if(version !== ''){packageVersion = version;}
       zipBuffer = Buffer.from(response.data);
     } else {
       throw new Error('No content or URL provided');
@@ -272,7 +275,7 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
     const packageJsonFile = tpackageJsonFile;
 
     let packageName = name; // Default package name if content is provided
-    let packageVersion = '1.0.0'; // Default package version if content is provided
+   
     
     //if url provided, get package name and version from package.json
     if(packageJsonFile && url ){
@@ -360,7 +363,7 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
 
 
 export function versionInt(version: string): number{
-  
+
   let [major, minor, patch] = version.split('.').map(Number);
   if (isNaN(major) || isNaN(minor) || isNaN(patch)) {
     [major, minor, patch] = version.split('-')[0].split('.').map(Number);
@@ -714,27 +717,53 @@ export function getEntryPoint(packageJsonPath: string): string[] {
 
   // Check for index.js first
   const indexPath = path.join(path.dirname(packageJsonPath), 'index.js');
+  const indexPath2 = path.join(path.dirname(packageJsonPath), 'src/index.ts');
   const sourceindexPath = path.join(path.dirname(packageJsonPath), 'source/index.js');
+  const sourceindexPath2 = path.join(path.dirname(packageJsonPath), 'source/index.ts');
   const srcindexPath = path.join(path.dirname(packageJsonPath), 'src/index.js');
-
+  const srcindexPath2 = path.join(path.dirname(packageJsonPath), 'src/index.ts');
+  const src = path.join(path.dirname(packageJsonPath), 'src');
+  const source = path.join(path.dirname(packageJsonPath), 'source');
   if(packageJson.main){
     filePaths.push(packageJson.main);
   }
-  else if (fs.existsSync(indexPath)) {
+  if (fs.existsSync(indexPath)) {
     filePaths.push('index.js');
   }
-
+  else if (fs.existsSync(indexPath2)) {
+    filePaths.push('src/index.ts');
+  }
   else if (fs.existsSync(sourceindexPath)) {
-    filePaths.push('source/index.js');}
-
+    filePaths.push('source/index.js');
+  }
+  else if (fs.existsSync(sourceindexPath2)) {
+    filePaths.push('source/index.ts');
+  }
   else if (fs.existsSync(srcindexPath)) {
     filePaths.push('src/index.js');
   }
+  else if (fs.existsSync(srcindexPath2)) {
+    filePaths.push('src/index.ts');
+  }
+  else if (fs.existsSync(src)) {
+    filePaths.push('src');
+  }
+  else if (fs.existsSync(source)) {
+    filePaths.push('source');}
+
+ 
+  
 
   else if(packageJson.exports){
     const entryPoint = packageJson.exports['.'] || packageJson.exports['./index.js'];
-    if(entryPoint){
-      filePaths.push(entryPoint);
+    if (entryPoint) {
+      const entryPointPath = path.join(path.dirname(packageJsonPath), entryPoint);
+      const stats = fs.statSync(entryPointPath);
+      if (stats.isDirectory()) {
+        filePaths.push(path.join(entryPoint, '*.js'));
+      } else {
+        filePaths.push(entryPoint);
+      }
     }
   }
 
@@ -752,7 +781,7 @@ export function getEntryPoint(packageJsonPath: string): string[] {
   
 
   // If index.js doesn't exist, check the bin category
-  else if (packageJson.bin && typeof packageJson.bin === 'object') {
+  if (packageJson.bin && typeof packageJson.bin === 'object') {
     const binFiles = Object.values(packageJson.bin);
     if (binFiles.length > 0) {
       for (const binFile of binFiles) {
@@ -767,5 +796,6 @@ export function getEntryPoint(packageJsonPath: string): string[] {
   return filePaths
   
 }
+
 
 
