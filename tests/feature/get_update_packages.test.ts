@@ -91,8 +91,14 @@ describe('Package Update Lambda', () => {
                 }
             }, 'POST', id);
             const result = await lambdaHandler(event);
-            console.log(result.body)
-            expect(result.statusCode).toBe(200);
+            if (result) {
+                console.log(result.body);
+            }
+            if (result) {
+                expect(result.statusCode).toBe(200);
+            } else {
+                fail('Result is undefined');
+            }
         });
         it('should not update a package successfully with debloating invalid zip', async () => {
             const event = createMockEventUpdate({
@@ -109,7 +115,13 @@ describe('Package Update Lambda', () => {
                 }
             }, 'POST', id);
             const result = await lambdaHandler(event);
-            expect(result.statusCode).toBe(400);
+            if (result) {
+                console.log(result.body);
+                expect(result.statusCode).toBe(400);
+            }
+            else {
+                fail('Result is undefined');
+            }
         });
         it('should not update with URL if uploaded with Content', async () => {
             const event = createMockEventUpdate({
@@ -126,7 +138,12 @@ describe('Package Update Lambda', () => {
                 }
             }, 'POST', id);
             const result = await lambdaHandler(event);
-            expect(result.statusCode).toBe(400);
+            if (result) {
+                expect(result.statusCode).toBe(400);
+            }
+            else {
+                fail('Result is undefined');
+            }
         });
         it('should not update with invalid versions', async () => {
             const event = createMockEventUpdate({
@@ -143,7 +160,12 @@ describe('Package Update Lambda', () => {
                 }
             }, 'POST', id);
             const result = await lambdaHandler(event);
-            expect(result.statusCode).toBe(400);
+            if (result) {
+                expect(result.statusCode).toBe(400);
+            }
+            else {
+                fail('Result is undefined');
+            }
         });
     });
     describe('Package Update with npm URL', () => {
@@ -175,8 +197,14 @@ describe('Package Update Lambda', () => {
                 }
             }, 'POST', id);
             const result = await lambdaHandler(event);
-            console.log(result.body)
-            expect(result.statusCode).toBe(200);
+            if(result){
+                console.log(result.body)
+                expect(result.statusCode).toBe(200);
+            }
+            else {
+                fail('Result is undefined');
+            }
+            
         });
         it ('should update npm URL successfully with debloating', async () => {
             const event = createMockEventUpdate({
@@ -193,8 +221,14 @@ describe('Package Update Lambda', () => {
                 }
             }, 'POST', id);
             const result = await lambdaHandler(event);
-            console.log(result.body)
-            expect(result.statusCode).toBe(200);
+            if(result){
+                console.log(result.body)
+                expect(result.statusCode).toBe(200);
+            }
+            else {
+                fail('Result is undefined');
+            }
+          
         });
 
         it('should not update with Content if uploaded with URL', async () => {
@@ -211,8 +245,15 @@ describe('Package Update Lambda', () => {
                     JSProgram: ''
                 }
             }, 'POST', id);
+        
             const result = await lambdaHandler(event);
-            expect(result.statusCode).toBe(400);
+            if(result){
+                console.log(result.body)
+                expect(result.statusCode).toBe(400);
+            }
+            else {
+                fail('Result is undefined');
+            }
         });
     });
     describe('Package Update with github URL', () => {
@@ -232,7 +273,13 @@ describe('Package Update Lambda', () => {
                 }
             }, 'POST', id);
         const result = await lambdaHandler(event);
-        expect(result.statusCode).toBe(200);
+        if(result){
+            console.log(result.body)
+            expect(result.statusCode).toBe(200);
+        }
+        else {
+            fail('Result is undefined');
+        }
 
        });
         it ('should update git URL successfully with debloating', async () => {
@@ -250,8 +297,14 @@ describe('Package Update Lambda', () => {
                 }
             }, 'POST', id);
         const result = await lambdaHandler(event);
-        console.log(result.body)
-        expect(result.statusCode).toBe(200);
+        if(result){
+            console.log(result.body)
+            expect(result.statusCode).toBe(200);
+        }
+        else {
+            fail('Result is undefined');
+        }
+      
         });
        it('should not update with Content if uploaded with URL', async () => {
         let id = 'cbd40baccd54'
@@ -282,7 +335,13 @@ describe('Package Get Lambda', () => {
             pathParameters: { id: 'cbd40baccd54' }
         };
         const result = await lambdaHandler(event);
-        expect(result.statusCode).toBe(200);
+        if(result){
+            console.log(result.body)
+            expect(result.statusCode).toBe(200);
+        }
+        else {
+            fail('Result is undefined');
+        }
     });
     it('should not get a package successfully with invalid ID', async () => {
         const event = {
@@ -291,7 +350,13 @@ describe('Package Get Lambda', () => {
             pathParameters: { id: 'invalid' }
         };
         const result = await lambdaHandler(event);
-        expect(result.statusCode).toBe(404);
+        if(result){
+            console.log(result.body)
+            expect(result.statusCode).toBe(404);
+        }
+        else {
+            fail('Result is undefined');
+        }
     });
 });
  
