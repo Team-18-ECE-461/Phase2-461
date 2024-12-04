@@ -1,9 +1,9 @@
-import * as database from './database';
+//import * as database from './database';
 import Database from 'better-sqlite3';
 import { RowInfo } from './calc_metrics';
 import { EventEmitter  } from 'stream';
-import { fstat } from 'fs';
-import { JSONOutput } from '@aws-sdk/client-s3';
+//import { fstat } from 'fs';
+//import { JSONOutput } from '@aws-sdk/client-s3';
 
 /**
  * Class representing output metrics functionality.
