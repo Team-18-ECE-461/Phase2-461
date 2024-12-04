@@ -197,7 +197,9 @@ async function processUrl(line: string, index: number) {
     await metric_calc.calc(index + 1);
     console.log("metric calc")
     out = await output_metrics.output_Metrics(index + 1);
+    console.log("out is ", out)
     console.log("output metrics")
+    return out;
 }
 interface LamdaEvent {
     body: string;
@@ -303,7 +305,7 @@ exports.lambdaHandler = async (event: LamdaEvent) => {
    
 
     try {
-        await processUrl(line, index);
+        out = await processUrl(line, index);
         console.log("Process completed.");
         return { statusCode: 200, body: out };
     } catch (error) {
