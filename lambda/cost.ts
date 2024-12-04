@@ -3,7 +3,7 @@ import { GetCommand, GetCommandOutput } from '@aws-sdk/lib-dynamodb';
 import { APIGatewayProxyHandler, APIGatewayProxyEvent } from 'aws-lambda';
 
 const dynamoDb = new DynamoDBClient({});
-
+//comment
 interface PackageData {
     ID: string;
     Name: string;
