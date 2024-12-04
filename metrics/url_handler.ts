@@ -897,17 +897,12 @@ export class UrlHandler extends EventEmitter {
           hasMore = false;
           break;
         }
-
         let count = 0;
         for (const prItem of pullRequests) {
           count += 1
           if (count > 10) {
             break;
           }
-
-  
-        for (const prItem of pullRequests) {
-
           const prNumber = prItem.number;
   
           // Get PR details to get additions
@@ -964,12 +959,4 @@ export class UrlHandler extends EventEmitter {
     //this.emit('done', id);
   }
 
-
 }
-
-
-
-
-
-
-
