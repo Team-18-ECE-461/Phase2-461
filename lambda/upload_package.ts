@@ -360,7 +360,14 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
 
 
 export function versionInt(version: string): number{
-  const [major, minor, patch] = version.split('.').map(Number);
+  
+  let [major, minor, patch] = version.split('.').map(Number);
+  if (isNaN(major) || isNaN(minor) || isNaN(patch)) {
+    [major, minor, patch] = version.split('-')[0].split('.').map(Number);
+  }
+  if(isNaN(major) || isNaN(minor) || isNaN(patch)){
+    return 0;
+  }  
   return major * 1000000 + minor * 1000 + patch;
 }
 
