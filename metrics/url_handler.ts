@@ -50,7 +50,8 @@ export class UrlHandler extends EventEmitter {
   private token: string = process.env.GITHUB_TOKEN || "";
 
   private baseURL = 'https://api.github.com';
-  private commitsMap = new Map<string, number>(); // Create a map to store data to calculate metrics
+  private commitsMap = new Map<string, any>(); // Create a map to store numeric data to calculate metrics
+  //private stringMap = new Map<string, string>(); // Create a map to store string data //added for dependencyMetrics
   private _db: Database.Database;
   private fp: number;
   private logLvl: number;
@@ -800,11 +801,42 @@ export class UrlHandler extends EventEmitter {
       this.commitsMap.set('downloads', 0); // Set downloads to 0 if package name not found
     }
 
+
+    //adding fetching of package.json from github
+    //added for dependencyMetrics.ts
+    const packageJsonContent = await this.getPackageJsonFromGitHub(owner, repo);
+    if (packageJsonContent) {
+      this.commitsMap.set('packageJson', packageJsonContent);
+
+      let packageJson: any;
+      try {
+        packageJson = JSON.parse(packageJsonContent);
+      } catch (error) {
+        console.error('Error parsing package.json content:', error);
+        this.commitsMap.set('downloads', 0);
+      }
+
+      if (packageJson && packageJson.name) {
+        const packageName = packageJson.name;
+        await this.getTotalDownloads(packageName, 'last-year');
+      } else {
+        if (this.logLvl == 2) fs.writeFileSync(this.fp, 'Package name not found in package.json.\n');
+        this.commitsMap.set('downloads', 0);
+      }
+    } else {
+      if (this.logLvl == 2) fs.writeFileSync(this.fp, 'Package.json not found.\n');
+      this.commitsMap.set('downloads', 0);
+    }
+
     await this.getClosedIssues(owner, repo);
     await this.checkLicense(owner, repo);
     await this.getOpenedIssues(owner, repo);
+    
+    await this.getCodeReviewFraction(owner, repo); // Call the new method
+
     if (this.logLvl == 1) fs.writeFileSync(this.fp, 'Metrics values finished.\n');
     if (this.logLvl == 2) fs.writeFileSync(this.fp, JSON.stringify(Object.fromEntries(this.commitsMap)) + '\n');
+    
     database.updateEntry(
       this._db,
       row.url,
@@ -814,6 +846,103 @@ export class UrlHandler extends EventEmitter {
     );
   }
 
+  //for dependencyMetrics
+  
+  private async getPackageJsonFromGitHub(owner: string, repo: string): Promise<string | null> {
+    const url = `${this.baseURL}/repos/${owner}/${repo}/contents/package.json`;
+    try {
+      const response = await this.baseGet(url, this.token);
+      if (response.data && response.data.content) {
+        const packageJsonContent = Buffer.from(response.data.content, 'base64').toString('utf8');
+        return packageJsonContent;
+      }
+    } catch (error) {
+      console.error('Error fetching package.json from GitHub:', error);
+    }
+    return null;
+    
+  }
+  
+  private async getCodeReviewFraction(owner: string, repo: string) {
+    /**
+     * Calculates the fraction of code introduced through pull requests with a code review.
+     * Inputs: GitHub owner and repo.
+     * Output: None (stores result in commitsMap).
+     */
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+    const oneYearAgoISO = oneYearAgo.toISOString().split('T')[0]; // YYYY-MM-DD
+  
+    let page = 1;
+    const perPage = 100;
+    let hasMore = true;
+    let totalAdditions = 0;
+    let reviewedAdditions = 0;
+  
+    while (hasMore) {
+      const params = {
+        q: `repo:${owner}/${repo} is:pr is:merged merged:>=${oneYearAgoISO}`,
+        per_page: perPage,
+        page: page,
+      };
+  
+      const url = `${this.baseURL}/search/issues`;
+  
+      try {
+        const response = await this.baseGet(url, this.token, params);
+        const data = response.data;
+        const pullRequests = data.items;
+  
+        if (pullRequests.length === 0) {
+          hasMore = false;
+          break;
+        }
+        let count = 0;
+        for (const prItem of pullRequests) {
+          count += 1
+          if (count > 10) {
+            break;
+          }
+          const prNumber = prItem.number;
+  
+          // Get PR details to get additions
+          const prDetailsUrl = `${this.baseURL}/repos/${owner}/${repo}/pulls/${prNumber}`;
+          const prDetailsResponse = await this.baseGet(prDetailsUrl, this.token);
+          const prDetails = prDetailsResponse.data;
+  
+          const additions = prDetails.additions;
+          totalAdditions += additions;
+  
+          // Check if PR had code reviews
+          const reviewsUrl = `${this.baseURL}/repos/${owner}/${repo}/pulls/${prNumber}/reviews`;
+          const reviewsResponse = await this.baseGet(reviewsUrl, this.token);
+          const reviews = reviewsResponse.data;
+  
+          if (reviews.length > 0) {
+            reviewedAdditions += additions;
+          }
+        }
+  
+        page++;
+        // Check if we've reached the last page
+        const totalCount = data.total_count;
+        if (page * perPage >= totalCount || page >= 10) { // GitHub Search API caps at 1000 results
+          hasMore = false;
+        }
+      } catch (error: any) {
+        console.error('Error fetching pull requests:', error.message);
+        break;
+      }
+    }
+  
+    let fraction = 0;
+    if (totalAdditions > 0) {
+      fraction = reviewedAdditions / totalAdditions;
+    }
+  
+    this.commitsMap.set('CodeReviewFraction', fraction);
+  }
+  
 
   async main(id: number) {
     /**
@@ -827,7 +956,7 @@ export class UrlHandler extends EventEmitter {
     const rows: RowInfo[] = this._db.prepare(`SELECT * FROM package_scores WHERE id = ?`).all(id) as RowInfo[];
     const { owner, repo } = await this.getOwnerAndRepo(rows[0].url);
     await this.getRepoMetrics(owner, repo, rows[0]);
-    this.emit('done', id);
+    //this.emit('done', id);
   }
 
 }
