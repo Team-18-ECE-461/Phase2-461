@@ -34,7 +34,7 @@ export class OutputMetrics extends EventEmitter {
          */
         try {
             const rows = this._db.prepare('SELECT * FROM package_scores WHERE id = ?').all(index);
-    
+            //change
             // Output each row's metrics to stdout
             if (rows && rows.length > 0) {
                 rows.forEach((row: unknown) => {
