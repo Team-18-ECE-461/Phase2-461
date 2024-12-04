@@ -217,7 +217,7 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
     if(url && url.includes('npmjs.com')){
       let zippath: string;
       
-      const [tid, tname, tversion, base64Zip, existing] = await downloadNpm(url);
+      const [tid, tname, tversion, base64Zip, existing] = await downloadNpm(url, JSProgram);
       if(existing){
         return {
           statusCode: 409,
@@ -391,7 +391,7 @@ export async function getVersionFromGithub(owner: string, repo: string): Promise
     }
 }
 }
-export async function downloadNpm(npmUrl:string){
+export async function downloadNpm(npmUrl:string, JSProgram:string){
   try {let registryUrl = npmUrl
     let response;
     let tarballUrl;
@@ -475,7 +475,7 @@ export async function downloadNpm(npmUrl:string){
     await cleanupTempFiles(tarballPath);
     await cleanupTempFiles(extractPath);
     await cleanupTempFiles(zipPath);
-    await uploadDB(generatePackageId(packageName, version), packageName, version, '', npmUrl);
+    await uploadDB(generatePackageId(packageName, version), packageName, version, JSProgram, npmUrl);
     let id = generatePackageId(packageName, version);
     return [packageName, version, id, base64content, false];
   } catch (error) {
@@ -694,7 +694,7 @@ export async function uploadDB(packageId: string, packageName: string, packageVe
     Name: { S: packageName },
     Version: { S: packageVersion },
     VersionInt: { N: versionInt(packageVersion).toString() },
-    JSProgram: { S: JSProgram },
+    JSProgram: { S: JSProgram? JSProgram : '' },
     CreatedAt: { S: new Date().toISOString() },
     URL: { S: url? url : '' },
   };

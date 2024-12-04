@@ -14,15 +14,22 @@ interface LambdaEvent {
 
 export const lambdaHandler = async (event: LambdaEvent) => {
     const body = JSON.parse(event.body);
-    const soff = event.queryStringParameters.offset || {}; 
-    const offset = Number(soff);
-    let totalresults: any = []
-    const limit = 10
+    let offset 
+    if (event.queryStringParameters && event.queryStringParameters.offset) {
+        offset = Number(event.queryStringParameters.offset);
+        if (isNaN(offset)) {
+            throw new Error("Invalid offset value. It must be a number.");
+        }
+    }
+    else{offset = 0}
+    let totalresults = [];
+    const limit = 10;
 
     
 
     for (const query of body){
         let name = query.Name;
+        let version = query.Version || '*';
         let versionSchema = query.Version;
         let queryParams;
         if(!name || !versionSchema){
@@ -31,7 +38,7 @@ export const lambdaHandler = async (event: LambdaEvent) => {
                 body: JSON.stringify({ message: 'Invalid input.' }),
             };
         }
-        if(!version && name){
+        if(!version && name || name === '*'){
              queryParams = {
                 TableName: TABLE_NAME,
                 KeyConditionExpression: '#name = :name',
@@ -58,8 +65,8 @@ export const lambdaHandler = async (event: LambdaEvent) => {
         const data = await dynamoDBclient.send(new QueryCommand(queryParams));
         const items = (data.Items || []).map(item => {
             return {
-                Name: item.Name.S,
                 Version: item.Version.S,
+                Name: item.Name.S,
                 ID: item.ID.S,
             }
         });
@@ -83,10 +90,7 @@ export const lambdaHandler = async (event: LambdaEvent) => {
 
     return {
         statusCode: 200,
-        body: JSON.stringify({
-            Items: paginatedResults
-           
-        })
+        body: JSON.stringify(paginatedResults )
     }
 
     
