@@ -256,6 +256,7 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
       const response = await axios.get(`${url}/archive/refs/heads/${branch}.zip`, { responseType: 'arraybuffer' });
       //const response = await axios.get(`${url}/archive/refs/heads/main.zip`, { responseType: 'arraybuffer' });
       version = await getVersionFromGithub(owner, repo);
+      if(version.includes('v')){version = version.replace('v', '');}
       if(version !== ''){packageVersion = version;}
       zipBuffer = Buffer.from(response.data);
     } else {
@@ -561,7 +562,8 @@ export async function downloadAndExtractGithubPackage(githubUrl: string, destina
       writer.on('error', reject);
   });
   await tar.extract({ file: tarballPath, cwd: destination });
-  
+  let vers = await getVersionFromGithub(owner, repo);
+  if(vers.includes('v')){vers = vers.replace('v', '');}
   const extractedPath = path.join(destination);
   const extractedFiles = await fs.promises.readdir(extractedPath);
   const firstFolder = extractedFiles.find((file) => fs.statSync(path.join(extractedPath, file)).isDirectory());
@@ -578,7 +580,7 @@ export async function downloadAndExtractGithubPackage(githubUrl: string, destina
       if (fs.existsSync(packagePath)) {
         const packageJsonContent = await fs.promises.readFile(packagePath, 'utf-8');
         const packageJson = JSON.parse(packageJsonContent);
-        version = packageJson.version;
+        version = vers.length > 0 ? vers : packageJson.version;
         console.log('Found version in package.json:', version);
         return [path.join(extractedPath, firstFolder), version]
       } else {
@@ -694,6 +696,9 @@ export async function checkexistingPackage(packageName: string, packageVersion: 
 }
 
 export async function uploadDB(packageId: string, packageName: string, packageVersion: string, JSProgram: string, url: string){
+  if(packageVersion.includes('v')){
+    packageVersion = packageVersion.replace('v', '');
+  }
   const item = {
     ID: { S: packageId },
     Name: { S: packageName },
