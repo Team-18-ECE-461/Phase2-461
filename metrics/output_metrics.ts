@@ -41,20 +41,41 @@ export class OutputMetrics extends EventEmitter {
                 let row = rows[0];
                 const typedRow = row as RowInfo;
                 const metrics = JSON.parse(typedRow.metrics || '{}'); // Parse metrics if it's a JSON string
-                
+                // {
+                //     "BusFactor": 0.1,
+                //     "BusFactorLatency": 0.1,
+                //     "Correctness": 0.1,
+                //     "CorrectnessLatency": 0.1,
+                //     "RampUp": 0.1,
+                //     "RampUpLatency": 0.1,
+                //     "ResponsiveMaintainer": 0.1,
+                //     "ResponsiveMaintainerLatency": 0.1,
+                //     "LicenseScore": 0.1,
+                //     "LicenseScoreLatency": 0.1,
+                //     "GoodPinningPractice": 0.1,
+                //     "GoodPinningPracticeLatency": 0.1,
+                //     "PullRequest": 0.1,
+                //     "PullRequestLatency": 0.1,
+                //     "NetScore": 0.1,
+                //     "NetScoreLatency": 0.1
+                //   }
                 // Format latency values to three decimal places
                 const formattedMetrics = {
                     ...metrics,
-                    BusFactor_Latency: parseFloat(metrics.BusFactor_Latency?.toFixed(3)),
-                    Correctness_Latency: parseFloat(metrics.Correctness_Latency?.toFixed(3)),
-                    RampUp_Latency: parseFloat(metrics.RampUp_Latency?.toFixed(3)),
-                    ResponsiveMaintainer_Latency: parseFloat(metrics.ResponsiveMaintainer_Latency?.toFixed(3)),
-                    License_Latency: parseFloat(metrics.License_Latency?.toFixed(3)),
-                    NetScore_Latency: parseFloat(metrics.NetScore_Latency?.toFixed(3)),
+                    BusFactorLatency: parseFloat(metrics.BusFactor_Latency?.toFixed(3)),
+                    CorrectnessLatency: parseFloat(metrics.Correctness_Latency?.toFixed(3)),
+                    RampUpLatency: parseFloat(metrics.RampUp_Latency?.toFixed(3)),
+                    ResponsiveMaintainerLatency: parseFloat(metrics.ResponsiveMaintainer_Latency?.toFixed(3)),
+                    LicenseLatency: parseFloat(metrics.License_Latency?.toFixed(3)),
+                    GoodPinningPracticeLatency: parseFloat(metrics.GoodPinningPractice_Latency?.toFixed(3)),
+                    PullRequestLatency: parseFloat(metrics.PullRequest_Latency?.toFixed(3)),
+                    NetScoreLatency: parseFloat(metrics.NetScore_Latency?.toFixed(3)),
                     BusFactor: parseFloat(metrics.BusFactor?.toFixed(3)),
                     Correctness: parseFloat(metrics.Correctness?.toFixed(3)),
                     RampUp: parseFloat(metrics.RampUp?.toFixed(3)),
                     ResponsiveMaintainer: parseFloat(metrics.ResponsiveMaintainer?.toFixed(3)),
+                    GoodPinningPractice: parseFloat(metrics.GoodPinningPractice?.toFixed(3)),
+                    PullRequest: parseFloat(metrics.PullRequest?.toFixed(3)),
                     NetScore: parseFloat(metrics.NetScore?.toFixed(3)),
                     
                 };
