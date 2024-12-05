@@ -77,17 +77,23 @@ function pareseGitURL(url: string): string {
     if(url.endsWith(".git")) {
         url = url.slice(0, -4);
     }
+    // extract owner and repo from url, should work for any www.github.com/owner/repo format
+    let urlParts = url.split('/');
+    let owner = urlParts[urlParts.length - 2];
+    let repo = urlParts[urlParts.length - 1];
+    url = `https://github.com/${owner}/${repo}`;
+
     return url;}
 
 async function processUrl(line: string, index: number) {
     if(line.includes('github.com')){line = pareseGitURL(line);}
     await database.addEntry(db, line, fp, +logLvl);
     console.log("added entry")
-    await urlHandler.main(index + 1);
+    await urlHandler.main(index + 1, line);
     console.log("url handler")
-    await metric_calc.calc(index + 1);
+    await metric_calc.calc(index + 1, line);
     console.log("metric calc")
-    out = await output_metrics.output_Metrics(index + 1);
+    out = await output_metrics.output_Metrics(index + 1, line);
     console.log("output metrics")
 }
 interface LamdaEvent {

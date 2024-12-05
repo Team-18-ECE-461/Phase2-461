@@ -51,7 +51,7 @@ describe('OutputMetrics', () => {
 
         const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
-        outputMetrics.output_Metrics(1);
+        outputMetrics.output_Metrics(1, 'http://example.com');
 
         expect(consoleSpy).toHaveBeenCalledWith(JSON.stringify({
             URL: 'http://example.com',
@@ -78,7 +78,7 @@ describe('OutputMetrics', () => {
 
         const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
-        outputMetrics.output_Metrics(1);
+        outputMetrics.output_Metrics(1, "null");
 
         expect(consoleSpy).toHaveBeenCalledWith('No data found in the database.');
 
@@ -95,7 +95,7 @@ describe('OutputMetrics', () => {
             done();
         });
 
-        outputMetrics.output_Metrics(1);
+        outputMetrics.output_Metrics(1, "http://example.com");
     });
 
     it('should emit "close" event when fileNum reaches 0', (done) => {
@@ -109,7 +109,7 @@ describe('OutputMetrics', () => {
             done();
         });
 
-        outputMetrics.output_Metrics(1);
+        outputMetrics.output_Metrics(1, "http://example.com");
     });
 
     it('should handle errors and exit process', () => {
@@ -125,7 +125,7 @@ describe('OutputMetrics', () => {
 
         const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
 
-        expect(() => outputMetrics.output_Metrics(1)).toThrow('process.exit: 1');
+        expect(() => outputMetrics.output_Metrics(1,"https://example.com")).toThrow('process.exit: 1');
         expect(consoleSpy).toHaveBeenCalledWith('Error retrieving data from the database:', expect.any(Error));
 
         consoleSpy.mockRestore();
