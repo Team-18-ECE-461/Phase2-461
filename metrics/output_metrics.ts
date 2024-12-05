@@ -27,15 +27,17 @@ export class OutputMetrics extends EventEmitter {
         this.loglvl = loglvl;
     }
 
-    output_Metrics(index: number): string {
+    output_Metrics(index: number, url: string): string {
         /**
          * Retrieve metrics from the database and output them to stdout.
          * Input: index - the index of the package to retrieve metrics for
          */
         let output: any;
         try {
-            const rows = this._db.prepare('SELECT * FROM package_scores WHERE id = ?').all(index);
-            //change
+
+            const rows = this._db.prepare('SELECT * FROM package_scores WHERE url = ?').all(url);
+    
+
             // Output each row's metrics to stdout
             if (rows && rows.length > 0) {
                 let row = rows[0];
@@ -66,7 +68,7 @@ export class OutputMetrics extends EventEmitter {
                     CorrectnessLatency: parseFloat(metrics.CorrectnessLatency?.toFixed(3)),
                     RampUpLatency: parseFloat(metrics.RampUpLatency?.toFixed(3)),
                     ResponsiveMaintainerLatency: parseFloat(metrics.ResponsiveMaintainerLatency?.toFixed(3)),
-                    LicenseLatency: parseFloat(metrics.LicenseLatency?.toFixed(3)),
+                    LicenseScoreLatency: parseFloat(metrics.LicenseScoreLatency?.toFixed(3)),
                     GoodPinningPracticeLatency: parseFloat(metrics.GoodPinningPracticeLatency?.toFixed(3)),
                     PullRequestLatency: parseFloat(metrics.PullRequestLatency?.toFixed(3)),
                     NetScoreLatency: parseFloat(metrics.NetScoreLatency?.toFixed(3)),
@@ -80,7 +82,6 @@ export class OutputMetrics extends EventEmitter {
                     
                 };
                 output = {
-                    URL: typedRow.url,
                     ...formattedMetrics
                 };
                 console.log(JSON.stringify(output));   

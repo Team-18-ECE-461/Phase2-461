@@ -283,7 +283,8 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
       const packageInfo = JSON.parse(packageJsonContent);
 
       packageName = packageInfo.name 
-      packageVersion = packageInfo.version
+      if(packageInfo.version && packageVersion === '1.0.0'){ 
+        packageVersion = packageInfo.version}
     }
 
     // Generate package ID

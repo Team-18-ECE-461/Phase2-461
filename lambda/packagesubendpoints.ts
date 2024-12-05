@@ -124,13 +124,16 @@ export async function handleGetPackage(packageId: string) {
 export async function handleUpdatePackage(event: LambdaEvent) {
     try {
         const requestBody = JSON.parse(event.body);
+        if(!requestBody.metadata || !requestBody.data || !requestBody.metadata.ID || !requestBody.metadata.Name || !requestBody.metadata.Version) {
+            return { statusCode: 400, body: JSON.stringify({ message: 'Invalid request' }) };
+        }
         const packageId = requestBody.metadata.ID;
         const packageName = requestBody.metadata.Name;
-        let packageVersion = requestBody.metadata.Version;
+        const packageVersion = requestBody.metadata.Version;
         let content = requestBody.data.Content;
         let url = requestBody.data.URL;
         const JSProgram = requestBody.data.JSProgram;
-        const debloat = requestBody.data.debloat;
+        const debloat = requestBody.data.debloat? requestBody.data.debloat : false; 
         
 
 
@@ -330,8 +333,8 @@ export async function handleUpdatePackage(event: LambdaEvent) {
         const apiUrl = `https://api.github.com/repos/${owner}/${repo}`;
         const response0 = await axios.get(apiUrl);
         const branch = response0.data.default_branch;
-        let version  = await getVersionFromGithub(owner, repo);
-        if(version !== ''){packageVersion = version;}
+        // let version  = await getVersionFromGithub(owner, repo);
+        // if(version !== ''){packageVersion = version;}
         console.log('Branch:', branch);
         const response = await axios.get(`${url}/archive/refs/heads/${branch}.zip`, { responseType: 'arraybuffer' });
         zipBuffer = Buffer.from(response.data);
@@ -347,7 +350,7 @@ export async function handleUpdatePackage(event: LambdaEvent) {
         Body: zipBuffer,
         ContentType: 'application/zip',
       });
-      if(packageVersion.length === 0){ packageVersion = '1.0.0';}
+      //if(packageVersion.length === 0){ packageVersion = '1.0.0';}
       uploadDB(packageId, packageName, packageVersion, JSProgram, url);   
       return {
         statusCode: 200,
