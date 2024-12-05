@@ -96,8 +96,8 @@ export class UrlHandler extends EventEmitter {
      * inputs: github owner, github repo
      * output: none
      */
-    const oneYearAgo = new Date();
-    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+    const twoYearsAgo = new Date();
+    twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
 
     // Step 1: Get contributors and find top 3
     const contributorsUrl = `${this.baseURL}/repos/${owner}/${repo}/contributors`;
@@ -115,7 +115,7 @@ export class UrlHandler extends EventEmitter {
 
     let totalCommitsFromTop3 = 0;
 
-    // Step 2: Fetch commits for each top contributor in the past year
+    // Step 2: Fetch commits for each top contributor in the past two years
     for (const contributor of topContributors) {
       let page = 1;
       const per_page = 100; // Maximum allowed by GitHub API
@@ -125,7 +125,7 @@ export class UrlHandler extends EventEmitter {
       while (hasMore) {
         const url = `${this.baseURL}/repos/${owner}/${repo}/commits`;
         const params = {
-          since: oneYearAgo.toISOString(),
+          since: twoYearsAgo.toISOString(),
           author: contributor.login,  // Get commits from this contributor
           per_page: per_page,
           page: page,
@@ -151,7 +151,7 @@ export class UrlHandler extends EventEmitter {
       totalCommitsFromTop3 += contributorCommits;
     }
 
-    // Step 3: Store the total number of commits from top 3 contributors in the past year
+    // Step 3: Store the total number of commits from top 3 contributors in the past two years
     this.commitsMap.set('top3', totalCommitsFromTop3);
   }
 
@@ -944,7 +944,7 @@ export class UrlHandler extends EventEmitter {
   }
   
 
-  async main(id: number) {
+  async main(id: number, url: string) {
     /**
      * Main function to fetch the data from the database and then fetch the data from the GitHub API and NPM API.
      * The function emits a done event when the data is fetched and stored in the database as a JSON string.
@@ -953,7 +953,7 @@ export class UrlHandler extends EventEmitter {
      * output: none
      * */
     //can use any url
-    const rows: RowInfo[] = this._db.prepare(`SELECT * FROM package_scores WHERE id = ?`).all(id) as RowInfo[];
+    const rows: RowInfo[] = this._db.prepare(`SELECT * FROM package_scores WHERE url = ?`).all(url) as RowInfo[];
     const { owner, repo } = await this.getOwnerAndRepo(rows[0].url);
     await this.getRepoMetrics(owner, repo, rows[0]);
     //this.emit('done', id);

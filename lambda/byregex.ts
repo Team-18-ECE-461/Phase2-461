@@ -23,6 +23,7 @@ export const lambdaHandler = async (event: LambdaEvent) => {
 try{
    const body = JSON.parse(event.body);
    const regexp = body.RegEx
+   console.log(regexp)
 
    if (!regexp ) {
     return {
@@ -46,7 +47,7 @@ try{
 
   const command = new ScanCommand(params);
   const results = await dynamoDBclient.send(command);
-  console.log(results)
+  //console.log(results)
 
   if(results.Count === 0){
     return {
@@ -63,6 +64,7 @@ if (!results.Items) {
 }
 
 const filteredResults = filterByRegex(results, regexp);
+console.log(filteredResults)
 
 if(filteredResults.length === 0){
   return {
@@ -109,8 +111,8 @@ export function filterByRegex(scanResult: any,regexPattern: string): PackageItem
      if (!filteredItems) {
       return [];}
      const transformedItems = filteredItems.map((item: any) => ({
-      Name: item.Name?.S || "N/A",
       Version: item.Version?.S || "N/A",
+      Name: item.Name?.S || "N/A",
       ID: item.ID?.S || "N/A", 
     }));
 
