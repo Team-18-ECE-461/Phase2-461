@@ -20,25 +20,38 @@ interface ApiResponse {
 }
 
 const API_URL = "https://3zq0b41jvf.execute-api.us-east-1.amazonaws.com/stage1/package";
-
-async function fetchData(): Promise<ApiResponse> {
+async function fetchData(): Promise<void> {
   try {
-    const response: AxiosResponse<ApiResponse> = await axios.get(`${API_URL}/resource`, {
+    const response = await axios.get(`${API_URL}`, {
       headers: {
         'Content-Type': 'application/json',
       },
       withCredentials: true, // If your backend uses cookies or credentials
     });
 
-    // Log or process the response data if needed
-    console.log('Fetched data:', response.data);
+    const { metadata, data } = response.data;
 
-    return response.data;
+    // Log the structured response
+    console.log('Metadata:', metadata);
+    console.log('Data:', data);
+
+    console.log('Full response:', response.data);
   } catch (error) {
-    console.error('Error fetching data:', error);
+    if (axios.isAxiosError(error)) {
+      // Log detailed error message if the error is Axios-related
+      console.error('Error fetching data:', error.message);
+      if (error.response) {
+        console.error('Response data:', error.response.data);
+        console.error('Response status:', error.response.status);
+      }
+    } else {
+      // Log any other type of error
+      console.error('Unexpected error:', error);
+    }
     throw new Error('Failed to fetch data from API.');
   }
 }
+
 const UploadPage: React.FC = () => {
   const [packageName, setPackageName] = useState<string>('');
   const [version, setVersion] = useState<string>('');
@@ -49,47 +62,50 @@ const UploadPage: React.FC = () => {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    setMessage('Inside handle submit');
-    if (packageName === '' || version === '') {
+    setMessage('Processing your request...');
+
+    if (!packageName || !version) {
       setMessage('Please fill out all fields.');
       return;
     }
-    if (url === '' && !file) {
-      setMessage('Please upload a package file or provide a URL, not both.');
+    if (!url && !file) {
+      setMessage('Please upload a package file or provide a URL.');
       return;
     }
-    if (file || url !== '') {
-      // Mock successful submission
-      //call API to upload package
+
+    try {
       const formData = new FormData();
       formData.append('name', packageName);
       formData.append('version', version);
-      formData.append('url', url);
-      formData.append('file', file as Blob);
+      if (url) formData.append('url', url);
+      if (file) formData.append('file', file);
       formData.append('debloat', debloat.toString());
 
-
-      const response = await axios.post(`${API_URL}/upload`, formData, {
+      const response = await axios.post(`${API_URL}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
 
-      console.log('Response:', response && response.data);
+      console.log('Upload Response:', response.data);
       setMessage(`Package "${packageName}" uploaded successfully!`);
-    } else {
-      setMessage('Please upload a valid package file.');
-    }
 
-    try {
-      const apiData = await fetchData(); // Call the Get Packages API
-      console.log('Fetched packages:', apiData);
+      // Fetch data from the API
+      const apiData = await fetchData();
       setMessage(`Fetched packages successfully: ${JSON.stringify(apiData)}`);
     } catch (error) {
-      console.error('Error fetching packages:', error);
-      setMessage('Failed to fetch packages. Please try again.');
+      if (axios.isAxiosError(error)) {
+        console.error('Upload error:', error.message);
+        if (error.response) {
+          console.error('Upload response data:', error.response.data);
+        }
+      } else {
+        console.error('Unexpected upload error:', error);
+      }
+      setMessage('Failed to upload package or fetch data. Please try again.');
     }
   };
+
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
@@ -129,7 +145,7 @@ const UploadPage: React.FC = () => {
             type="text"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            
+           
           />
         </label>
         <label>
