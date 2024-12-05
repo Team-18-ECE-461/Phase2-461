@@ -19,7 +19,7 @@ interface ApiResponse {
   };
 }
 
-const API_URL = "https://3zq0b41jvf.execute-api.us-east-1.amazonaws.com/stage2/upload";
+const API_URL = "https://3zq0b41jvf.execute-api.us-east-1.amazonaws.com/stage2/package";
 async function fetchData(): Promise<void> {
   try {
     const response = await axios.post(`${API_URL}`, {
