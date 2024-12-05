@@ -26,7 +26,6 @@ async function fetchData(): Promise<void> {
       headers: {
         'Content-Type': 'application/json',
       },
-      withCredentials: true, // If your backend uses cookies or credentials
     });
 
     const { metadata, data } = response.data;
