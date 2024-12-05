@@ -95,13 +95,14 @@ const UploadPage: React.FC = () => {
     } catch (error) {
       if (axios.isAxiosError(error)) {
         console.error('Upload error:', error.message);
+        setMessage(error.message);
         if (error.response) {
           console.error('Upload response data:', error.response.data);
         }
       } else {
         console.error('Unexpected upload error:', error);
       }
-      setMessage('Failed to upload package or fetch data. Please try again.' + error.message);
+      setMessage('Failed to upload package or fetch data. Please try again.' + error);
 
     }
   };
