@@ -1,125 +1,3 @@
-
-
-/*
-import { Manager } from './manager'
-import { exec } from 'child_process'
-import { Metrics } from './calc_metrics'
-import * as database from './database'
-import { Controller } from './controller'
-import { OutputMetrics } from './output_metrics'
-import { UrlHandler } from './url_handler'
-import fs from 'fs'
-
-
-
-// Getting environment variables for logfile and logLvl
-const logfile = process.env.LOG_FILE as string;
-let logLvl = process.env.LOG_LEVEL as string;
-
-// Check if the logfile is given and if there is a GITHUB_TOKEN. Exiting and writing an error message if they don't exist
-if(logfile == "") {
-    console.error("No logfile given");
-    process.exit(1);
-}
-if(process.env.GITHUB_TOKEN as string == "") {
-    console.error("No github token given");
-    process.exit(1);
-}
-
-// If logLvl wasn't set, it is set to 0 by default
-if(logLvl == "") {
-    logLvl = "0";
-}
-
-// Opening logfile
-const fp = fs.openSync(logfile, 'w');
-
-// Creating new manager class to run the program
-const manager = new Manager(fp, +logLvl);
-
-// Registering process command that takes a file and begins the scoring process for the urls
-manager.registerCommand('process', 'Process a file of URLs for scoring', (args) => {
-    if (args.file) {
-        const filePath = args.file;
-        const data = fs.readFileSync(filePath, 'utf8');
-
-        // Split url file into array of urls
-        const lines = data.split('\n');
-        // New connection
-        const db = database.createConnection(fp, +logLvl);
-
-        // New calculator
-        const metric_calc = new Metrics(db, fp, +logLvl);
-        if(+logLvl == 2) { 
-            fs.writeFileSync(fp, `${lines.length}\n`);
-        }
-        
-        // New outputter
-        const output_metrics = new OutputMetrics(db, lines.length, fp, +logLvl);
-
-        // New url handler
-        const urlHandler = new UrlHandler(db, fp, +logLvl);
-
-        // New controller for concurrency
-        const controller = new Controller(manager, metric_calc, output_metrics, urlHandler, fp, +logLvl);
-        database.createTable(db, fp, +logLvl);
-        
-        // For each url, add it to the database and then using events, begin the process
-        lines.forEach((line: string, index: number) => {
-            if(+logLvl == 2) {
-                fs.writeFileSync(fp, `${line}\n`);
-            }
-            if(line != "") {
-                database.addEntry(db, line, fp, +logLvl);
-                manager.emit('startProcessing', index+1)
-            }
-            
-        });
-        
-    } else {
-        fs.closeSync(fp);
-        console.error('No file specified.');
-        process.exit(1);
-    }
-    
-    
-});
-
-
-manager.registerCommand('test', 'Test suite', () => {
-    exec('npx jest --silent --coverage --detectOpenHandles --json --outputFile=jest-results.json --coverageReporters="json-summary"', (error, stdout, stderr) => {
-        try {
-            const jestResults = JSON.parse(fs.readFileSync('jest-results.json', 'utf8'));
-            const totalTests = jestResults.numTotalTests || 0;
-            const passedTests = jestResults.numPassedTests || 0;
-    
-            const coverageSummary = JSON.parse(fs.readFileSync('coverage/coverage-summary.json', 'utf8'));
-            const lineCoverage = coverageSummary.total.lines.pct || 0;
-    
-            console.log(`Total: ${totalTests}`);
-            console.log(`Passed: ${passedTests}`);
-            console.log(`Coverage: ${lineCoverage.toFixed(0)}%`);
-            console.log(`${passedTests}/${totalTests} test cases passed. ${lineCoverage.toFixed(0)}% line coverage achieved.`);
-    
-            // Exit with Jest's original exit code
-            process.exit(error ? 1 : 0);
-        } catch (parseError) {
-            console.error('Error parsing Jest output:', parseError);
-            process.exit(1);
-        }
-    });
- 
-});
-
-// Executes either test or process and if neither are somehow called, it will print the available commands
-manager.execute(process.argv);
-
-
-
-*/
-
-
-
 import { Manager } from './manager'
 import { exec } from 'child_process'
 import { Metrics } from './calc_metrics'
@@ -158,7 +36,6 @@ if (fs.existsSync(DB_FILE_PATH)) {
 
 // Check if the logfile is given and if there is a GITHUB_TOKEN. Exiting and writing an error message if they don't exist
 if(!logfile) {
-
     logfile = "/tmp/app.log";
     console.error("No logfile given");
     //process.exit(1);
@@ -180,7 +57,7 @@ if (!fs.existsSync(logDir)) {
 // Opening logfile
 const fp = fs.openSync(logfile, 'w');
 
-let line = 'https://www.npmjs.com/package/minify'
+let line
 let out :any;
 let index = 0;
 const db = database.createConnection(fp, +logLvl);
@@ -197,9 +74,7 @@ async function processUrl(line: string, index: number) {
     await metric_calc.calc(index + 1);
     console.log("metric calc")
     out = await output_metrics.output_Metrics(index + 1);
-    console.log("out is ", out)
     console.log("output metrics")
-    return out;
 }
 interface LamdaEvent {
     body: string;
@@ -218,7 +93,7 @@ exports.lambdaHandler = async (event: LamdaEvent) => {
           TableName: TABLE_NAME,               // The DynamoDB table to query
           IndexName: "ID-index",               // Specify the GSI name here
           KeyConditionExpression: "ID = :id",  // Search for items where ID equals a specific value
-          ExpressionAttributeValues: {
+          ExpressionAttributeValues: { 
               ":id": { S: packageId },         // The actual value for the ID (a string type in this case)
           },
       };
@@ -229,7 +104,7 @@ exports.lambdaHandler = async (event: LamdaEvent) => {
         let packageName = 'No name';
         let JSProgram = 'No JSProgram';
         let packageURL = 'No URL';
-       
+        
         if (!items || items.length === 0) {
           return { statusCode: 404, body: JSON.stringify({ message: 'Package not found' }) };
         }
@@ -258,7 +133,7 @@ exports.lambdaHandler = async (event: LamdaEvent) => {
             Bucket: BUCKET_NAME,
             Key: key
           };
-     
+      
         let buffer = Buffer.from('');
         const data = await s3Client.send(new GetObjectCommand(param));
         if(data && data.Body) {
@@ -302,10 +177,10 @@ exports.lambdaHandler = async (event: LamdaEvent) => {
         return { statusCode: 500, body: "Execution failed" };
     }
 
-   
+    
 
     try {
-        out = await processUrl(line, index);
+        await processUrl(line, index);
         console.log("Process completed.");
         return { statusCode: 200, body: out };
     } catch (error) {
@@ -313,3 +188,6 @@ exports.lambdaHandler = async (event: LamdaEvent) => {
         return { statusCode: 500, body: "Execution failed" };
     }
 };
+
+
+
