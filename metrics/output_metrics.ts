@@ -66,7 +66,7 @@ export class OutputMetrics extends EventEmitter {
                     CorrectnessLatency: parseFloat(metrics.CorrectnessLatency?.toFixed(3)),
                     RampUpLatency: parseFloat(metrics.RampUpLatency?.toFixed(3)),
                     ResponsiveMaintainerLatency: parseFloat(metrics.ResponsiveMaintainerLatency?.toFixed(3)),
-                    LicenseLatency: parseFloat(metrics.LicenseLatency?.toFixed(3)),
+                    LicenseScoreLatency: parseFloat(metrics.LicenseScoreLatency?.toFixed(3)),
                     GoodPinningPracticeLatency: parseFloat(metrics.GoodPinningPracticeLatency?.toFixed(3)),
                     PullRequestLatency: parseFloat(metrics.PullRequestLatency?.toFixed(3)),
                     NetScoreLatency: parseFloat(metrics.NetScoreLatency?.toFixed(3)),
