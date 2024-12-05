@@ -19,10 +19,10 @@ interface ApiResponse {
   };
 }
 
-const API_URL = "https://3zq0b41jvf.execute-api.us-east-1.amazonaws.com/stage1/package";
+const API_URL = "https://3zq0b41jvf.execute-api.us-east-1.amazonaws.com/stage1/tracks";
 async function fetchData(): Promise<void> {
   try {
-    const response = await axios.get(`${API_URL}`, {
+    const response = await axios.post(`${API_URL}`, {
       headers: {
         'Content-Type': 'application/json',
       },
@@ -89,9 +89,6 @@ const UploadPage: React.FC = () => {
       console.log('Upload Response:', response.data);
       setMessage(`Package "${packageName}" uploaded successfully!`);
 
-      // Fetch data from the API
-      const apiData = await fetchData();
-      setMessage(`Fetched packages successfully: ${JSON.stringify(apiData)}`);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         console.error('Upload error:', error.message);
