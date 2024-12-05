@@ -109,8 +109,8 @@ export function filterByRegex(scanResult: any,regexPattern: string): PackageItem
      if (!filteredItems) {
       return [];}
      const transformedItems = filteredItems.map((item: any) => ({
-      Name: item.Name?.S || "N/A",
       Version: item.Version?.S || "N/A",
+      Name: item.Name?.S || "N/A",
       ID: item.ID?.S || "N/A", 
     }));
 
