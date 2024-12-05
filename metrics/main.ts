@@ -2,6 +2,7 @@ import { Manager } from './manager'
 import { exec } from 'child_process'
 import { Metrics } from './calc_metrics'
 import * as database from './database'
+import { getgithuburl } from 'get-github-url'
 import { Controller } from './controller'
 import { OutputMetrics } from './output_metrics'
 import { UrlHandler } from './url_handler'
@@ -67,6 +68,7 @@ const urlHandler = new UrlHandler(db, fp, +logLvl);
 database.createTable(db, fp, +logLvl);
 
 async function processUrl(line: string, index: number) {
+    if(line.includes('github.com')){line = getgithuburl(line);}
     await database.addEntry(db, line, fp, +logLvl);
     console.log("added entry")
     await urlHandler.main(index + 1);
@@ -122,7 +124,7 @@ exports.lambdaHandler = async (event: LamdaEvent) => {
             return { statusCode: 404, body: JSON.stringify({ message: 'package not found' }) };
         }
 
-        if(packageURL.length > 0) {
+        if(packageURL !== 'No URL' && packageURL !== '') {
             line = packageURL;
         }
 
