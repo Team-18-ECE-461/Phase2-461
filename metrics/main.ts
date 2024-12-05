@@ -143,12 +143,28 @@ const TABLE_NAME = 'PackageInfo';
 let logfile = process.env.LOG_FILE as string;
 let logLvl = process.env.LOG_LEVEL as string;
 
+const DB_FILE_PATH = '/tmp/metrics.db';
+
+// Ensure the database file is deleted if it exists
+if (fs.existsSync(DB_FILE_PATH)) {
+    try {
+        fs.unlinkSync(DB_FILE_PATH);
+        console.log(`Deleted existing database file: ${DB_FILE_PATH}`);
+    } catch (error) {
+        console.error(`Error deleting database file: ${error}`);
+    }
+}
+
+
 // Check if the logfile is given and if there is a GITHUB_TOKEN. Exiting and writing an error message if they don't exist
 if(!logfile) {
-    logfile = "./tmp/app.log";
+
+    logfile = "/tmp/app.log";
     console.error("No logfile given");
     //process.exit(1);
 }
+
+
 
 
 // If logLvl wasn't set, it is set to 0 by default
@@ -181,7 +197,9 @@ async function processUrl(line: string, index: number) {
     await metric_calc.calc(index + 1);
     console.log("metric calc")
     out = await output_metrics.output_Metrics(index + 1);
+    console.log("out is ", out)
     console.log("output metrics")
+    return out;
 }
 interface LamdaEvent {
     body: string;
@@ -287,7 +305,7 @@ exports.lambdaHandler = async (event: LamdaEvent) => {
    
 
     try {
-        await processUrl(line, index);
+        out = await processUrl(line, index);
         console.log("Process completed.");
         return { statusCode: 200, body: out };
     } catch (error) {

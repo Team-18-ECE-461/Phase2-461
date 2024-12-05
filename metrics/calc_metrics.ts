@@ -223,14 +223,14 @@ export class Metrics extends EventEmitter {
             }
         }
         const score = pinnedCount / totalDependencies;
-        metrics.set('DependencyPinning', score);
+        metrics.set('GoodPinningPractice', score);
         return score;
     }
 
     private _codeReviewFraction(packInfo: Map<string, any>, metrics: Map<string, number>): number {
         const fraction = packInfo.get('CodeReviewFraction');
         if (fraction !== undefined) {
-          metrics.set('CodeReview', fraction);
+          metrics.set('PullRequest', fraction);
           return fraction;
         } else {
           console.error('Error calculating code review fraction: data not found');
@@ -280,44 +280,44 @@ export class Metrics extends EventEmitter {
                 const start_bus = now();
                 const bus = this._busFactor(value, metrics);
                 const end_bus = now();
-                metrics.set('BusFactor_Latency', end_bus - start_bus);
+                metrics.set('BusFactorLatency', end_bus - start_bus);
     
                 // Correctness
                 const start_correct = now();
                 const correct = this._correctness(value, metrics);
                 const end_correct = now();
-                metrics.set('Correctness_Latency', end_correct - start_correct);
+                metrics.set('CorrectnessLatency', end_correct - start_correct);
     
                 // Ramp Up
                 const start_ramp = now();
                 const ramp = this._rampUp(value, metrics);
                 const end_ramp = now();
-                metrics.set('RampUp_Latency', end_ramp - start_ramp);
+                metrics.set('RampUpLatency', end_ramp - start_ramp);
     
                 // Responsive Maintainer
                 const start_response = now();
                 const response = this._responsiveness(value, metrics);
                 const end_response = now();
-                metrics.set('ResponsiveMaintainer_Latency', end_response - start_response);
+                metrics.set('ResponsiveMaintainerLatency', end_response - start_response);
     
                 // License
                 const start_license = now();
                 const license = value.get('License');
                 metrics.set('License', license ? license : 0);
                 const end_license = now();
-                metrics.set('License_Latency', end_license - start_license);
+                metrics.set('LicenseLatency', end_license - start_license);
     
                 // Dependency Pinning
                 const start_dep_pinning = now();
                 const dep_pinning = this._dependencyPinning(value, metrics);
                 const end_dep_pinning = now();
-                metrics.set('DependencyPinning_Latency', end_dep_pinning - start_dep_pinning);
+                metrics.set('GoodPinningPracticeLatency', end_dep_pinning - start_dep_pinning);
     
                 // Code Review Fraction
                 const start_code_review = now();
                 const code_review_fraction = this._codeReviewFraction(value, metrics);
                 const end_code_review = now();
-                metrics.set('CodeReview_Latency', end_code_review - start_code_review);
+                metrics.set('PullRequestLatency', end_code_review - start_code_review);
     
                 // Net Score
                 //const start_net = now();
@@ -332,7 +332,7 @@ export class Metrics extends EventEmitter {
                 );
                 metrics.set('NetScore', net);
                 const end_net = now();
-                metrics.set('NetScore_Latency', end_net - start_net);
+                metrics.set('NetScoreLatency', end_net - start_net);
     
                 // Update the database
                 database.updateEntry(
