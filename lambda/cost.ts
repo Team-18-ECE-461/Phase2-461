@@ -1,101 +1,124 @@
-import { DynamoDB } from 'aws-sdk';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { GetCommand, GetCommandOutput } from '@aws-sdk/lib-dynamodb';
+import axios from 'axios';
 import { APIGatewayProxyHandler, APIGatewayProxyEvent } from 'aws-lambda';
 
-const dynamoDb = new DynamoDB.DocumentClient();
-
-interface PackageData {
-    Name: string;
-    Version: string;
-    Size: number;
-    Dependencies: { Name: string; Version: string }[];
-}
-
-interface PackageRequestBody {
-    packages: { Name: string; Version: string }[];
-}
+const dynamoDb = new DynamoDBClient({});
 
 interface APIGatewayProxyResult {
     statusCode: number;
     body: string;
 }
 
+interface PackageData {
+    ID: string;
+    Name: string;
+    Version: string;
+    URL: string;
+}
 
-export const cost: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+interface DependencyData {
+    size: number;
+    dependencies: { Name: string; Version: string; URL: string }[];
+}
+
+export const lambdaHandler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     try {
-        const body: PackageRequestBody = JSON.parse(event.body || '{}');
-        const packages: { Name: string; Version: string }[] = body.packages;
+        // Extract `id` from the path parameters
+        const packageId = event.pathParameters?.id;
 
-        if (!Array.isArray(packages) || packages.length === 0) {
+        if (!packageId) {
             return {
                 statusCode: 400,
-                body: JSON.stringify({ error: 'Invalid packages array' }),
+                body: JSON.stringify({ error: 'Package ID is required in the path' }),
             };
         }
 
-        // Fetch package data for the given list
-        const packageData: PackageData[] = await fetchPackageData(packages);
+        // Fetch the package details by ID from DynamoDB
+        const packageBaseData = await fetchPackageBaseDataById(packageId);
 
-        // Compute cumulative size, avoiding duplicates
-        const cumulativeSize: number = computeCumulativeSize(packageData);
+        if (!packageBaseData) {
+            return {
+                statusCode: 404,
+                body: JSON.stringify({ error: `Package with ID ${packageId} not found` }),
+            };
+        }
+
+        // Compute the total cost (cumulative size of the package and its dependencies)
+        const totalCost = await computeCost(packageBaseData);
 
         return {
             statusCode: 200,
-            body: JSON.stringify({ cumulativeSize }),
+            body: JSON.stringify({ cost: totalCost }),
         };
     } catch (error) {
         console.error('Error processing request:', error);
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: 'Internal Server Error' }),
+            body: JSON.stringify({
+                error: 'Internal Server Error',
+                message: error instanceof Error ? error.message : 'An unknown error occurred',
+            }),
         };
     }
 };
 
-const fetchPackageData = async (
-    packages: { Name: string; Version: string }[]
-): Promise<PackageData[]> => {
-    const results: PackageData[] = [];
-
-    for (const pkg of packages) {
+const fetchPackageBaseDataById = async (id: string): Promise<PackageData | null> => {
+    try {
         const params = {
-            TableName: 'PackageInfo', // Table name from your screenshot
-            Key: {
-                Name: pkg.Name,
-                Version: pkg.Version,
-            },
-            ProjectionExpression: 'Name, Version, Size, Dependencies',
+            TableName: 'PackageInfo', // Your actual DynamoDB table name
+            Key: { ID: id },
+            ProjectionExpression: 'ID, Name, Version, URL',
         };
 
-        const result = await dynamoDb.get(params).promise();
-        if (result.Item) {
-            results.push(result.Item as PackageData);
-        } else {
-            throw new Error(`Package not found: ${pkg.Name}@${pkg.Version}`);
-        }
+        const command = new GetCommand(params);
+        const result: GetCommandOutput = await dynamoDb.send(command);
+        return result.Item as PackageData | null;
+    } catch (error) {
+        console.error(`Error fetching package base data for ID ${id}`, error);
+        throw error;
     }
-
-    return results;
 };
 
-const computeCumulativeSize = (packageData: PackageData[]): number => {
+const computeCost = async (packageData: PackageData): Promise<number> => {
     const seen = new Set<string>();
-    let totalSize = 0;
 
-    const traverse = (pkg: PackageData) => {
+    const calculateSize = async (pkg: PackageData): Promise<number> => {
         const uniqueId = `${pkg.Name}@${pkg.Version}`;
-        if (seen.has(uniqueId)) return;
+        if (seen.has(uniqueId)) return 0; // Avoid double-counting
         seen.add(uniqueId);
 
-        totalSize += pkg.Size;
+        try {
+            // Fetch package data from the URL
+            const response = await axios.get(pkg.URL);
+            const { size, dependencies }: DependencyData = response.data;
 
-        pkg.Dependencies?.forEach(dep => {
-            const depData = packageData.find(
-                p => p.Name === dep.Name && p.Version === dep.Version
-            );
-            if (depData) traverse(depData);
-        });
+            if (!size) throw new Error(`Size not found for package ${pkg.Name}@${pkg.Version}`);
+
+            // Recursively compute the size of dependencies
+            let totalDependencySize = 0;
+            for (const dep of dependencies) {
+                // Directly use dependency URL to fetch its size
+                const depSizeResponse = await axios.get(dep.URL);
+                const depSizeData: DependencyData = depSizeResponse.data;
+
+                totalDependencySize += depSizeData.size;
+
+                // Resolve further dependencies recursively
+                totalDependencySize += await computeCost({
+                    ID: '',
+                    Name: dep.Name,
+                    Version: dep.Version,
+                    URL: dep.URL,
+                });
+            }
+
+            return size + totalDependencySize;
+        } catch (error) {
+            console.error(`Error fetching data from URL: ${pkg.URL}`, error);
+            throw new Error(`Failed to fetch data from URL: ${pkg.URL}`);
+        }
     };
 
-    packageData.forEach(traverse);
-    return totalSize;
+    return await calculateSize(packageData);
 };

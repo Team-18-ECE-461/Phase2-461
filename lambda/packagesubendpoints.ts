@@ -15,6 +15,7 @@ const s3 = new S3();
 const dynamoDBclient = new DynamoDBClient({});
 const BUCKET_NAME = 'packagesstorage';
 const TABLE_NAME = 'PackageInfo';
+let flag = 0;
 
 interface LambdaEvent {
     httpMethod: string,
@@ -151,7 +152,7 @@ export async function handleUpdatePackage(event: LambdaEvent) {
         const checkResult = await dynamoDBclient.send(new QueryCommand(checkParams));
         
         
-        if (!checkResult.Items) {
+        if (!checkResult.Items || checkResult.Items && checkResult.Items.length === 0) {
             return { statusCode: 404, body: JSON.stringify({ message: "Package not found" }) };
         }
 
@@ -178,11 +179,12 @@ export async function handleUpdatePackage(event: LambdaEvent) {
         }
         if(url){
           if(!checkResult.Items.some(item => item.URL.S && item.URL.S.length > 0)) { //check if the package has a URL(was not uploaded by content)
-            return { statusCode: 400, body: JSON.stringify({ message: "Invalid request" }) };
+            return { statusCode: 400, body: JSON.stringify({ message: "Invalid request, uploading by url but package was uploaded by content" }) };
           }
         }
 
         if(debloat){
+          flag = 0
           const tempDir = await fs.promises.mkdtemp(path.join(tmpdir(), 'package-'));
           const packagedebloatName = packageName;
           const version = packageVersion;
@@ -218,10 +220,11 @@ export async function handleUpdatePackage(event: LambdaEvent) {
       }
 
       if (entryPath.length === 0) {
-        return {
-          statusCode: 400,
-          body: JSON.stringify('No entry point found'),
-        };
+        flag = 1
+        // return {
+        //   statusCode: 400,
+        //   body: JSON.stringify('No entry point found'),
+        // };
       }
 
       const updatedEntryPath: string[] = [];
@@ -240,16 +243,18 @@ export async function handleUpdatePackage(event: LambdaEvent) {
       
 
       if (entryPath.length === 0) {
-        return {
-          statusCode: 400,
-          body: JSON.stringify('No entry point found'),
-        };
+        flag = 1
+        // return {
+        //   statusCode: 400,
+        //   body: JSON.stringify('No entry point found'),
+        // };
       }
 
-      //unzipPackageForDependencies(packagePath);
+      
       
       console.log(entryPath)
-
+      if(flag !== 1){
+        flag = 0
       await esbuild.build({
         entryPoints: entryPath, 
         bundle: false,
@@ -303,8 +308,8 @@ export async function handleUpdatePackage(event: LambdaEvent) {
       statusCode: 200,
       body: "Package updated successfully",
     };
-  }
-  else{
+  }}
+  if (debloat === false || flag === 1){  //not debloating or error in debloating
 
     if(url && url.includes('npmjs.com')){
         const [tid, tname, tversion, base64Zip] = await downloadNpm(url, JSProgram);
@@ -575,27 +580,53 @@ export async function urlhandler(url:string){
   
     // Check for index.js first
     const indexPath = path.join(path.dirname(packageJsonPath), 'index.js');
+    const indexPath2 = path.join(path.dirname(packageJsonPath), 'src/index.ts');
     const sourceindexPath = path.join(path.dirname(packageJsonPath), 'source/index.js');
+    const sourceindexPath2 = path.join(path.dirname(packageJsonPath), 'source/index.ts');
     const srcindexPath = path.join(path.dirname(packageJsonPath), 'src/index.js');
-  
+    const srcindexPath2 = path.join(path.dirname(packageJsonPath), 'src/index.ts');
+    const src = path.join(path.dirname(packageJsonPath), 'src');
+    const source = path.join(path.dirname(packageJsonPath), 'source');
     if(packageJson.main){
       filePaths.push(packageJson.main);
     }
-    else if (fs.existsSync(indexPath)) {
+    if (fs.existsSync(indexPath)) {
       filePaths.push('index.js');
     }
-  
+    else if (fs.existsSync(indexPath2)) {
+      filePaths.push('src/index.ts');
+    }
     else if (fs.existsSync(sourceindexPath)) {
-      filePaths.push('source/index.js');}
-  
+      filePaths.push('source/index.js');
+    }
+    else if (fs.existsSync(sourceindexPath2)) {
+      filePaths.push('source/index.ts');
+    }
     else if (fs.existsSync(srcindexPath)) {
       filePaths.push('src/index.js');
     }
+    else if (fs.existsSync(srcindexPath2)) {
+      filePaths.push('src/index.ts');
+    }
+    else if (fs.existsSync(src)) {
+      filePaths.push('src');
+    }
+    else if (fs.existsSync(source)) {
+      filePaths.push('source');}
+  
+   
+    
   
     else if(packageJson.exports){
       const entryPoint = packageJson.exports['.'] || packageJson.exports['./index.js'];
-      if(entryPoint){
-        filePaths.push(entryPoint);
+      if (entryPoint) {
+        const entryPointPath = path.join(path.dirname(packageJsonPath), entryPoint);
+        const stats = fs.statSync(entryPointPath);
+        if (stats.isDirectory()) {
+          filePaths.push(path.join(entryPoint, '*.js'));
+        } else {
+          filePaths.push(entryPoint);
+        }
       }
     }
   
