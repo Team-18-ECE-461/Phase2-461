@@ -101,7 +101,7 @@ const UploadPage: React.FC = () => {
       } else {
         console.error('Unexpected upload error:', error);
       }
-      setMessage('Failed to upload package or fetch data. Please try again.' + error);
+      setMessage('Failed to upload package or fetch data. Please try again.' + error.message);
 
     }
   };
