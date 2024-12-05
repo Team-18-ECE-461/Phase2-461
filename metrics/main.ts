@@ -2,7 +2,7 @@ import { Manager } from './manager'
 import { exec } from 'child_process'
 import { Metrics } from './calc_metrics'
 import * as database from './database'
-import { getgithuburl } from 'get-github-url'
+//import { getgithuburl } from 'get-github-url'
 import { Controller } from './controller'
 import { OutputMetrics } from './output_metrics'
 import { UrlHandler } from './url_handler'
@@ -67,8 +67,14 @@ const output_metrics = new OutputMetrics(db, 1, fp, +logLvl);
 const urlHandler = new UrlHandler(db, fp, +logLvl);
 database.createTable(db, fp, +logLvl);
 
+function pareseGitURL(url: string): string {
+    if (url.startsWith("git://")) {
+        url = url.replace("git://", "https://");
+    }
+    return url;}
+
 async function processUrl(line: string, index: number) {
-    if(line.includes('github.com')){line = getgithuburl(line);}
+    if(line.includes('github.com')){line = pareseGitURL(line);}
     await database.addEntry(db, line, fp, +logLvl);
     console.log("added entry")
     await urlHandler.main(index + 1);
@@ -167,11 +173,11 @@ exports.lambdaHandler = async (event: LamdaEvent) => {
             const packageJsonContent = await (packageJsonFile as JSZIP.JSZipObject).async('string');
             const packageInfo = JSON.parse(packageJsonContent);
             let packageURL = packageInfo.repository.url;
+            line = packageURL;
         }
         else{
             return { statusCode: 404, body: JSON.stringify({ message: 'packageJSON not found' }) };
         }
-        line = packageURL;
 
        }
     } catch (error) {
