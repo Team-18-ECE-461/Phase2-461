@@ -227,6 +227,11 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
      
       return {
         statusCode: 201,
+        headers: {
+          "Access-Control-Allow-Origin": "*", // Allow all origins, or specify a domain
+          "Access-Control-Allow-Methods": "GET, POST, OPTIONS", // Allow specific methods
+          "Access-Control-Allow-Headers": "Content-Type, Authorization", // Allow specific headers
+        },
         body: JSON.stringify({
           metadata: {
             Name: tname,
