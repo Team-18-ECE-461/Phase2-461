@@ -3,7 +3,6 @@ import { DynamoDBClient, PutItemCommand, GetItemCommand, QueryCommand } from '@a
 import axios from 'axios';
 import JSZIP, { file } from 'jszip';
 import getgithuburl from 'get-github-url'
-import * as UglifyJS from 'uglify-js';
 import * as crypto from 'crypto';
 import { relative } from 'path';
 import fs from 'fs';
@@ -284,7 +283,8 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
       const packageInfo = JSON.parse(packageJsonContent);
 
       packageName = packageInfo.name 
-      packageVersion = packageInfo.version
+      if(packageInfo.version && packageVersion === '1.0.0'){ 
+        packageVersion = packageInfo.version}
     }
 
     // Generate package ID

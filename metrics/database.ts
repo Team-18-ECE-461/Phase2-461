@@ -63,7 +63,7 @@ export function addEntry(db: Database.Database, url: string, fp: number, loglvl:
      * Outputs:
      * - None
      */
-    const stmt = db.prepare(`INSERT INTO package_scores (url, information, metrics) VALUES (?, ?, ?)`);
+    const stmt = db.prepare(`INSERT OR REPLACE INTO package_scores (url, information, metrics) VALUES (?, ?, ?)`);
     stmt.run(url, information || null, metrics || null);
     if(loglvl == 1 || loglvl == 2)  {
         fs.writeFileSync(fp, `Inserted data into table.\n`); 

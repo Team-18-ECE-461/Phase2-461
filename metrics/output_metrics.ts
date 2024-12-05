@@ -35,7 +35,7 @@ export class OutputMetrics extends EventEmitter {
         let output: any;
         try {
             const rows = this._db.prepare('SELECT * FROM package_scores WHERE id = ?').all(index);
-    
+            //change
             // Output each row's metrics to stdout
             if (rows && rows.length > 0) {
                 let row = rows[0];
@@ -62,14 +62,14 @@ export class OutputMetrics extends EventEmitter {
                 // Format latency values to three decimal places
                 const formattedMetrics = {
                     ...metrics,
-                    BusFactorLatency: parseFloat(metrics.BusFactor_Latency?.toFixed(3)),
-                    CorrectnessLatency: parseFloat(metrics.Correctness_Latency?.toFixed(3)),
-                    RampUpLatency: parseFloat(metrics.RampUp_Latency?.toFixed(3)),
-                    ResponsiveMaintainerLatency: parseFloat(metrics.ResponsiveMaintainer_Latency?.toFixed(3)),
-                    LicenseLatency: parseFloat(metrics.License_Latency?.toFixed(3)),
-                    GoodPinningPracticeLatency: parseFloat(metrics.GoodPinningPractice_Latency?.toFixed(3)),
-                    PullRequestLatency: parseFloat(metrics.PullRequest_Latency?.toFixed(3)),
-                    NetScoreLatency: parseFloat(metrics.NetScore_Latency?.toFixed(3)),
+                    BusFactorLatency: parseFloat(metrics.BusFactorLatency?.toFixed(3)),
+                    CorrectnessLatency: parseFloat(metrics.CorrectnessLatency?.toFixed(3)),
+                    RampUpLatency: parseFloat(metrics.RampUpLatency?.toFixed(3)),
+                    ResponsiveMaintainerLatency: parseFloat(metrics.ResponsiveMaintainerLatency?.toFixed(3)),
+                    LicenseScoreLatency: parseFloat(metrics.LicenseScoreLatency?.toFixed(3)),
+                    GoodPinningPracticeLatency: parseFloat(metrics.GoodPinningPracticeLatency?.toFixed(3)),
+                    PullRequestLatency: parseFloat(metrics.PullRequestLatency?.toFixed(3)),
+                    NetScoreLatency: parseFloat(metrics.NetScoreLatency?.toFixed(3)),
                     BusFactor: parseFloat(metrics.BusFactor?.toFixed(3)),
                     Correctness: parseFloat(metrics.Correctness?.toFixed(3)),
                     RampUp: parseFloat(metrics.RampUp?.toFixed(3)),
@@ -80,7 +80,6 @@ export class OutputMetrics extends EventEmitter {
                     
                 };
                 output = {
-                    URL: typedRow.url,
                     ...formattedMetrics
                 };
                 console.log(JSON.stringify(output));   
