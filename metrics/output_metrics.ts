@@ -80,7 +80,6 @@ export class OutputMetrics extends EventEmitter {
                     
                 };
                 output = {
-                    URL: typedRow.url,
                     ...formattedMetrics
                 };
                 console.log(JSON.stringify(output));   
