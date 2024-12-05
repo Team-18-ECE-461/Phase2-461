@@ -303,9 +303,9 @@ export class Metrics extends EventEmitter {
                 // License
                 const start_license = now();
                 const license = value.get('License');
-                metrics.set('License', license ? license : 0);
+                metrics.set('LicenseScore', license ? license : 0);
                 const end_license = now();
-                metrics.set('LicenseLatency', end_license - start_license);
+                metrics.set('LicenseScoreLatency', end_license - start_license);
     
                 // Dependency Pinning
                 const start_dep_pinning = now();
