@@ -27,14 +27,14 @@ export class OutputMetrics extends EventEmitter {
         this.loglvl = loglvl;
     }
 
-    output_Metrics(index: number): string {
+    output_Metrics(index: number, url: string): string {
         /**
          * Retrieve metrics from the database and output them to stdout.
          * Input: index - the index of the package to retrieve metrics for
          */
         let output: any;
         try {
-            const rows = this._db.prepare('SELECT * FROM package_scores WHERE id = ?').all(index);
+            const rows = this._db.prepare('SELECT * FROM package_scores WHERE url = ?').all(url);
     
             // Output each row's metrics to stdout
             if (rows && rows.length > 0) {

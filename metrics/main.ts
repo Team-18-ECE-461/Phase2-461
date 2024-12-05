@@ -71,6 +71,12 @@ function pareseGitURL(url: string): string {
     if (url.startsWith("git://")) {
         url = url.replace("git://", "https://");
     }
+    if (url.startsWith("git+")) {
+        url = url.replace("git+", "");
+    }
+    if(url.endsWith(".git")) {
+        url = url.slice(0, -4);
+    }
     return url;}
 
 async function processUrl(line: string, index: number) {

@@ -81,6 +81,7 @@ export class Metrics extends EventEmitter {
          */
         const top3 = packInfo.get('top3');
         const commits = packInfo.get('commits/yr');
+        console.log(top3,commits)
         if (commits != undefined && top3 != undefined) {
             if (commits == 0) { // if there are no commits in the past year, bus factor is 0?
                 metrics.set('BusFactor', 0); 
@@ -353,7 +354,7 @@ export class Metrics extends EventEmitter {
     }
     
 
-    public calc(index: number): void {
+    public calc(index: number, url:string): void {
         /**
          * Wrapper function to calculate the metrics for all packages.
          * 
@@ -364,7 +365,7 @@ export class Metrics extends EventEmitter {
          * - None
          */
         // this._db.prepare
-        const rows = this._db.prepare(`SELECT * FROM package_scores WHERE id = ?`).all(index);
+        const rows = this._db.prepare(`SELECT * FROM package_scores WHERE url = ?`).all(url);
         // const x = rows.all();
         
         rows.forEach((row: unknown) => {
