@@ -1,124 +1,119 @@
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { GetCommand, GetCommandOutput } from '@aws-sdk/lib-dynamodb';
-import axios from 'axios';
-import { APIGatewayProxyHandler, APIGatewayProxyEvent } from 'aws-lambda';
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { QueryCommand, QueryCommandOutput } from "@aws-sdk/lib-dynamodb";
+import axios from "axios";
 
-const dynamoDb = new DynamoDBClient({});
+// Initialize DynamoDB Client
+const dynamoDBclient = new DynamoDBClient({});
+const TABLE_NAME = "PackageInfo"; // Replace with your DynamoDB table name
+const INDEX_NAME = "ID-index"; // Replace with your actual GSI name if required
 
-interface APIGatewayProxyResult {
-    statusCode: number;
-    body: string;
-}
-
-interface PackageData {
-    ID: string;
+// Define TypeScript interfaces for package data
+interface PackageBaseData {
     Name: string;
     Version: string;
     URL: string;
 }
 
-interface DependencyData {
-    size: number;
-    dependencies: { Name: string; Version: string; URL: string }[];
+interface LambdaResponse {
+    statusCode: number;
+    body: string;
 }
 
-export const lambdaHandler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+// Lambda handler
+export const lambdaHandler = async (event: any): Promise<LambdaResponse> => {
     try {
         // Extract `id` from the path parameters
-        const packageId = event.pathParameters?.id;
-
+        const packageId: string | undefined = event.pathParameters?.id;
         if (!packageId) {
-            return {
-                statusCode: 400,
-                body: JSON.stringify({ error: 'Package ID is required in the path' }),
-            };
+            return { statusCode: 400, body: JSON.stringify({ message: "Invalid request: Package ID is required" }) };
         }
 
         // Fetch the package details by ID from DynamoDB
         const packageBaseData = await fetchPackageBaseDataById(packageId);
-
         if (!packageBaseData) {
-            return {
-                statusCode: 404,
-                body: JSON.stringify({ error: `Package with ID ${packageId} not found` }),
-            };
+            return { statusCode: 404, body: JSON.stringify({ message: `Package with ID ${packageId} not found` }) };
         }
 
-        // Compute the total cost (cumulative size of the package and its dependencies)
-        const totalCost = await computeCost(packageBaseData);
+        // Ensure the URL exists
+        if (!packageBaseData.URL || packageBaseData.URL === "No URL") {
+            return { statusCode: 500, body: JSON.stringify({ message: "No valid URL found for this package" }) };
+        }
+
+        // Fetch the cost (number of dependencies) from the URL
+        const cost = await fetchNumberOfDependencies(packageBaseData.URL);
 
         return {
             statusCode: 200,
-            body: JSON.stringify({ cost: totalCost }),
+            body: JSON.stringify({ cost }), // Return only the cost
         };
-    } catch (error) {
-        console.error('Error processing request:', error);
+    } catch (error: any) {
+        console.error("Error processing request:", error);
         return {
             statusCode: 500,
-            body: JSON.stringify({
-                error: 'Internal Server Error',
-                message: error instanceof Error ? error.message : 'An unknown error occurred',
-            }),
+            body: JSON.stringify({ message: "Internal Server Error", details: error.message }),
         };
     }
 };
 
-const fetchPackageBaseDataById = async (id: string): Promise<PackageData | null> => {
+// Fetch package data from DynamoDB
+const fetchPackageBaseDataById = async (packageId: string): Promise<PackageBaseData> => {
     try {
         const params = {
-            TableName: 'PackageInfo', // Your actual DynamoDB table name
-            Key: { ID: id },
-            ProjectionExpression: 'ID, Name, Version, URL',
+            TableName: TABLE_NAME,
+            IndexName: INDEX_NAME, // Specify GSI if needed
+            KeyConditionExpression: "ID = :id",
+            ExpressionAttributeValues: {
+                ":id": packageId,
+            },
+            ProjectionExpression: "ID, #name, Version, #url", // Escape reserved keywords
+            ExpressionAttributeNames: {
+                "#name": "Name", // Map #name to the actual attribute Name
+                "#url": "URL", // Map #url to the actual attribute URL
+            },
         };
 
-        const command = new GetCommand(params);
-        const result: GetCommandOutput = await dynamoDb.send(command);
-        return result.Item as PackageData | null;
+        const command = new QueryCommand(params);
+        const result: QueryCommandOutput = await dynamoDBclient.send(command);
+        const items = result.Items;
+
+        if (!items || items.length === 0) {
+            throw new Error(`Package with ID ${packageId} not found`);
+        }
+
+        // Extract package information
+        const item = items[0];
+        return {
+            Name: item.Name || "No name",
+            Version: item.Version || "No version",
+            URL: item.URL || "No URL",
+        };
     } catch (error) {
-        console.error(`Error fetching package base data for ID ${id}`, error);
+        console.error(`Error fetching package base data for ID ${packageId}`, error);
         throw error;
     }
 };
 
-const computeCost = async (packageData: PackageData): Promise<number> => {
-    const seen = new Set<string>();
+// Fetch number of dependencies from the URL
+const fetchNumberOfDependencies = async (url: string): Promise<number> => {
+    try {
+        const response = await axios.get(url);
 
-    const calculateSize = async (pkg: PackageData): Promise<number> => {
-        const uniqueId = `${pkg.Name}@${pkg.Version}`;
-        if (seen.has(uniqueId)) return 0; // Avoid double-counting
-        seen.add(uniqueId);
-
-        try {
-            // Fetch package data from the URL
-            const response = await axios.get(pkg.URL);
-            const { size, dependencies }: DependencyData = response.data;
-
-            if (!size) throw new Error(`Size not found for package ${pkg.Name}@${pkg.Version}`);
-
-            // Recursively compute the size of dependencies
-            let totalDependencySize = 0;
-            for (const dep of dependencies) {
-                // Directly use dependency URL to fetch its size
-                const depSizeResponse = await axios.get(dep.URL);
-                const depSizeData: DependencyData = depSizeResponse.data;
-
-                totalDependencySize += depSizeData.size;
-
-                // Resolve further dependencies recursively
-                totalDependencySize += await computeCost({
-                    ID: '',
-                    Name: dep.Name,
-                    Version: dep.Version,
-                    URL: dep.URL,
-                });
-            }
-
-            return size + totalDependencySize;
-        } catch (error) {
-            console.error(`Error fetching data from URL: ${pkg.URL}`, error);
-            throw new Error(`Failed to fetch data from URL: ${pkg.URL}`);
+        // Assuming the response is the package.json file
+        if (!response.data) {
+            throw new Error(`No data returned from URL: ${url}`);
         }
-    };
 
-    return await calculateSize(packageData);
+        const packageJSON = response.data;
+
+        // Check for a valid `dependencies` field
+        if (packageJSON.dependencies && typeof packageJSON.dependencies === "object") {
+            return Object.keys(packageJSON.dependencies).length; // Count the number of dependencies
+        } else {
+            console.warn(`No dependencies found in the package.json from URL: ${url}`);
+            return 0; // No dependencies found
+        }
+    } catch (error) {
+        console.error(`Error fetching or processing package.json from URL: ${url}`, error);
+        throw new Error(`Failed to fetch or parse dependencies from URL: ${url}`);
+    }
 };
