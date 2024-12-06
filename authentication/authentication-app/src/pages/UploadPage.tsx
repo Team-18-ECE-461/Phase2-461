@@ -89,6 +89,8 @@ const UploadPage: React.FC = () => {
       const response = await axios.post(`${API_URL}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
+          'X-Authorization': '',
+         'Access-Control-Allow-Origin': '*',
         },
       });
       //const test = await axios.post("https://3zq0b41jvf.execute-api.us-east-1.amazonaws.com/stage2/upload");
