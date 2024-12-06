@@ -2,6 +2,7 @@ import { APIGatewayProxyEvent } from 'aws-lambda'
 import * as AWS from 'aws-sdk'
 
 import { DynamoDBClient, GetItemCommand, PutItemCommand, DeleteItemCommand, QueryCommand, ScanCommand } from '@aws-sdk/client-dynamodb';
+import safeRegex from 'safe-regex';
 import { Interface } from 'readline';
 
 const dynamoDBclient = new DynamoDBClient({});
@@ -25,7 +26,7 @@ try{
    const regexp = body.RegEx
    console.log(regexp)
 
-   if (!regexp ) {
+   if (!regexp || !safeRegex(regexp)) {
     return {
       statusCode: 400,
       body: JSON.stringify({ message: 'RegEx parameter is missing or invalid.' }),
