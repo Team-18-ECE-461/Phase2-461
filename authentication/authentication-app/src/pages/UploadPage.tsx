@@ -19,7 +19,11 @@ interface ApiResponse {
   };
 }
 
-const API_URL = "https://3zq0b41jvf.execute-api.us-east-1.amazonaws.com/stage2/package";
+const API_URL = "https://3zq0b41jvf.execute-api.us-east-1.amazonaws.com/stage2/tracks";
+async function getTracks(): Promise<ApiResponse> {
+  const response = await axios.get<ApiResponse>(API_URL);
+  return response.data;
+}
 async function fetchData(): Promise<void> {
   try {
     const response = await axios.post(`${API_URL}`, {
@@ -80,14 +84,14 @@ const UploadPage: React.FC = () => {
       if (file) formData.append('file', file);
       formData.append('debloat', debloat.toString());
 
-      const response = await axios.post(`${API_URL}`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-
-      console.log('Upload Response:', response.data);
-      setMessage(`Package "${packageName}" uploaded successfully!`);
+      // const response = await axios.post(`${API_URL}`, formData, {
+      //   headers: {
+      //     'Content-Type': 'multipart/form-data',
+      //   },
+      // });
+      const response = await getTracks();
+      setMessage(`Upload Response: ${JSON.stringify(response)}`);
+     // setMessage(`Package "${packageName}" uploaded successfully!`);
 
     } catch (error) {
       if (axios.isAxiosError(error)) {
