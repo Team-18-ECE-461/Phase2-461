@@ -21,10 +21,12 @@ interface MockEventData {
 
 interface MockEvent {
     body: string;
+    httpMethod: string;
 }
 
 const createMockEvent = (data: MockEventData): MockEvent => ({
-    body: JSON.stringify(data)
+    body: JSON.stringify(data),
+    httpMethod: 'POST'
 });
 
   describe('Package Upload with Content', () => {
