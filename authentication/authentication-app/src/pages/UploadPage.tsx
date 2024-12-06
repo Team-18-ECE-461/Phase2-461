@@ -89,8 +89,10 @@ const UploadPage: React.FC = () => {
       //     'Content-Type': 'multipart/form-data',
       //   },
       // });
-      const response = await getTracks();
-      setMessage(`Upload Response: ${JSON.stringify(response)}`);
+      const test = await axios.get("https://api.github.com/parvk11/Movie-Recommender")
+      setMessage(`Upload Response: ${JSON.stringify(test)}`);
+      // const response = await getTracks();
+      // setMessage(`Upload Response: ${JSON.stringify(response)}`);
      // setMessage(`Package "${packageName}" uploaded successfully!`);
 
     } catch (error) {
