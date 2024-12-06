@@ -16,6 +16,7 @@
     "esbuild": "^0.24.0",
     "get-github-url": "^1.0.4",
     "jszip": "^3.10.1",
+    "safe-regex": "^2.1.1",
     "tar": "^7.4.3",
     "terser": "^5.36.0",
     "uglify-js": "^3.19.3",
@@ -24,6 +25,7 @@
   },
   "devDependencies": {
     "@types/archiver": "^6.0.3",
+    "@types/safe-regex": "^1.1.6",
     "@types/unzipper": "^0.10.10"
   }
 }

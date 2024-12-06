@@ -215,6 +215,7 @@ async function calculateCumulativeSize(
 export async function lambdaHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
     console.log("Event received:", JSON.stringify(event, null, 2));
 
+
     let packageIds: string[] = [];
     let dependency = false; // default
 
@@ -235,6 +236,7 @@ export async function lambdaHandler(event: APIGatewayProxyEvent): Promise<APIGat
     if (packageIds.length === 0 && event.pathParameters?.id) {
         packageIds.push(event.pathParameters.id);
     }
+
 
     if (packageIds.length === 0) {
         // 400 error: missing fields in PackageID
@@ -308,4 +310,6 @@ export async function lambdaHandler(event: APIGatewayProxyEvent): Promise<APIGat
             body: JSON.stringify({ message: "The package rating system choked on at least one of the metrics." }),
         };
     }
+
 }
+
