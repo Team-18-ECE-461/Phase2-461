@@ -84,13 +84,13 @@ const UploadPage: React.FC = () => {
       if (file) formData.append('file', file);
       formData.append('debloat', debloat.toString());
 
-      // const response = await axios.post(`${API_URL}`, formData, {
-      //   headers: {
-      //     'Content-Type': 'multipart/form-data',
-      //   },
-      // });
-      const test = await axios.get("https://3zq0b41jvf.execute-api.us-east-1.amazonaws.com/stage2/tracks");
-      setMessage(`Upload Response: ${JSON.stringify(test)}`);
+      const response = await axios.post(`${API_URL}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      //const test = await axios.post("https://3zq0b41jvf.execute-api.us-east-1.amazonaws.com/stage2/upload");
+      setMessage(`Upload Response: ${JSON.stringify(response)}`);
       // const response = await getTracks();
       // setMessage(`Upload Response: ${JSON.stringify(response)}`);
      // setMessage(`Package "${packageName}" uploaded successfully!`);
