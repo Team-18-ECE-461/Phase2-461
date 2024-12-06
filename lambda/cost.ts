@@ -299,7 +299,7 @@ export async function lambdaHandler(event: APIGatewayProxyEvent): Promise<APIGat
             // return {
             //   statusCode: 403,
             //   body: JSON.stringify({ message: "Authentication failed due to invalid or missing AuthenticationToken." })
-            // };
+            // }; change!
         }
 
         // 500: internal error
