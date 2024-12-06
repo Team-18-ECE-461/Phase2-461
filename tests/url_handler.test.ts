@@ -51,7 +51,7 @@ describe('UrlHandler', () => {
 
         const mockGetRepoMetrics = jest.spyOn(urlHandler as any, 'getRepoMetrics').mockResolvedValue(null);
 
-        await urlHandler.main(1);
+        await urlHandler.main(1, 'https://example.com');
 
         expect(mockGetOwnerAndRepo).toHaveBeenCalledWith('https://github.com/caolan/async');
         expect(mockGetRepoMetrics).toHaveBeenCalledWith('owner', 'repo', mockRow);
