@@ -94,6 +94,7 @@ const UploadPage: React.FC = () => {
         console.error('Upload error:', error.message);
         setMessage(error.message);
         if (error.response) {
+          setMessage(error.message + error.response.data);
           console.error('Upload response data:', error.response.data);
         }
       } else {
