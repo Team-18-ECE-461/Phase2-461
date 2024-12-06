@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { S3, GetObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
-import { DynamoDBClient, QueryCommand, QueryCommandOutput } from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient, QueryCommand } from '@aws-sdk/client-dynamodb';
 import JSZip from 'jszip';
 
 const s3 = new S3({});
@@ -18,14 +18,9 @@ interface PackageJson {
     name?: string;
     version?: string;
     dependencies?: { [key: string]: string };
-    [key: string]: unknown; // allow additional fields
+    [key: string]: unknown;
 }
 
-/**
- * Convert S3 stream to buffer.
- * @param {ReadableStream} stream - The S3 object stream.
- * @returns {Promise<Buffer>}
- */
 async function streamToBuffer(stream: ReadableStream | NodeJS.ReadableStream): Promise<Buffer> {
     console.log("Converting S3 stream to buffer...");
     const chunks: Buffer[] = [];
@@ -37,11 +32,6 @@ async function streamToBuffer(stream: ReadableStream | NodeJS.ReadableStream): P
     return buffer;
 }
 
-/**
- * Fetch package details from DynamoDB.
- * @param {string} packageId - The ID of the package (format: name-version).
- * @returns {Promise<PackageDetails>}
- */
 async function fetchPackageDetails(packageId: string): Promise<PackageDetails> {
     console.log(`Fetching package details for ID: ${packageId}`);
     const params = {
@@ -88,16 +78,6 @@ async function fetchPackageDetails(packageId: string): Promise<PackageDetails> {
     }
 }
 
-/**
- * Fetch the 'package.json' file by retrieving the package's zip from S3 and extracting it.
- *
- * The S3 object is named `${packageName}-${version}` (no '.zip' extension).
- * Inside the zip, we look for 'package.json'.
- *
- * @param {string} packageName - Name of the package.
- * @param {string} version - Version of the package.
- * @returns {Promise<PackageJson>} - Parsed package.json content as JSON.
- */
 async function fetchPackageFileFromS3(packageName: string, version: string): Promise<PackageJson> {
     const key = `${packageName}-${version}`;
     console.log(`Fetching package zip from S3 with key: ${key}`);
@@ -131,7 +111,6 @@ async function fetchPackageFileFromS3(packageName: string, version: string): Pro
             throw new Error("'package.json' file not found in zip");
         }
 
-        console.log("Extracting package.json content...");
         const packageContent = await (packageFile as JSZip.JSZipObject).async('string');
         console.log("package.json extracted and read as string. Parsing JSON...");
 
@@ -148,14 +127,6 @@ async function fetchPackageFileFromS3(packageName: string, version: string): Pro
     }
 }
 
-/**
- * Get the size of the package zip file from S3 by using a HEAD request.
- * This will give us the Content-Length which represents the size of the zip.
- *
- * @param {string} packageName
- * @param {string} version
- * @returns {Promise<number>} - size of the package zip in bytes
- */
 async function getPackageSizeFromS3(packageName: string, version: string): Promise<number> {
     const key = `${packageName}-${version}`;
     console.log(`Fetching package size from S3 for key: ${key}`);
@@ -170,15 +141,6 @@ async function getPackageSizeFromS3(packageName: string, version: string): Promi
     }
 }
 
-/**
- * Recursively calculate the cumulative size of a package and its dependencies.
- *
- * @param {PackageJson} packageJson - The package.json content.
- * @param {Set<string>} visited - A set to track visited packages (avoid double counting).
- * @param {string} packageName - Name of the current package.
- * @param {string} packageVersion - Version of the current package.
- * @returns {Promise<number>} - The cumulative size in bytes (including this package and all its deps).
- */
 async function calculateCumulativeSize(
     packageJson: PackageJson,
     visited: Set<string>,
@@ -195,9 +157,7 @@ async function calculateCumulativeSize(
 
     visited.add(pkgKey);
 
-    // Get this package's own size
     const selfSize = await getPackageSizeFromS3(packageName, packageVersion);
-
     const dependencies = packageJson.dependencies || {};
     console.log(`Found ${Object.keys(dependencies).length} dependencies for ${packageName}@${packageVersion}.`);
     let totalSize = selfSize;
@@ -231,91 +191,123 @@ async function calculateCumulativeSize(
 /**
  * Lambda handler for calculating package size.
  * 
- * This handler supports querying multiple packages at once. The request can be:
- * - A single package ID via pathParameters.id (e.g., /package/{id}/cost)
- * - Multiple packages via event.body: { "packageIds": ["pkgA-1.0.0", "pkgB-2.3.4"] }
+ * This handler supports:
+ * - `packageIds`: An array of package IDs in the request body OR a single package ID in path parameters.
+ * - `dependency`: A boolean (in the request body) that determines if totalCost includes dependencies.
  *
- * If multiple packages are requested, we sum them up without double-counting shared dependencies.
+ * If `dependency` is not provided or is false, totalCost = standaloneCost (just the package).
+ * If `dependency` is true, totalCost includes the package and its dependencies.
  *
- * @param {APIGatewayProxyEvent} event - The Lambda event.
- * @returns {Promise<APIGatewayProxyResult>} - The Lambda response.
+ * Return format for each package:
+ * {
+ *   "packageID": {
+ *     "standaloneCost": <number>,
+ *     "totalCost": <number>
+ *   }
+ * }
+ *
+ * Error cases:
+ * 400: Missing fields in PackageID
+ * 403: Authentication failed (if you implement authentication logic)
+ * 404: Package does not exist
+ * 500: Internal error (system choked on metrics)
  */
 export async function lambdaHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
     console.log("Event received:", JSON.stringify(event, null, 2));
 
 
     let packageIds: string[] = [];
+    let dependency = false; // default
+
     if (event.body) {
         try {
             const requestBody = JSON.parse(event.body);
             if (Array.isArray(requestBody.packageIds)) {
                 packageIds = requestBody.packageIds;
             }
+            if (typeof requestBody.dependency === 'boolean') {
+                dependency = requestBody.dependency;
+            }
         } catch (e) {
             console.error("Failed to parse request body", e);
         }
     }
 
-    // Fallback to path parameter if no array provided
     if (packageIds.length === 0 && event.pathParameters?.id) {
         packageIds.push(event.pathParameters.id);
     }
 
 
     if (packageIds.length === 0) {
-        console.error("No package IDs provided.");
+        // 400 error: missing fields in PackageID
         return {
             statusCode: 400,
-            body: JSON.stringify({ message: "At least one Package ID is required" }),
+            body: JSON.stringify({ message: "There is missing field(s) in the PackageID" }),
         };
     }
+
+    // If authentication logic is added and fails:
+    // return {
+    //   statusCode: 403,
+    //   body: JSON.stringify({ message: "Authentication failed due to invalid or missing AuthenticationToken" })
+    // };
 
     console.log(`Processing the following package IDs: ${packageIds.join(", ")}`);
 
     const visited = new Set<string>();
-    let totalSize = 0;
+    const result: Record<string, { standaloneCost: number; totalCost: number }> = {};
 
     try {
         for (const pkgId of packageIds) {
             console.log(`Starting processing for package ID: ${pkgId}`);
             const packageDetails = await fetchPackageDetails(pkgId);
 
-            if (packageDetails.url && packageDetails.url !== "No URL") {
-                console.log(`Package URL found: ${packageDetails.url}`);
-            } else {
-                console.log("No package URL found, proceeding with S3 extraction.");
-            }
-
-            // Fetch the package.json inside the zip stored in S3
             console.log(`Fetching package.json from S3 for ${packageDetails.name}@${packageDetails.version}...`);
             const packageJson = await fetchPackageFileFromS3(packageDetails.name, packageDetails.version);
 
-            console.log(`Calculating cumulative size for top-level package ${packageDetails.name}@${packageDetails.version}...`);
-            const pkgSize = await calculateCumulativeSize(packageJson, visited, packageDetails.name, packageDetails.version);
-            totalSize += pkgSize;
-            console.log(`Added ${pkgSize} bytes from top-level package ${packageDetails.name}@${packageDetails.version}. Running total: ${totalSize} bytes.`);
+            // Always get standalone cost
+            const standaloneCost = await getPackageSizeFromS3(packageDetails.name, packageDetails.version);
+
+            let totalCost: number;
+            if (dependency) {
+                console.log(`Dependency=true. Calculating cumulative size (includes dependencies) for ${packageDetails.name}@${packageDetails.version}`);
+                totalCost = await calculateCumulativeSize(packageJson, visited, packageDetails.name, packageDetails.version);
+            } else {
+                console.log(`Dependency=false. Total cost = standalone cost for ${packageDetails.name}@${packageDetails.version}`);
+                totalCost = standaloneCost;
+            }
+
+            result[pkgId] = { standaloneCost, totalCost };
+            console.log(`For package ${pkgId}: standaloneCost=${standaloneCost}, totalCost=${totalCost}`);
         }
 
-        console.log("Returning successful response.");
+        // Success: return 200 with the desired structure
         return {
             statusCode: 200,
-            body: JSON.stringify({
-                message: "Cumulative size calculated successfully",
-                totalSize: totalSize,
-            }),
+            body: JSON.stringify(result),
         };
     } catch (error: any) {
         console.error("Error during execution:", error);
-        if (typeof error.message === 'string' && error.message.includes("does not exist")) {
-            return {
-                statusCode: 404,
-                body: JSON.stringify({ message: error.message }),
-            };
+
+        if (typeof error.message === 'string') {
+            if (error.message.includes("Package not found")) {
+                // 404: Package does not exist
+                return {
+                    statusCode: 404,
+                    body: JSON.stringify({ message: "Package does not exist." }),
+                };
+            }
+            // If some authentication logic fails:
+            // return {
+            //   statusCode: 403,
+            //   body: JSON.stringify({ message: "Authentication failed due to invalid or missing AuthenticationToken." })
+            // }; change!
         }
 
+        // 500: internal error
         return {
             statusCode: 500,
-            body: JSON.stringify({ message: "Internal Server Error" }),
+            body: JSON.stringify({ message: "The package rating system choked on at least one of the metrics." }),
         };
     }
 
