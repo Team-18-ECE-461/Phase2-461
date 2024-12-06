@@ -243,6 +243,7 @@ async function calculateCumulativeSize(
 export async function lambdaHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
     console.log("Event received:", JSON.stringify(event, null, 2));
 
+
     let packageIds: string[] = [];
     if (event.body) {
         try {
@@ -259,6 +260,7 @@ export async function lambdaHandler(event: APIGatewayProxyEvent): Promise<APIGat
     if (packageIds.length === 0 && event.pathParameters?.id) {
         packageIds.push(event.pathParameters.id);
     }
+
 
     if (packageIds.length === 0) {
         console.error("No package IDs provided.");
@@ -316,4 +318,6 @@ export async function lambdaHandler(event: APIGatewayProxyEvent): Promise<APIGat
             body: JSON.stringify({ message: "Internal Server Error" }),
         };
     }
+
 }
+
