@@ -96,7 +96,7 @@ const UploadPage: React.FC = () => {
     } catch (error) {
       if (axios.isAxiosError(error)) {
         console.error('Upload error:', error.message);
-        setMessage(error.message);
+        setMessage("AXIOS" + error.message);
         if (error.response) {
           setMessage(error.response.data);
           console.error('Upload response data:', error.response.data);
