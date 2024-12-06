@@ -29,6 +29,8 @@ async function fetchData(): Promise<void> {
     const response = await axios.post(`${API_URL}`, {
       headers: {
         'Content-Type': 'application/json',
+        'X-Authorization': '',
+        'Access-Control-Allow-Origin': '*',
       },
     });
 
