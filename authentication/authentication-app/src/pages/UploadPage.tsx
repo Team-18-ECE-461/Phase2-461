@@ -90,7 +90,7 @@ const UploadPage: React.FC = () => {
         headers: {
           'Content-Type': 'multipart/form-data',
           'X-Authorization': ' ',
-         'Access-Control-Allow-Origin': '*',
+         'Access-Control-Allow-Origin': 'https://main.dn47d0bajbqze.amplifyapp.com/',
         },
       });
       
