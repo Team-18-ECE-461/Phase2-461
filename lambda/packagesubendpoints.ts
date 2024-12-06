@@ -288,12 +288,12 @@ export async function handleUpdatePackage(event: LambdaEvent) {
     await fs.promises.copyFile(packageJsonPath, outputPackageJsonPath);
     const debloatedZipPath = path.join(tempDir, 'debloated.zip');
     await zipFolder(outputDir, debloatedZipPath);
-    const uploadkey = `${packagedebloatName}-${version}`;
-    const debloatID = generatePackageId(packagedebloatName, version);
+    const uploadkey = `${packageName}-${version}`;
+    const debloatID = generatePackageId(packageName, version);
     
     let base64Zip ;
 
-    if(await checkexistingPackage(packagedebloatName, version) === false){
+    if(await checkexistingPackage(packageName, version) === false){
       const zipBuffer = fs.readFileSync(debloatedZipPath);
       base64Zip = zipBuffer.toString('base64');
       await uploadToS3(debloatedZipPath, BUCKET_NAME, uploadkey);
@@ -306,7 +306,7 @@ export async function handleUpdatePackage(event: LambdaEvent) {
         body: JSON.stringify('Package already exists'),
       };
     }
-    await uploadDB(debloatID, packagedebloatName, version, JSProgram, url);
+    await uploadDB(debloatID, packageName, version, JSProgram, url);
     return {
       statusCode: 200,
       body: "Package updated successfully",
@@ -669,12 +669,12 @@ export async function urlhandler(url:string){
       packageVersion = packageVersion.replace('v', '');
     }
     const item = {
-      ID: { S: packageId },
-      Name: { S: packageName },
-      Version: { S: packageVersion },
-      VersionInt: { N: versionInt(packageVersion).toString() },
-      JSProgram: { S: JSProgram },
-      CreatedAt: { S: new Date().toISOString() },
+      ID: { S: packageId? packageId : '' },
+      Name: { S: packageName ? packageName : '' },
+      Version: { S: packageVersion ? packageVersion : '' },
+      VersionInt: { N: versionInt(packageVersion).toString() ? versionInt(packageVersion).toString() : '' },
+      JSProgram: { S: JSProgram ? JSProgram : '' },
+      CreatedAt: { S: new Date().toISOString()  ? new Date().toISOString() : '' },
       URL: { S: url || '' },
     };
     console.log("item: ", item)
