@@ -19,7 +19,7 @@ interface ApiResponse {
   };
 }
 
-const API_URL = "https://3zq0b41jvf.execute-api.us-east-1.amazonaws.com/stage2/upload";
+const API_URL = "https://3zq0b41jvf.execute-api.us-east-1.amazonaws.com/stage2/package";
 async function getTracks(): Promise<ApiResponse> {
   const response = await axios.get<ApiResponse>(API_URL);
   return response.data;
@@ -89,11 +89,11 @@ const UploadPage: React.FC = () => {
       const response = await axios.post(`${API_URL}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
-          'X-Authorization': '',
+          'X-Authorization': ' ',
          'Access-Control-Allow-Origin': '*',
         },
       });
-      //const test = await axios.post("https://3zq0b41jvf.execute-api.us-east-1.amazonaws.com/stage2/upload");
+      
       setMessage(`Upload Response: ${JSON.stringify(response)}`);
       // const response = await getTracks();
       // setMessage(`Upload Response: ${JSON.stringify(response)}`);
