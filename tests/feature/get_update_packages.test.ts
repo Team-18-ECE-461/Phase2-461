@@ -32,6 +32,7 @@ interface MockEventDataUpload{
 }
 interface MockEventUpload {
     body: string;
+    httpMethod: string;
 }
 
 interface MockEvent {
@@ -47,7 +48,8 @@ const createMockEventUpdate = (data: MockEventData, httpMethod:string, id:string
 });
 
 const createMockEventUpload = (data: MockEventDataUpload): MockEventUpload => ({
-    body: JSON.stringify(data)
+    body: JSON.stringify(data),
+    httpMethod: 'POST',
 });
 
 let id = '';
