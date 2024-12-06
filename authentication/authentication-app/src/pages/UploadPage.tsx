@@ -94,7 +94,7 @@ const UploadPage: React.FC = () => {
         console.error('Upload error:', error.message);
         setMessage(error.message);
         if (error.response) {
-          setMessage(error.message + error.response.data);
+          setMessage(error.response.data);
           console.error('Upload response data:', error.response.data);
         }
       } else {
@@ -161,7 +161,7 @@ const UploadPage: React.FC = () => {
           Enable debloat (remove unnecessary files)
         </label>
 
-        <button type="submit" onClick={handleSubmit}>Submit</button>
+        <button type="button" onClick={handleSubmit}>Submit</button>
         <button type="reset" onClick={() => setMessage(null)}>
           Reset
         </button>
