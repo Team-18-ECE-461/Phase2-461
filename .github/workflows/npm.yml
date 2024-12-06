@@ -52,9 +52,9 @@ jobs:
           cd ..
           cd metrics
           zip -r metrics.zip *.js node_modules
-      # - name: Run tests
-      #   run: |
-      #     node runtests.js
+      - name: Run tests
+        run: |
+          node runtests.js
       - name: Update LambdaFunction_PackageUpload
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
