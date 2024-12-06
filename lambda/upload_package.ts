@@ -18,6 +18,7 @@ import { exec } from 'child_process';
 
 interface LambdaEvent {
   body: string;
+  httpMethod: string;
   // Content?: string;
   // URL?: string;
   // JSProgram: string;
@@ -61,6 +62,17 @@ const TABLE_NAME = 'PackageInfo';
 
 export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
   try {
+    if (event.httpMethod === "OPTIONS") {
+      return {
+        statusCode: 200,
+        headers: {
+          "Access-Control-Allow-Origin": "*", // Or specify your frontend domain
+          "Access-Control-Allow-Methods": "GET, POST, OPTIONS", // Allowed HTTP methods
+          "Access-Control-Allow-Headers": "Content-Type, Authorization", // Allowed request headers
+        },
+        body: "", // No body needed for preflight response
+      };
+  }
 
     const requestBody = JSON.parse(event.body);
     let content = requestBody.Content;
@@ -93,7 +105,7 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
         if(!name){
           name = repo;
         }
-        packagedebloatName = name;
+        // packagedebloatName = name;
         
       }
 
@@ -173,12 +185,12 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
 
     const debloatedZipPath = path.join(tempDir, 'debloated.zip');
     await zipFolder(outputDir, debloatedZipPath);
-    const uploadkey = `${packagedebloatName}-${version}`;
-    const debloatID = generatePackageId(packagedebloatName, version);
+    const uploadkey = `${name}-${version}`;
+    const debloatID = generatePackageId(name, version);
     
     let base64Zip ;
 
-    if(await checkexistingPackage(packagedebloatName, version) === false){
+    if(await checkexistingPackage(name, version) === false){
       const zipBuffer = fs.readFileSync(debloatedZipPath);
       base64Zip = zipBuffer.toString('base64');
       await uploadToS3(debloatedZipPath, BUCKET_NAME, uploadkey);
@@ -191,12 +203,17 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
         body: JSON.stringify('Package already exists'),
       };
     }
-    await uploadDB(debloatID, packagedebloatName, version, JSProgram, url);
+    await uploadDB(debloatID, name, version, JSProgram, url);
     return {
       statusCode: 201,
+      headers: {
+        "Access-Control-Allow-Origin": "*", // Allow all origins, or specify a domain
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS", // Allow specific methods
+        "Access-Control-Allow-Headers": "Content-Type, Authorization", // Allow specific headers
+      },
       body: JSON.stringify({
         metadata: {
-          Name: packagedebloatName,
+          Name: name,
           Version: version,
           ID: debloatID,
         },
@@ -217,7 +234,7 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
     if(url && url.includes('npmjs.com')){
       let zippath: string;
       
-      const [tid, tname, tversion, base64Zip, existing] = await downloadNpm(url, JSProgram);
+      const [tid, tname, tversion, base64Zip, existing] = await downloadNpm(url, JSProgram, name);
       if(existing){
         return {
           statusCode: 409,
@@ -227,9 +244,14 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
      
       return {
         statusCode: 201,
+        headers: {
+          "Access-Control-Allow-Origin": "*", // Allow all origins, or specify a domain
+          "Access-Control-Allow-Methods": "GET, POST, OPTIONS", // Allow specific methods
+          "Access-Control-Allow-Headers": "Content-Type, Authorization", // Allow specific headers
+        },
         body: JSON.stringify({
           metadata: {
-            Name: tname,
+            Name: name,
             Version: tversion,
             ID: tid,
           },
@@ -274,7 +296,7 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
     });
     const packageJsonFile = tpackageJsonFile;
 
-    let packageName = name; // Default package name if content is provided
+    // let packageName = name; // Default package name if content is provided
    
     
     //if url provided, get package name and version from package.json
@@ -282,18 +304,18 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
       const packageJsonContent = await (packageJsonFile as JSZIP.JSZipObject).async('string');
       const packageInfo = JSON.parse(packageJsonContent);
 
-      packageName = packageInfo.name 
+      // packageName = packageInfo.name 
       if(packageInfo.version && packageVersion === '1.0.0'){ 
         packageVersion = packageInfo.version}
     }
 
     // Generate package ID
-    const packageId = generatePackageId(packageName, packageVersion);
+    const packageId = generatePackageId(name, packageVersion);
     
 
 
     //key for S3 bucket
-    let key = `${packageName}-${packageVersion}`;
+    let key = `${name}-${packageVersion}`;
 
     // Check if the package already exists in DynamoDB
     const existingPackage = await dynamoDBclient.send(
@@ -304,7 +326,7 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
             '#name': 'Name', // Alias for reserved keyword 'Name'
         },
         ExpressionAttributeValues: {
-            ':name': { S: packageName },
+            ':name': { S: name },
             ':version': { S: packageVersion },
         },
       })
@@ -329,16 +351,21 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
     });
 
     // Save package details to DynamoDB
-    uploadDB(packageId, packageName, packageVersion, JSProgram, url);
+    uploadDB(packageId, name, packageVersion, JSProgram, url);
 
   
 
   
     return {
       statusCode: 201,
+      headers: {
+        "Access-Control-Allow-Origin": "*", // Allow all origins, or specify a domain
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS", // Allow specific methods
+        "Access-Control-Allow-Headers": "Content-Type, Authorization", // Allow specific headers
+      },
       body: JSON.stringify({
         metadata: {
-          Name:packageName,
+          Name:name,
           Version: packageVersion,
           ID: packageId,
         },
@@ -397,7 +424,7 @@ export async function getVersionFromGithub(owner: string, repo: string): Promise
     }
 }
 }
-export async function downloadNpm(npmUrl:string, JSProgram:string){
+export async function downloadNpm(npmUrl:string, JSProgram:string, name :string){
   try {let registryUrl = npmUrl
     let response;
     let tarballUrl;
@@ -468,22 +495,22 @@ export async function downloadNpm(npmUrl:string, JSProgram:string){
             '#name': 'Name', // Alias for reserved keyword 'Name'
         },
         ExpressionAttributeValues: {
-            ':name': { S: packageName },
+            ':name': { S: name },
             ':version': { S: version },
         },
       })
   );
 
   if (existingPackage.Items && existingPackage.Items.length > 0) {
-    return [packageName, version, generatePackageId(packageName, version), base64content, true];
+    return [packageName, version, generatePackageId(name, version), base64content, true];
   }
-    await uploadToS3(zipPath, BUCKET_NAME, `${packageName}-${version}`);
+    await uploadToS3(zipPath, BUCKET_NAME, `${name}-${version}`);
     await cleanupTempFiles(tarballPath);
     await cleanupTempFiles(extractPath);
     await cleanupTempFiles(zipPath);
-    await uploadDB(generatePackageId(packageName, version), packageName, version, JSProgram, npmUrl);
+    await uploadDB(generatePackageId(packageName, version), name, version, JSProgram, npmUrl);
     let id = generatePackageId(packageName, version);
-    return [packageName, version, id, base64content, false];
+    return [name, version, id, base64content, false];
   } catch (error) {
     //console.log('Error downloading npm package:', error);
     throw error;
