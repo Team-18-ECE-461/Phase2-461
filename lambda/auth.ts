@@ -51,6 +51,7 @@ class AuthenticationService {
             const command = new InitiateAuthCommand(params);
             const response = await this.cognitoIdentityProvider.send(command);
             if(response.ChallengeName === 'NEW_PASSWORD_REQUIRED') {
+
                 const challengeParams = {
                     ClientId: process.env.COGNITO_CLIENT_ID,
                     ChallengeName: 'NEW_PASSWORD_REQUIRED' as const,
@@ -80,6 +81,18 @@ class AuthenticationService {
             } else {
                 throw new Error('AuthenticationResult is undefined');
             }
+            }
+            else if (response.AuthenticationResult) {
+                if (!response.AuthenticationResult.AccessToken) {
+                    throw new Error('AccessToken is undefined');
+                }
+                const token = this.generateCustomToken(username, response.AuthenticationResult.AccessToken);
+
+                return {
+                    token,
+                    userId: response.AuthenticationResult.AccessToken,
+                    expiresIn: 7200, // 1 hour expiration
+                };
             }
         } catch (err) {
             console.error(err);
