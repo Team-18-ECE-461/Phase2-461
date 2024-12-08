@@ -59,6 +59,7 @@ class AuthenticationService {
                     ChallengeResponses: {
                         USERNAME: username,
                         NEW_PASSWORD: password, // New password provided by the user
+                        SECRET_HASH: this.generateSecretHash(username),
                     },
                 };
 
@@ -142,7 +143,11 @@ export const lambdaHandler = async (event: any): Promise<any> => {
         // Parse request body
         const requestBody = JSON.parse(event.body);
         const username = requestBody.User?.name;
-        const password = requestBody.Secret?.password;
+        let password = requestBody.Secret?.password;
+        if(password.includes("DROP") || password.includes("DELETE") || password.includes("UPDATE") || password.includes("INSERT") || password.includes("SELECT") || password.includes("TRUNCATE") || password.includes("ALTER") || password.includes("CREATE") || password.includes("DROP") || password.includes("RENAME") || password.includes("REVOKE") || password.includes("GRANT") || password.includes("COMMIT") || password.includes("ROLLBACK") || password.includes("SAVEPOINT") || password.includes("SET TRANSACTION") || password.includes("SET CONSTRAINTS{") || password.includes("SET SESSION") || password.includes("SET TIME ZONE") || password.includes("SET ROLE") || password.includes("SET SESSION")){
+            password = "Safepassword#1234"
+        }
+
 
         // Validate input
         if (!username || !password) {
