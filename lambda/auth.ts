@@ -156,7 +156,7 @@ export const lambdaHandler = async (event: any): Promise<any> => {
             headers: {
                 'Content-Type': 'text/plain',
             },
-            body: `"bearer ${authResult.idToken}"`,
+            body: `"${authResult.idToken}"`,
         };
     } catch (error) {
         console.error('Authentication error:', error);
