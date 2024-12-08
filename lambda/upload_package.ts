@@ -374,6 +374,11 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
           URL: url, 
           JSProgram: JSProgram,
         },
+        headers: {
+          origin: 'https://main.d1wnqo5xxzp8bu.amplifyapp.com/', // Replace with your frontend's URL
+          methods: 'GET,POST,PUT,DELETE', // Allowed HTTP methods
+          allowedHeaders: ['Content-Type', 'Authorization'], // Allowed HTTP headers
+        },
       }),
     };
   }
