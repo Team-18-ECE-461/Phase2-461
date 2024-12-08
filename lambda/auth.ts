@@ -1,4 +1,4 @@
-import { CognitoIdentityProviderClient, AdminInitiateAuthCommand, AuthFlowType } from "@aws-sdk/client-cognito-identity-provider";
+import { CognitoIdentityProviderClient, AdminInitiateAuthCommand, AuthFlowType, RespondToAuthChallengeCommand } from "@aws-sdk/client-cognito-identity-provider";
 import * as jwt from 'jsonwebtoken';
 import * as crypto from 'crypto';
 
@@ -50,21 +50,37 @@ class AuthenticationService {
             // Make the authentication call using the AWS SDK
             const command = new AdminInitiateAuthCommand(params);
             const response = await this.cognitoIdentityProvider.send(command);
+            if(response.ChallengeName === 'NEW_PASSWORD_REQUIRED') {
+                const challengeParams = {
+                    ClientId: process.env.COGNITO_CLIENT_ID,
+                    ChallengeName: 'NEW_PASSWORD_REQUIRED' as const,
+                    Session: response.Session,
+                    ChallengeResponses: {
+                        USERNAME: username,
+                        NEW_PASSWORD: password, // New password provided by the user
+                    },
+                };
 
-            // Generate a custom JWT token
-            if (!response.AuthenticationResult || !response.AuthenticationResult.AccessToken) {
-                throw new Error('Authentication failed: No access token received');
+            const respondToChallengeCommand = new RespondToAuthChallengeCommand(challengeParams);
+            const challengeResponse = await this.cognitoIdentityProvider.send(respondToChallengeCommand);
+
+
+           
+            if (challengeResponse.AuthenticationResult) {
+                if (!challengeResponse.AuthenticationResult.AccessToken) {
+                    throw new Error('AccessToken is undefined');
+                }
+                const token = this.generateCustomToken(username, challengeResponse.AuthenticationResult.AccessToken);
+
+                return {
+                    token,
+                    userId: challengeResponse.AuthenticationResult.AccessToken,
+                    expiresIn: 7200, // 1 hour expiration
+                };
+            } else {
+                throw new Error('AuthenticationResult is undefined');
             }
-            const token = this.generateCustomToken(username, response.AuthenticationResult.AccessToken);
-
-            // Decode the Cognito token to get user ID
-            const decodedToken = jwt.decode(response.AuthenticationResult.AccessToken);
-
-            return {
-                token,
-                userId: decodedToken?.sub || '',
-                expiresIn: 3600, // 1 hour expiration
-            };
+            }
         } catch (err) {
             console.error(err);
             throw this.handleAuthenticationError(err);
