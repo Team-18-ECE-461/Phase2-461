@@ -87,7 +87,9 @@ export class Metrics extends EventEmitter {
                 metrics.set('BusFactor', 0); 
                 return 0;
             }
-            const busFactor = 1 - (top3 / commits);
+            let busFactor = 1 - (top3 / commits);
+            if(busFactor < 0) {
+                busFactor = 0;}
             metrics.set('BusFactor', busFactor);
             return busFactor;
         } else {
