@@ -1,11 +1,16 @@
 import { 
     CognitoUserPool, 
-    CognitoUser,
-    AuthenticationDetails
+    CognitoUser, 
+    AuthenticationDetails 
   } from 'amazon-cognito-identity-js';
+  
   import { 
-    CognitoIdentityServiceProvider 
-  } from 'aws-sdk';
+    CognitoIdentityProviderClient, 
+    AdminGetUserCommand, 
+    AdminGetUserCommandInput, 
+    AdminGetUserCommandOutput 
+  } from '@aws-sdk/client-cognito-identity-provider';
+  
   import * as jwt from 'jsonwebtoken';
   
   interface LoginRequest {
@@ -21,8 +26,7 @@ import {
   
   class AuthenticationService {
     private userPool: CognitoUserPool;
-    private cognitoIdentityProvider: CognitoIdentityServiceProvider;
-  
+    private cognitoIdentityProvider: CognitoIdentityProviderClient;
     constructor() {
       const poolData = {
         UserPoolId: process.env.COGNITO_USER_POOL_ID!,
@@ -30,7 +34,7 @@ import {
       };
   
       this.userPool = new CognitoUserPool(poolData);
-      this.cognitoIdentityProvider = new CognitoIdentityServiceProvider();
+      this.cognitoIdentityProvider = new CognitoIdentityProviderClient({});
     }
   
     /**
