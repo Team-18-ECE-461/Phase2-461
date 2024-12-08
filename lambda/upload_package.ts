@@ -234,7 +234,7 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
     if(url && url.includes('npmjs.com')){
       let zippath: string;
       
-      const [tid, tname, tversion, base64Zip, existing] = await downloadNpm(url, JSProgram, name);
+      const [tname, tversion, tid, base64Zip, existing] = await downloadNpm(url, JSProgram, name);
       if(existing){
         return {
           statusCode: 409,
