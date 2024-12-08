@@ -212,7 +212,7 @@ export class Metrics extends EventEmitter {
         const dependencies = packageJson.dependencies || {};
         const totalDependencies = Object.keys(dependencies).length;
         if (totalDependencies === 0) {
-            metrics.set('DependencyPinning', 1.0);
+            metrics.set('GoodPinningPractice', 1.0);
             return 1.0;
         }
         let pinnedCount = 0;
