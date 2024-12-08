@@ -196,20 +196,20 @@ jobs:
               sleep $delay
             fi
           done
-      - name: Update authorizer Function
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: us-east-1
-        run: |
-          retries=5
-          delay=10
-          for ((i=0; i<retries; i++)); do
-            if aws lambda update-function-code --function-name lambda_auth --zip-file fileb://lambda/authorizer.zip; then
-              echo "Update successful for metrics"
-              break
-            else
-              echo "Update failed, retrying in $delay seconds..."
-              sleep $delay
-            fi
-          done
+      # - name: Update authorizer Function
+      #   env:
+      #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     AWS_REGION: us-east-1
+      #   run: |
+      #     retries=5
+      #     delay=10
+      #     for ((i=0; i<retries; i++)); do
+      #       if aws lambda update-function-code --function-name lambda_auth --zip-file fileb://lambda/authorizer.zip; then
+      #         echo "Update successful for metrics"
+      #         break
+      #       else
+      #         echo "Update failed, retrying in $delay seconds..."
+      #         sleep $delay
+      #       fi
+      #     done
