@@ -1,11 +1,8 @@
-// pages/UploadPage.tsx
 import React, { useState } from 'react';
-
 import './UploadPage.css';
-import axios, { AxiosResponse } from 'axios';
+import axios from 'axios';
 
-// Define a type for your API response
-
+// Define the type for the API response
 interface ApiResponse {
   metadata: {
     Name: string;
@@ -19,43 +16,8 @@ interface ApiResponse {
   };
 }
 
-const API_URL = "https://3zq0b41jvf.execute-api.us-east-1.amazonaws.com/stage2/package";
-async function getTracks(): Promise<ApiResponse> {
-  const response = await axios.get<ApiResponse>(API_URL);
-  return response.data;
-}
-async function fetchData(): Promise<void> {
-  try {
-    const response = await axios.post(`${API_URL}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Authorization': '',
-        'Access-Control-Allow-Origin': '*',
-      },
-    });
-
-    const { metadata, data } = response.data;
-
-    // Log the structured response
-    console.log('Metadata:', metadata);
-    console.log('Data:', data);
-
-    console.log('Full response:', response.data);
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      // Log detailed error message if the error is Axios-related
-      console.error('Error fetching data:', error.message);
-      if (error.response) {
-        console.error('Response data:', error.response.data);
-        console.error('Response status:', error.response.status);
-      }
-    } else {
-      // Log any other type of error
-      console.error('Unexpected error:', error);
-    }
-    throw new Error('Failed to fetch data from API.');
-  }
-}
+// Updated to point to your local backend proxy
+const API_URL = "http://localhost:5000/api/package"; // Point to your local backend
 
 const UploadPage: React.FC = () => {
   const [packageName, setPackageName] = useState<string>('');
@@ -65,7 +27,7 @@ const UploadPage: React.FC = () => {
   const [debloat, setDebloat] = useState<boolean>(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  const handleSubmit = async (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent): Promise<void> => {
     event.preventDefault();
     setMessage('Processing your request...');
 
@@ -73,53 +35,80 @@ const UploadPage: React.FC = () => {
       setMessage('Please fill out all fields.');
       return;
     }
+
     if (!url && !file) {
       setMessage('Please upload a package file or provide a URL.');
       return;
     }
-
+    
     try {
-      const formData = new FormData();
-      formData.append('name', packageName);
-      formData.append('version', version);
-      if (url) formData.append('url', url);
-      if (file) formData.append('file', file);
-      formData.append('debloat', debloat.toString());
+      const requestBodyfile = {
+        Content: file ? await convertFileToBase64(file) : '', // Convert file to base64
+        JSProgram: `if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}`,
+        debloat,
+        Name: packageName,
+      };
 
-      const response = await axios.post(`${API_URL}`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          'X-Authorization': ' ',
-         'Access-Control-Allow-Origin': 'https://main.dn47d0bajbqze.amplifyapp.com/',
-        },
-      });
-      
-      setMessage(`Upload Response: ${JSON.stringify(response)}`);
-      // const response = await getTracks();
-      // setMessage(`Upload Response: ${JSON.stringify(response)}`);
-     // setMessage(`Package "${packageName}" uploaded successfully!`);
+      const requestBodyURL = {
+        URL: url,
+        JSProgram: `if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}`,
+        debloat,
+        Name: packageName,
+      };
 
+      // If URL is provided, use URL request body
+      if (url) {
+        const response = await axios.post(API_URL, requestBodyURL, {
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Authorization': '', // Add authorization if needed
+          },
+        });
+
+        setMessage(`Upload Response: ${JSON.stringify(response.data)}`);
+      }
+      // If file is provided, use file request body
+      else if (file) {
+        const response = await axios.post(API_URL, requestBodyfile, {
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Authorization': '', // Add authorization if needed
+          },
+        });
+
+        setMessage(`Upload Response: ${JSON.stringify(response.data)}`);
+      }
     } catch (error) {
       if (axios.isAxiosError(error)) {
         console.error('Upload error:', error.message);
-        setMessage("AXIOS" + error.message);
+        setMessage('AXIOS: ' + error.message);
         if (error.response) {
-          setMessage(error.response.data);
+          setMessage(error?.response?.data?.message || 'Failed to upload package.');
           console.error('Upload response data:', error.response.data);
         }
       } else {
         console.error('Unexpected upload error:', error);
+        setMessage('Unexpected error occurred.');
       }
-      //setMessage('Failed to upload package or fetch data. Please try again.' + error);
-
     }
   };
-
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       setFile(event.target.files[0]);
     }
+  };
+
+  // Convert file to base64 string
+  const convertFileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        resolve(reader.result as string);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   };
 
   return (
@@ -154,12 +143,11 @@ const UploadPage: React.FC = () => {
             type="text"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-           
           />
         </label>
         <label>
           Package File:
-          <input type="file" onChange={handleFileChange} accept=".zip"  />
+          <input type="file" onChange={handleFileChange} accept=".zip" />
         </label>
 
         <label>
@@ -171,7 +159,7 @@ const UploadPage: React.FC = () => {
           Enable debloat (remove unnecessary files)
         </label>
 
-        <button type="button" onClick={handleSubmit}>Submit</button>
+        <button type="submit">Submit</button>
         <button type="reset" onClick={() => setMessage(null)}>
           Reset
         </button>

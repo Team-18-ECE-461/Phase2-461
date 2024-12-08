@@ -1,0 +1,42 @@
+/* ResetRegistryPage.css */
+.reset-registry-page {
+    padding: 20px;
+    text-align: center;
+  }
+  
+  .reset-registry-page h1 {
+    font-size: 2rem;
+    color: #333;
+  }
+  
+  .reset-registry-page p {
+    font-size: 1rem;
+    color: #666;
+    margin-bottom: 20px;
+  }
+  
+  .reset-button {
+    font-size: 1rem;
+    padding: 10px 20px;
+    color: white;
+    background-color: #dc3545; /* Red for danger */
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .reset-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+  }
+  
+  .reset-message {
+    font-size: 1rem;
+    margin-top: 20px;
+    color: #28a745; /* Green for success */
+  }
+  
+  .reset-message.error {
+    color: #ff4d4f; /* Red for error */
+  }
+  

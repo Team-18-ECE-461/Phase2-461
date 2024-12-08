@@ -1,0 +1,85 @@
+.create-version-page {
+    padding: 20px;
+    text-align: center;
+  }
+  
+  .create-version-page h1 {
+    font-size: 2rem;
+    color: #333;
+  }
+  
+  .create-version-page p {
+    font-size: 1rem;
+    color: #666;
+    margin-bottom: 20px;
+  }
+  
+  .create-version-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+.create-version-form input:focus,
+.create-version-form textarea:focus {
+    outline: 2px solid #0056b3;
+    outline-offset: 2px;
+}
+
+.create-version-form button:focus {
+    outline: 2px solid #0056b3;
+    outline-offset: 2px;
+}
+
+.create-version-form input[aria-invalid="true"],
+.create-version-form textarea[aria-invalid="true"] {
+    border-color: red;
+}
+
+.create-version-form input[aria-invalid="true"]:focus,
+.create-version-form textarea[aria-invalid="true"]:focus {
+    outline-color: red;
+}
+  .create-version-form label {
+    font-size: 1rem;
+    color: #333;
+    margin: 10px 0;
+    width: 100%;
+    text-align: left;
+  }
+  
+  .create-version-form input,
+  .create-version-form textarea {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  
+  .create-version-form input[type="checkbox"] {
+    margin-right: 10px;
+  }
+  
+  .create-version-form button {
+    font-size: 1rem;
+    padding: 10px 20px;
+    margin-top: 20px;
+    color: white;
+    background-color: #007bff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .create-version-form button:hover {
+    background-color: #0056b3;
+  }
+  
+  .message {
+    font-size: 1rem;
+    color: red;
+    margin-top: 10px;
+  }
+  
