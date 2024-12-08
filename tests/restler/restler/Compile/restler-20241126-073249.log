@@ -1,0 +1,12 @@
+Restler Information: 0 : Starting task Compile...
+    DateTime=2024-11-27T00:32:49.1990158Z
+Restler Information: 0 : Launching 'dotnet "C:\Users\kparv\Downloads\ece-461-actuallyusethis\restler-fuzzer\UserskparvDownloadsece-461-actuallyusethisrestler-fuzzerrestler_bin\restler\../compiler/Restler.CompilerExe.dll" "C:\Users\kparv\Downloads\ece-461-actuallyusethis\restler-fuzzer\UserskparvDownloadsece-461-actuallyusethisrestler-fuzzerrestler_bin\restler\Compile\config.json"'
+    DateTime=2024-11-27T00:32:49.9064733Z
+Restler Information: 0 : Process execution terminated in 00:00:00.9592987 with exit code 0x0: 'dotnet "C:\Users\kparv\Downloads\ece-461-actuallyusethis\restler-fuzzer\UserskparvDownloadsece-461-actuallyusethisrestler-fuzzerrestler_bin\restler\../compiler/Restler.CompilerExe.dll" "C:\Users\kparv\Downloads\ece-461-actuallyusethis\restler-fuzzer\UserskparvDownloadsece-461-actuallyusethisrestler-fuzzerrestler_bin\restler\Compile\config.json"'
+    DateTime=2024-11-27T00:32:50.8690666Z
+Restler Information: 0 : (80516) dotnet "C:\Users\kparv\Downloads\ece-461-actuallyusethis\restler-fuzzer\UserskparvDownloadsece-461-actuallyusethisrestler-fuzzerrestler_bin\restler\../compiler/Restler.CompilerExe.dll" "C:\Users\kparv\Downloads\ece-461-actuallyusethis\restler-fuzzer\UserskparvDownloadsece-461-actuallyusethisrestler-fuzzerrestler_bin\restler\Compile\config.json" exited with code: 0
+    DateTime=2024-11-27T00:32:50.8726461Z
+Restler Information: 0 : Task Compile succeeded.
+    DateTime=2024-11-27T00:32:50.8898355Z
+Restler Information: 0 : Collecting logs...
+    DateTime=2024-11-27T00:32:50.9858083Z

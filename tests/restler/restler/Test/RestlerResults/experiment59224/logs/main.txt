@@ -1,0 +1,326 @@
+Random seed: 12345
+Setting fuzzing schemes: directed-smoke-test
+2024-12-08 13:21:02.605: Going to fuzz a set with 10 requests
+2024-12-08 13:21:02.605: Request-0: Value Combinations: 2
+2024-12-08 13:21:02.605: Request-1: Value Combinations: 4
+2024-12-08 13:21:02.605: Request-2: Value Combinations: 4
+2024-12-08 13:21:02.605: Request-3: Value Combinations: 20
+2024-12-08 13:21:02.605: Request-4: Value Combinations: 2
+2024-12-08 13:21:02.605: Request-5: Value Combinations: 2
+2024-12-08 13:21:02.605: Request-6: Value Combinations: 4
+2024-12-08 13:21:02.605: Request-7: Value Combinations: 3
+2024-12-08 13:21:02.605: Request-8: Value Combinations: 4
+2024-12-08 13:21:02.605: Request-9: Value Combinations: 8
+2024-12-08 13:21:02.605: Avg. Value Combinations per Request: 5.3
+2024-12-08 13:21:02.605: Median Value Combinations per Request: 4.0
+2024-12-08 13:21:02.605: Min Value Combinations per Request: 2
+2024-12-08 13:21:02.605: Max Value Combinations per Request: 20
+2024-12-08 13:21:02.605: Total dependencies: 0
+
+2024-12-08 13:21:02.622: Generation: 1 / Sequences Collection Size: 10 
+(After directed-smoke-test Extend)
+
+Rendering request 0 from scratch
+
+2024-12-08 13:21:03.325: Request 0
+2024-12-08 13:21:03.325: Endpoint - /tracks
+2024-12-08 13:21:03.325: Hex Def - 1432cace360e7bacfb85a256e252e6a803322795
+2024-12-08 13:21:03.325: Sequence length that satisfies dependencies: 1
+2024-12-08 13:21:03.337: Rendering VALID
+		- restler_static_string: 'GET '
+		- restler_static_string: '/stage1'
+		- restler_static_string: '/'
+		- restler_static_string: 'tracks'
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: 'Accept: application/json\r\n'
+		- restler_static_string: 'Host: 3zq0b41jvf.execute-api.us-east-1.amazonaws.com\r\n'
+		+ restler_refreshable_authentication_token: ['token_auth_method', 'token_refresh_interval']
+		- restler_static_string: '\r\n'
+
+Rendering request 1 from scratch
+
+2024-12-08 13:21:04.138: Request 1
+2024-12-08 13:21:04.138: Endpoint - /package/{id}/rate
+2024-12-08 13:21:04.138: Hex Def - 2cf9e105b78f22c8cba7d77ae184dbf94bd947b5
+2024-12-08 13:21:04.138: Sequence length that satisfies dependencies: 1
+2024-12-08 13:21:04.138: Rendering INVALID
+		- restler_static_string: 'GET '
+		- restler_static_string: '/stage1'
+		- restler_static_string: '/'
+		- restler_static_string: 'package'
+		- restler_static_string: '/'
+		+ restler_fuzzable_string: ['123567192081501', 'fuzzstring']
+		- restler_static_string: '/'
+		- restler_static_string: 'rate'
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: 'Accept: application/json\r\n'
+		- restler_static_string: 'Host: 3zq0b41jvf.execute-api.us-east-1.amazonaws.com\r\n'
+		- restler_static_string: 'X-Authorization: '
+		- restler_fuzzable_string: 'fuzzstring'
+		- restler_static_string: '\r\n'
+		+ restler_refreshable_authentication_token: ['token_auth_method', 'token_refresh_interval']
+		- restler_static_string: '\r\n'
+
+Rendering request 2 from scratch
+
+2024-12-08 13:21:06.788: Request 2
+2024-12-08 13:21:06.788: Endpoint - /authenticate
+2024-12-08 13:21:06.788: Hex Def - 34378edc1c9c7e4a438d92f5d892fa0a51880371
+2024-12-08 13:21:06.788: Sequence length that satisfies dependencies: 1
+2024-12-08 13:21:06.799: Rendering INVALID
+		- restler_static_string: 'PUT '
+		- restler_static_string: '/stage1'
+		- restler_static_string: '/'
+		- restler_static_string: 'authenticate'
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: 'Accept: application/json\r\n'
+		- restler_static_string: 'Host: 3zq0b41jvf.execute-api.us-east-1.amazonaws.com\r\n'
+		- restler_static_string: 'Content-Type: '
+		- restler_static_string: 'application/json'
+		- restler_static_string: '\r\n'
+		+ restler_refreshable_authentication_token: ['token_auth_method', 'token_refresh_interval']
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '\n    "User":\n        {\n            "name":'
+		+ restler_fuzzable_string: ['"Alfalfa"', '"fuzzstring"']
+		- restler_static_string: ',\n            "isAdmin":'
+		- restler_fuzzable_bool: 'true'
+		- restler_static_string: '\n        }\n    ,\n    "Secret":\n        {\n            "password":'
+		- restler_fuzzable_string: '"fuzzstring"'
+		- restler_static_string: '\n        }\n    }'
+		- restler_static_string: '\r\n'
+
+Rendering request 3 from scratch
+
+2024-12-08 13:21:11.956: Request 3
+2024-12-08 13:21:11.956: Endpoint - /package/{id}
+2024-12-08 13:21:11.956: Hex Def - 363dfef7918f8b6448fc6cea79723e812ed3ff66
+2024-12-08 13:21:11.956: Sequence length that satisfies dependencies: 1
+2024-12-08 13:21:11.969: Rendering INVALID
+		- restler_static_string: 'POST '
+		- restler_static_string: '/stage1'
+		- restler_static_string: '/'
+		- restler_static_string: 'package'
+		- restler_static_string: '/'
+		+ restler_fuzzable_string: ['123567192081501', 'fuzzstring']
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: 'Accept: application/json\r\n'
+		- restler_static_string: 'Host: 3zq0b41jvf.execute-api.us-east-1.amazonaws.com\r\n'
+		- restler_static_string: 'X-Authorization: '
+		+ restler_fuzzable_string: ['bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c', 'fuzzstring']
+		- restler_static_string: '\r\n'
+		- restler_static_string: 'Content-Type: '
+		- restler_static_string: 'application/json'
+		- restler_static_string: '\r\n'
+		+ restler_refreshable_authentication_token: ['token_auth_method', 'token_refresh_interval']
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '\n    "metadata":\n        {\n            "Name":\n                '
+		- restler_fuzzable_string: '"fuzzstring"'
+		- restler_static_string: '\n            ,\n            "Version":'
+		+ restler_fuzzable_string: ['"1.2.3"', '"fuzzstring"']
+		- restler_static_string: ',\n            "ID":\n                '
+		+ restler_fuzzable_string: ['"123567192081501"', '"fuzzstring"']
+		- restler_static_string: '\n        }\n    ,\n    "data":\n        {\n            "Name":\n                '
+		- restler_fuzzable_object: '{ "fuzz": false }'
+		- restler_static_string: '\n            ,\n            "Content":'
+		- restler_fuzzable_string: '"fuzzstring"'
+		- restler_static_string: ',\n            "URL":'
+		- restler_fuzzable_string: '"fuzzstring"'
+		- restler_static_string: ',\n            "debloat":'
+		- restler_fuzzable_bool: 'true'
+		- restler_static_string: ',\n            "JSProgram":'
+		- restler_fuzzable_string: '"fuzzstring"'
+		- restler_static_string: '\n        }\n    }'
+		- restler_static_string: '\r\n'
+
+Rendering request 4 from scratch
+
+2024-12-08 13:21:14.652: Request 4
+2024-12-08 13:21:14.652: Endpoint - /reset
+2024-12-08 13:21:14.652: Hex Def - 372ed7a4465fd8552af28bd18ae4deac31545b50
+2024-12-08 13:21:14.652: Sequence length that satisfies dependencies: 1
+2024-12-08 13:21:14.677: Rendering VALID
+		- restler_static_string: 'DELETE '
+		- restler_static_string: '/stage1'
+		- restler_static_string: '/'
+		- restler_static_string: 'reset'
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: 'Accept: application/json\r\n'
+		- restler_static_string: 'Host: 3zq0b41jvf.execute-api.us-east-1.amazonaws.com\r\n'
+		- restler_static_string: 'X-Authorization: '
+		- restler_fuzzable_string: 'fuzzstring'
+		- restler_static_string: '\r\n'
+		+ restler_refreshable_authentication_token: ['token_auth_method', 'token_refresh_interval']
+		- restler_static_string: '\r\n'
+
+Rendering request 5 from scratch
+
+2024-12-08 13:21:16.563: Request 5
+2024-12-08 13:21:16.563: Endpoint - /package
+2024-12-08 13:21:16.563: Hex Def - 53c40289bc28496ce0dc38077ca4ccae5f2a4441
+2024-12-08 13:21:16.563: Sequence length that satisfies dependencies: 1
+2024-12-08 13:21:16.580: Rendering INVALID
+		- restler_static_string: 'POST '
+		- restler_static_string: '/stage1'
+		- restler_static_string: '/'
+		- restler_static_string: 'package'
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: 'Accept: application/json\r\n'
+		- restler_static_string: 'Host: 3zq0b41jvf.execute-api.us-east-1.amazonaws.com\r\n'
+		- restler_static_string: 'X-Authorization: '
+		- restler_fuzzable_string: 'fuzzstring'
+		- restler_static_string: '\r\n'
+		- restler_static_string: 'Content-Type: '
+		- restler_static_string: 'application/json'
+		- restler_static_string: '\r\n'
+		+ restler_refreshable_authentication_token: ['token_auth_method', 'token_refresh_interval']
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '\n    "Name":\n        '
+		- restler_fuzzable_object: '{ "fuzz": false }'
+		- restler_static_string: '\n    ,\n    "Content":'
+		- restler_fuzzable_string: '"fuzzstring"'
+		- restler_static_string: ',\n    "URL":'
+		- restler_fuzzable_string: '"fuzzstring"'
+		- restler_static_string: ',\n    "debloat":'
+		- restler_fuzzable_bool: 'true'
+		- restler_static_string: ',\n    "JSProgram":'
+		- restler_fuzzable_string: '"fuzzstring"'
+		- restler_static_string: '}'
+		- restler_static_string: '\r\n'
+
+Rendering request 6 from scratch
+
+2024-12-08 13:21:19.370: Request 6
+2024-12-08 13:21:19.370: Endpoint - /package/byRegEx
+2024-12-08 13:21:19.370: Hex Def - 622f8847b89cdc3edbb1fc1c095a74df6195b6c3
+2024-12-08 13:21:19.370: Sequence length that satisfies dependencies: 1
+2024-12-08 13:21:19.370: Rendering INVALID
+		- restler_static_string: 'POST '
+		- restler_static_string: '/stage1'
+		- restler_static_string: '/'
+		- restler_static_string: 'package'
+		- restler_static_string: '/'
+		- restler_static_string: 'byRegEx'
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: 'Accept: application/json\r\n'
+		- restler_static_string: 'Host: 3zq0b41jvf.execute-api.us-east-1.amazonaws.com\r\n'
+		- restler_static_string: 'X-Authorization: '
+		+ restler_fuzzable_string: ['bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c', 'fuzzstring']
+		- restler_static_string: '\r\n'
+		- restler_static_string: 'Content-Type: '
+		- restler_static_string: 'application/json'
+		- restler_static_string: '\r\n'
+		+ restler_refreshable_authentication_token: ['token_auth_method', 'token_refresh_interval']
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '\n    "RegEx":'
+		- restler_fuzzable_string: '"fuzzstring"'
+		- restler_static_string: '}'
+		- restler_static_string: '\r\n'
+
+Rendering request 7 from scratch
+
+2024-12-08 13:21:20.691: Request 7
+2024-12-08 13:21:20.691: Endpoint - /packages
+2024-12-08 13:21:20.691: Hex Def - dda8837d7e90fc25b149d3cf4b78cb64d0af2def
+2024-12-08 13:21:20.691: Sequence length that satisfies dependencies: 1
+2024-12-08 13:21:20.698: Rendering VALID
+		- restler_static_string: 'POST '
+		- restler_static_string: '/stage1'
+		- restler_static_string: '/'
+		- restler_static_string: 'packages'
+		- restler_static_string: '?'
+		- restler_static_string: 'offset='
+		+ restler_fuzzable_string: ['1', 'fuzzstring']
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: 'Accept: application/json\r\n'
+		- restler_static_string: 'Host: 3zq0b41jvf.execute-api.us-east-1.amazonaws.com\r\n'
+		- restler_static_string: 'X-Authorization: '
+		- restler_fuzzable_string: 'fuzzstring'
+		- restler_static_string: '\r\n'
+		- restler_static_string: 'Content-Type: '
+		- restler_static_string: 'application/json'
+		- restler_static_string: '\r\n'
+		+ restler_refreshable_authentication_token: ['token_auth_method', 'token_refresh_interval']
+		- restler_static_string: '\r\n'
+		- restler_static_string: '['
+		- restler_static_string: '\n    {\n        "Version":\n            "Exact (1.2.3)\nBounded range (1.2.3-2.1.0)\nCarat (^1.2.3)\nTilde (~1.2.0)"\n        ,\n        "Name":\n            '
+		- restler_fuzzable_string: '"fuzzstring"'
+		- restler_static_string: '\n    }]'
+		- restler_static_string: '\r\n'
+
+Rendering request 8 from scratch
+
+2024-12-08 13:21:21.701: Request 8
+2024-12-08 13:21:21.701: Endpoint - /package/{id}/cost
+2024-12-08 13:21:21.701: Hex Def - eadef1a1f3943dfd070111a7759507bbe57a2fab
+2024-12-08 13:21:21.701: Sequence length that satisfies dependencies: 1
+2024-12-08 13:21:21.701: Rendering INVALID
+		- restler_static_string: 'GET '
+		- restler_static_string: '/stage1'
+		- restler_static_string: '/'
+		- restler_static_string: 'package'
+		- restler_static_string: '/'
+		+ restler_fuzzable_string: ['123567192081501', 'fuzzstring']
+		- restler_static_string: '/'
+		- restler_static_string: 'cost'
+		- restler_static_string: '?'
+		- restler_static_string: 'dependency='
+		- restler_fuzzable_bool: 'true'
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: 'Accept: application/json\r\n'
+		- restler_static_string: 'Host: 3zq0b41jvf.execute-api.us-east-1.amazonaws.com\r\n'
+		- restler_static_string: 'X-Authorization: '
+		- restler_fuzzable_string: 'fuzzstring'
+		- restler_static_string: '\r\n'
+		+ restler_refreshable_authentication_token: ['token_auth_method', 'token_refresh_interval']
+		- restler_static_string: '\r\n'
+
+Rendering request 9 from scratch
+
+2024-12-08 13:21:23.877: Request 9
+2024-12-08 13:21:23.877: Endpoint - /package/{id}
+2024-12-08 13:21:23.877: Hex Def - f3af48e85240ea07e9d43e24792a41c036c96b0c
+2024-12-08 13:21:23.877: Sequence length that satisfies dependencies: 1
+2024-12-08 13:21:23.895: Rendering INVALID
+		- restler_static_string: 'GET '
+		- restler_static_string: '/stage1'
+		- restler_static_string: '/'
+		- restler_static_string: 'package'
+		- restler_static_string: '/'
+		+ restler_fuzzable_string: ['123567192081501', 'fuzzstring']
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: 'Accept: application/json\r\n'
+		- restler_static_string: 'Host: 3zq0b41jvf.execute-api.us-east-1.amazonaws.com\r\n'
+		- restler_static_string: 'X-Authorization: '
+		+ restler_fuzzable_string: ['bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c', 'fuzzstring']
+		- restler_static_string: '\r\n'
+		+ restler_refreshable_authentication_token: ['token_auth_method', 'token_refresh_interval']
+		- restler_static_string: '\r\n'
+
+2024-12-08 13:21:23.911: Generation: 1 / Sequences Collection Size: 3 
+(After directed-smoke-test Render)
+
+2024-12-08 13:21:23.928: Final Swagger spec coverage: 3 / 10
+2024-12-08 13:21:23.928: Rendered requests: 10 / 10
+2024-12-08 13:21:23.928: Rendered requests with "valid" status codes: 3 / 10
+2024-12-08 13:21:23.928: Num fully valid requests (no resource creation failures): 3
+2024-12-08 13:21:23.928: Num requests not rendered due to invalid sequence re-renders: 0
+2024-12-08 13:21:23.928: Num invalid requests caused by failed resource creations: 0
+2024-12-08 13:21:23.928: Total Creations of Dyn Objects: 0
+2024-12-08 13:21:23.928: Total Requests Sent: {'gc': 0, 'main_driver': 51}
+2024-12-08 13:21:23.928: Bug Buckets: {'main_driver_502': 2}
+
+Testing completed -- below are the final stats:
+
+2024-12-08 13:21:23.994: Final Swagger spec coverage: 3 / 10
+2024-12-08 13:21:23.994: Rendered requests: 10 / 10
+2024-12-08 13:21:23.994: Rendered requests with "valid" status codes: 3 / 10
+2024-12-08 13:21:23.994: Num fully valid requests (no resource creation failures): 3
+2024-12-08 13:21:23.994: Num requests not rendered due to invalid sequence re-renders: 0
+2024-12-08 13:21:23.994: Num invalid requests caused by failed resource creations: 0
+2024-12-08 13:21:23.994: Total Creations of Dyn Objects: 0
+2024-12-08 13:21:23.994: Total Requests Sent: {'gc': 0, 'main_driver': 51}
+2024-12-08 13:21:23.994: Bug Buckets: {'main_driver_502': 2}

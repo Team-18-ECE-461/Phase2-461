@@ -1,0 +1,1052 @@
+{
+  "400": {
+    "032e7c52-2de7-4b56-ab10-aa026851196f": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "POST",
+            "path": "/stage1/package/fuzzstring",
+            "query": "",
+            "body": "{\n    \"metadata\":\n        {\n            \"Name\":\n                \"fuzzstring\"\n            ,\n            \"Version\":\"1.2.3\",\n            \"ID\":\n                \"123567192081501\"\n        }\n    ,\n    \"data\":\n        {\n            \"Name\":\n                { \"fuzz\": false }\n            ,\n            \"Content\":\"fuzzstring\",\n            \"URL\":\"fuzzstring\",\n            \"debloat\":true,\n            \"JSProgram\":\"fuzzstring\"\n        }\n    }\r\n"
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 400,
+            "codeDescription": "Bad Request",
+            "content": "{\"message\":\"Invalid request\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "1ba6c576-2d4a-4199-8a7a-d574a48ca25c": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "POST",
+            "path": "/stage1/package",
+            "query": "",
+            "body": "{\n    \"Name\":\n        { \"fuzz\": false }\n    ,\n    \"Content\":\"fuzzstring\",\n    \"URL\":\"fuzzstring\",\n    \"debloat\":true,\n    \"JSProgram\":\"fuzzstring\"}\r\n"
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 400,
+            "codeDescription": "Bad Request",
+            "content": "\"Invalid Request Body!\"",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "33f2a791-2fcd-4f68-a500-771f828f7ba5": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "POST",
+            "path": "/stage1/package/123567192081501",
+            "query": "",
+            "body": "{\"metadata\":{\"Name\":\"fuzzstring\",\"Version\":\"fuzzstring\",\"ID\":\"fuzzstring\"},\"data\":{}}"
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 400,
+            "codeDescription": "Bad Request",
+            "content": "{\"message\":\"Invalid request\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "45481872-34f2-4c7c-a9fd-ee6dc940d77a": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "POST",
+            "path": "/stage1/package/fuzzstring",
+            "query": "",
+            "body": "{\n    \"metadata\":\n        {\n            \"Name\":\n                \"fuzzstring\"\n            ,\n            \"Version\":\"fuzzstring\",\n            \"ID\":\n                \"fuzzstring\"\n        }\n    ,\n    \"data\":\n        {\n            \"Name\":\n                { \"fuzz\": false }\n            ,\n            \"Content\":\"fuzzstring\",\n            \"URL\":\"fuzzstring\",\n            \"debloat\":true,\n            \"JSProgram\":\"fuzzstring\"\n        }\n    }\r\n"
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 400,
+            "codeDescription": "Bad Request",
+            "content": "{\"message\":\"Invalid request\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "456a24b5-781e-40b5-9d7f-9fd27670a521": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "POST",
+            "path": "/stage1/package/123567192081501",
+            "query": "",
+            "body": "{\"metadata\":{\"Name\":\"fuzzstring\",\"Version\":\"1.2.3\",\"ID\":\"123567192081501\"},\"data\":{}}"
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 400,
+            "codeDescription": "Bad Request",
+            "content": "{\"message\":\"Invalid request\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "4602e5c7-28b9-4d56-9510-570524e7d277": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "POST",
+            "path": "/stage1/package/fuzzstring",
+            "query": "",
+            "body": "{\n    \"metadata\":\n        {\n            \"Name\":\n                \"fuzzstring\"\n            ,\n            \"Version\":\"fuzzstring\",\n            \"ID\":\n                \"123567192081501\"\n        }\n    ,\n    \"data\":\n        {\n            \"Name\":\n                { \"fuzz\": false }\n            ,\n            \"Content\":\"fuzzstring\",\n            \"URL\":\"fuzzstring\",\n            \"debloat\":true,\n            \"JSProgram\":\"fuzzstring\"\n        }\n    }\r\n"
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 400,
+            "codeDescription": "Bad Request",
+            "content": "{\"message\":\"Invalid request\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "4ef3693b-b5fe-4a82-a438-4c79c50633cd": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "POST",
+            "path": "/stage1/package/123567192081501",
+            "query": "",
+            "body": "{\"metadata\":{\"Name\":\"fuzzstring\",\"Version\":\"1.2.3\",\"ID\":\"fuzzstring\"},\"data\":{}}"
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 400,
+            "codeDescription": "Bad Request",
+            "content": "{\"message\":\"Invalid request\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "573113ea-6b47-4691-8236-9ceeb8ea68d4": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "POST",
+            "path": "/stage1/package/fuzzstring",
+            "query": "",
+            "body": "{\n    \"metadata\":\n        {\n            \"Name\":\n                \"fuzzstring\"\n            ,\n            \"Version\":\"1.2.3\",\n            \"ID\":\n                \"fuzzstring\"\n        }\n    ,\n    \"data\":\n        {\n            \"Name\":\n                { \"fuzz\": false }\n            ,\n            \"Content\":\"fuzzstring\",\n            \"URL\":\"fuzzstring\",\n            \"debloat\":true,\n            \"JSProgram\":\"fuzzstring\"\n        }\n    }\r\n"
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 400,
+            "codeDescription": "Bad Request",
+            "content": "{\"message\":\"Invalid request\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "5e165d7b-f218-4b32-ab7c-3f99b84db4cb": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "POST",
+            "path": "/stage1/package/123567192081501",
+            "query": "",
+            "body": "{\n    \"metadata\":\n        {\n            \"Name\":\n                \"fuzzstring\"\n            ,\n            \"Version\":\"fuzzstring\",\n            \"ID\":\n                \"fuzzstring\"\n        }\n    ,\n    \"data\":\n        {\n            \"Name\":\n                { \"fuzz\": false }\n            ,\n            \"Content\":\"fuzzstring\",\n            \"URL\":\"fuzzstring\",\n            \"debloat\":true,\n            \"JSProgram\":\"fuzzstring\"\n        }\n    }\r\n"
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 400,
+            "codeDescription": "Bad Request",
+            "content": "{\"message\":\"Invalid request\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "73fa5404-f434-4fe8-9116-343c660afb70": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "POST",
+            "path": "/stage1/package/fuzzstring",
+            "query": "",
+            "body": "{\n    \"metadata\":\n        {\n            \"Name\":\n                \"fuzzstring\"\n            ,\n            \"Version\":\"fuzzstring\",\n            \"ID\":\n                \"fuzzstring\"\n        }\n    ,\n    \"data\":\n        {\n            \"Name\":\n                { \"fuzz\": false }\n            ,\n            \"Content\":\"fuzzstring\",\n            \"URL\":\"fuzzstring\",\n            \"debloat\":true,\n            \"JSProgram\":\"fuzzstring\"\n        }\n    }\r\n"
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 400,
+            "codeDescription": "Bad Request",
+            "content": "{\"message\":\"Invalid request\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "8da57571-1e71-4501-907f-eb1bdcb5c98e": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "POST",
+            "path": "/stage1/package/123567192081501",
+            "query": "",
+            "body": "{\n    \"metadata\":\n        {\n            \"Name\":\n                \"fuzzstring\"\n            ,\n            \"Version\":\"1.2.3\",\n            \"ID\":\n                \"fuzzstring\"\n        }\n    ,\n    \"data\":\n        {\n            \"Name\":\n                { \"fuzz\": false }\n            ,\n            \"Content\":\"fuzzstring\",\n            \"URL\":\"fuzzstring\",\n            \"debloat\":true,\n            \"JSProgram\":\"fuzzstring\"\n        }\n    }\r\n"
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 400,
+            "codeDescription": "Bad Request",
+            "content": "{\"message\":\"Invalid request\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "a3c7d704-99a8-45ba-82ae-0aaac97f910c": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "POST",
+            "path": "/stage1/package",
+            "query": "",
+            "body": "{}"
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 400,
+            "codeDescription": "Bad Request",
+            "content": "\"Invalid Request Body!\"",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "a433cc90-168e-4440-b153-c4a592932445": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "POST",
+            "path": "/stage1/package/123567192081501",
+            "query": "",
+            "body": "{\n    \"metadata\":\n        {\n            \"Name\":\n                \"fuzzstring\"\n            ,\n            \"Version\":\"1.2.3\",\n            \"ID\":\n                \"fuzzstring\"\n        }\n    ,\n    \"data\":\n        {\n            \"Name\":\n                { \"fuzz\": false }\n            ,\n            \"Content\":\"fuzzstring\",\n            \"URL\":\"fuzzstring\",\n            \"debloat\":true,\n            \"JSProgram\":\"fuzzstring\"\n        }\n    }\r\n"
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 400,
+            "codeDescription": "Bad Request",
+            "content": "{\"message\":\"Invalid request\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "bf015e4b-5325-4dcf-9999-7be4b973dae5": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "POST",
+            "path": "/stage1/package/123567192081501",
+            "query": "",
+            "body": "{\"metadata\":{\"Name\":\"fuzzstring\",\"Version\":\"fuzzstring\",\"ID\":\"123567192081501\"},\"data\":{}}"
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 400,
+            "codeDescription": "Bad Request",
+            "content": "{\"message\":\"Invalid request\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "c8d610d3-763d-4103-b7ed-93018578f097": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "POST",
+            "path": "/stage1/package/123567192081501",
+            "query": "",
+            "body": "{\n    \"metadata\":\n        {\n            \"Name\":\n                \"fuzzstring\"\n            ,\n            \"Version\":\"1.2.3\",\n            \"ID\":\n                \"123567192081501\"\n        }\n    ,\n    \"data\":\n        {\n            \"Name\":\n                { \"fuzz\": false }\n            ,\n            \"Content\":\"fuzzstring\",\n            \"URL\":\"fuzzstring\",\n            \"debloat\":true,\n            \"JSProgram\":\"fuzzstring\"\n        }\n    }\r\n"
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 400,
+            "codeDescription": "Bad Request",
+            "content": "{\"message\":\"Invalid request\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "d567e924-4920-4177-97be-8439a9c1be0e": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "POST",
+            "path": "/stage1/package/123567192081501",
+            "query": "",
+            "body": "{\n    \"metadata\":\n        {\n            \"Name\":\n                \"fuzzstring\"\n            ,\n            \"Version\":\"fuzzstring\",\n            \"ID\":\n                \"123567192081501\"\n        }\n    ,\n    \"data\":\n        {\n            \"Name\":\n                { \"fuzz\": false }\n            ,\n            \"Content\":\"fuzzstring\",\n            \"URL\":\"fuzzstring\",\n            \"debloat\":true,\n            \"JSProgram\":\"fuzzstring\"\n        }\n    }\r\n"
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 400,
+            "codeDescription": "Bad Request",
+            "content": "{\"message\":\"Invalid request\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "da9cbb78-f8ff-401e-b4f9-a1a027735a2b": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "POST",
+            "path": "/stage1/package/fuzzstring",
+            "query": "",
+            "body": "{\n    \"metadata\":\n        {\n            \"Name\":\n                \"fuzzstring\"\n            ,\n            \"Version\":\"fuzzstring\",\n            \"ID\":\n                \"123567192081501\"\n        }\n    ,\n    \"data\":\n        {\n            \"Name\":\n                { \"fuzz\": false }\n            ,\n            \"Content\":\"fuzzstring\",\n            \"URL\":\"fuzzstring\",\n            \"debloat\":true,\n            \"JSProgram\":\"fuzzstring\"\n        }\n    }\r\n"
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 400,
+            "codeDescription": "Bad Request",
+            "content": "{\"message\":\"Invalid request\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "db6091ac-d27d-4430-accc-01a90d91efa2": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "POST",
+            "path": "/stage1/package/123567192081501",
+            "query": "",
+            "body": "{\n    \"metadata\":\n        {\n            \"Name\":\n                \"fuzzstring\"\n            ,\n            \"Version\":\"fuzzstring\",\n            \"ID\":\n                \"123567192081501\"\n        }\n    ,\n    \"data\":\n        {\n            \"Name\":\n                { \"fuzz\": false }\n            ,\n            \"Content\":\"fuzzstring\",\n            \"URL\":\"fuzzstring\",\n            \"debloat\":true,\n            \"JSProgram\":\"fuzzstring\"\n        }\n    }\r\n"
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 400,
+            "codeDescription": "Bad Request",
+            "content": "{\"message\":\"Invalid request\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "dde53125-ac3a-4106-8d1d-277a1390331f": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "POST",
+            "path": "/stage1/package/123567192081501",
+            "query": "",
+            "body": "{\n    \"metadata\":\n        {\n            \"Name\":\n                \"fuzzstring\"\n            ,\n            \"Version\":\"fuzzstring\",\n            \"ID\":\n                \"fuzzstring\"\n        }\n    ,\n    \"data\":\n        {\n            \"Name\":\n                { \"fuzz\": false }\n            ,\n            \"Content\":\"fuzzstring\",\n            \"URL\":\"fuzzstring\",\n            \"debloat\":true,\n            \"JSProgram\":\"fuzzstring\"\n        }\n    }\r\n"
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 400,
+            "codeDescription": "Bad Request",
+            "content": "{\"message\":\"Invalid request\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "dfed06f7-da91-4354-855c-247ba2c603e2": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "POST",
+            "path": "/stage1/package/fuzzstring",
+            "query": "",
+            "body": "{\n    \"metadata\":\n        {\n            \"Name\":\n                \"fuzzstring\"\n            ,\n            \"Version\":\"1.2.3\",\n            \"ID\":\n                \"fuzzstring\"\n        }\n    ,\n    \"data\":\n        {\n            \"Name\":\n                { \"fuzz\": false }\n            ,\n            \"Content\":\"fuzzstring\",\n            \"URL\":\"fuzzstring\",\n            \"debloat\":true,\n            \"JSProgram\":\"fuzzstring\"\n        }\n    }\r\n"
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 400,
+            "codeDescription": "Bad Request",
+            "content": "{\"message\":\"Invalid request\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "ea1d5bc9-e069-4f67-a473-1cb6860a202b": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "POST",
+            "path": "/stage1/package/fuzzstring",
+            "query": "",
+            "body": "{\n    \"metadata\":\n        {\n            \"Name\":\n                \"fuzzstring\"\n            ,\n            \"Version\":\"1.2.3\",\n            \"ID\":\n                \"123567192081501\"\n        }\n    ,\n    \"data\":\n        {\n            \"Name\":\n                { \"fuzz\": false }\n            ,\n            \"Content\":\"fuzzstring\",\n            \"URL\":\"fuzzstring\",\n            \"debloat\":true,\n            \"JSProgram\":\"fuzzstring\"\n        }\n    }\r\n"
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 400,
+            "codeDescription": "Bad Request",
+            "content": "{\"message\":\"Invalid request\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "ff83acac-ffc1-41f3-8015-3585aac12cae": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "POST",
+            "path": "/stage1/package/123567192081501",
+            "query": "",
+            "body": "{\n    \"metadata\":\n        {\n            \"Name\":\n                \"fuzzstring\"\n            ,\n            \"Version\":\"1.2.3\",\n            \"ID\":\n                \"123567192081501\"\n        }\n    ,\n    \"data\":\n        {\n            \"Name\":\n                { \"fuzz\": false }\n            ,\n            \"Content\":\"fuzzstring\",\n            \"URL\":\"fuzzstring\",\n            \"debloat\":true,\n            \"JSProgram\":\"fuzzstring\"\n        }\n    }\r\n"
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 400,
+            "codeDescription": "Bad Request",
+            "content": "{\"message\":\"Invalid request\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ]
+  },
+  "404": {
+    "06559a76-10ba-4821-988e-e84095e76917": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "GET",
+            "path": "/stage1/package/123567192081501/rate",
+            "query": "",
+            "body": ""
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 404,
+            "codeDescription": "Not Found",
+            "content": "{\"message\":\"Package not found\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "07c44abe-8f9f-4e01-bbb1-fcd09fe110b8": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "GET",
+            "path": "/stage1/package/123567192081501",
+            "query": "",
+            "body": ""
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 404,
+            "codeDescription": "Not Found",
+            "content": "{\"message\":\"Package not found\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "2f10e9a3-8420-4bd3-a2df-816d415b1375": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "GET",
+            "path": "/stage1/package/123567192081501",
+            "query": "",
+            "body": ""
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 404,
+            "codeDescription": "Not Found",
+            "content": "{\"message\":\"Package not found\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "2f6acfb8-a435-4258-b922-57df5b400f0b": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "GET",
+            "path": "/stage1/package/fuzzstring/cost",
+            "query": "",
+            "body": ""
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 404,
+            "codeDescription": "Not Found",
+            "content": "{\"message\":\"Package does not exist.\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      },
+      {
+        "request": {
+          "RequestData": {
+            "method": "GET",
+            "path": "/stage1/package/123567192081501/cost",
+            "query": "",
+            "body": ""
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 404,
+            "codeDescription": "Not Found",
+            "content": "{\"message\":\"Package does not exist.\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      },
+      {
+        "request": {
+          "RequestData": {
+            "method": "GET",
+            "path": "/stage1/package/fuzzstring/cost",
+            "query": "dependency=true",
+            "body": ""
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 404,
+            "codeDescription": "Not Found",
+            "content": "{\"message\":\"Package does not exist.\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      },
+      {
+        "request": {
+          "RequestData": {
+            "method": "GET",
+            "path": "/stage1/package/123567192081501/cost",
+            "query": "dependency=true",
+            "body": ""
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 404,
+            "codeDescription": "Not Found",
+            "content": "{\"message\":\"Package does not exist.\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "3d1ad300-aba4-4b7c-98bd-fbe3071cb710": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "GET",
+            "path": "/stage1/package/123567192081501",
+            "query": "",
+            "body": ""
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 404,
+            "codeDescription": "Not Found",
+            "content": "{\"message\":\"Package not found\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "53020888-bfad-438a-a72d-18bb0ce163e7": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "GET",
+            "path": "/stage1/package/fuzzstring/rate",
+            "query": "",
+            "body": ""
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 404,
+            "codeDescription": "Not Found",
+            "content": "{\"message\":\"Package not found\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "5c04c03e-92a5-4723-ad8f-dba9863a4a31": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "POST",
+            "path": "/stage1/package/byRegEx",
+            "query": "",
+            "body": "{\"RegEx\":\"fuzzstring\"}"
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 404,
+            "codeDescription": "Not Found",
+            "content": "{\"message\":\"No packages found.\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "6a4dbce2-880b-4dce-885c-a5512ff798db": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "POST",
+            "path": "/stage1/package/byRegEx",
+            "query": "",
+            "body": "{\"RegEx\":\"fuzzstring\"}"
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 404,
+            "codeDescription": "Not Found",
+            "content": "{\"message\":\"No packages found.\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "723d30f8-5224-4975-8755-d4ef1fbe9c0d": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "POST",
+            "path": "/stage1/package/byRegEx",
+            "query": "",
+            "body": "{\n    \"RegEx\":\"fuzzstring\"}\r\n"
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 404,
+            "codeDescription": "Not Found",
+            "content": "{\"message\":\"No packages found.\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "94d00fbb-3fe1-498e-a31e-c2c49652190c": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "POST",
+            "path": "/stage1/package/byRegEx",
+            "query": "",
+            "body": "{\n    \"RegEx\":\"fuzzstring\"}\r\n"
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 404,
+            "codeDescription": "Not Found",
+            "content": "{\"message\":\"No packages found.\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "9a970247-e2bc-4b5e-86ca-b547f39178dd": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "GET",
+            "path": "/stage1/package/123567192081501/rate",
+            "query": "",
+            "body": ""
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 404,
+            "codeDescription": "Not Found",
+            "content": "{\"message\":\"Package not found\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "ab5ce26f-6082-48a0-a4e2-5d46e2fbe75a": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "GET",
+            "path": "/stage1/package/fuzzstring",
+            "query": "",
+            "body": ""
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 404,
+            "codeDescription": "Not Found",
+            "content": "{\"message\":\"Package not found\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "ad68a2ff-0959-44c8-9a8e-4e6baa3722a0": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "GET",
+            "path": "/stage1/package/fuzzstring",
+            "query": "",
+            "body": ""
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 404,
+            "codeDescription": "Not Found",
+            "content": "{\"message\":\"Package not found\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "c1166a1a-c099-4ba6-b209-697da8d8fd73": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "GET",
+            "path": "/stage1/package/fuzzstring/rate",
+            "query": "",
+            "body": ""
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 404,
+            "codeDescription": "Not Found",
+            "content": "{\"message\":\"Package not found\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "c4155b98-2db3-4f80-9756-ba2df97ecf44": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "GET",
+            "path": "/stage1/package/123567192081501",
+            "query": "",
+            "body": ""
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 404,
+            "codeDescription": "Not Found",
+            "content": "{\"message\":\"Package not found\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "e52df9e5-4d16-4dab-a8ff-1e46e9d06f1f": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "GET",
+            "path": "/stage1/package/fuzzstring",
+            "query": "",
+            "body": ""
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 404,
+            "codeDescription": "Not Found",
+            "content": "{\"message\":\"Package not found\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "e93d6212-9c17-47d8-86c2-6d9dadccdb3c": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "GET",
+            "path": "/stage1/package/fuzzstring",
+            "query": "",
+            "body": ""
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 404,
+            "codeDescription": "Not Found",
+            "content": "{\"message\":\"Package not found\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ]
+  },
+  "502": {
+    "03a7193c-c584-4b69-b37b-8218cf181657": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "POST",
+            "path": "/stage1/packages",
+            "query": "offset=1",
+            "body": "[\n    {\n        \"Version\":\n            \"Exact (1.2.3)\nBounded range (1.2.3-2.1.0)\nCarat (^1.2.3)\nTilde (~1.2.0)\"\n        ,\n        \"Name\":\n            \"fuzzstring\"\n    }]\r\n"
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 502,
+            "codeDescription": "Bad Gateway",
+            "content": "{\"message\": \"Internal server error\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "0efdccaa-a503-414d-b97f-282c51a9c5d6": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "POST",
+            "path": "/stage1/packages",
+            "query": "offset=fuzzstring",
+            "body": "[\n    {\n        \"Version\":\n            \"Exact (1.2.3)\nBounded range (1.2.3-2.1.0)\nCarat (^1.2.3)\nTilde (~1.2.0)\"\n        ,\n        \"Name\":\n            \"fuzzstring\"\n    }]\r\n"
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 502,
+            "codeDescription": "Bad Gateway",
+            "content": "{\"message\": \"Internal server error\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "208896d9-23bf-4920-baf6-72d0575b550f": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "PUT",
+            "path": "/stage1/authenticate",
+            "query": "",
+            "body": "{\n    \"User\":\n        {\n            \"name\":\"fuzzstring\",\n            \"isAdmin\":true\n        }\n    ,\n    \"Secret\":\n        {\n            \"password\":\"fuzzstring\"\n        }\n    }\r\n"
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 502,
+            "codeDescription": "Bad Gateway",
+            "content": "{\"message\": \"Internal server error\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "3a0d33a3-8762-4db6-819d-cdaa1ac67382": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "PUT",
+            "path": "/stage1/authenticate",
+            "query": "",
+            "body": "{\"User\":{\"name\":\"fuzzstring\",\"isAdmin\":true},\"Secret\":{\"password\":\"fuzzstring\"}}"
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 502,
+            "codeDescription": "Bad Gateway",
+            "content": "{\"message\": \"Internal server error\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "8850eb2c-37ff-4b19-82a7-4252478e8774": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "PUT",
+            "path": "/stage1/authenticate",
+            "query": "",
+            "body": "{\n    \"User\":\n        {\n            \"name\":\"Alfalfa\",\n            \"isAdmin\":true\n        }\n    ,\n    \"Secret\":\n        {\n            \"password\":\"fuzzstring\"\n        }\n    }\r\n"
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 502,
+            "codeDescription": "Bad Gateway",
+            "content": "{\"message\": \"Internal server error\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "c8a0408c-014c-403c-8a4a-716cb24fb9a9": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "POST",
+            "path": "/stage1/packages",
+            "query": "offset=1",
+            "body": "[\n    {\n        \"Version\":\n            \"Exact (1.2.3)\nBounded range (1.2.3-2.1.0)\nCarat (^1.2.3)\nTilde (~1.2.0)\"\n        ,\n        \"Name\":\n            \"fuzzstring\"\n    }]\r\n"
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 502,
+            "codeDescription": "Bad Gateway",
+            "content": "{\"message\": \"Internal server error\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "e91f83fc-3bd3-4375-9e3b-bb3391e0dbf6": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "PUT",
+            "path": "/stage1/authenticate",
+            "query": "",
+            "body": "{\n    \"User\":\n        {\n            \"name\":\"Alfalfa\",\n            \"isAdmin\":true\n        }\n    ,\n    \"Secret\":\n        {\n            \"password\":\"fuzzstring\"\n        }\n    }\r\n"
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 502,
+            "codeDescription": "Bad Gateway",
+            "content": "{\"message\": \"Internal server error\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ],
+    "e9305b9e-44b1-49e8-a720-b19711a39359": [
+      {
+        "request": {
+          "RequestData": {
+            "method": "PUT",
+            "path": "/stage1/authenticate",
+            "query": "",
+            "body": "{\"User\":{\"name\":\"Alfalfa\",\"isAdmin\":true},\"Secret\":{\"password\":\"fuzzstring\"}}"
+          }
+        },
+        "response": {
+          "ResponseData": {
+            "code": 502,
+            "codeDescription": "Bad Gateway",
+            "content": "{\"message\": \"Internal server error\"}",
+            "isFailure": true,
+            "isBug": false
+          }
+        }
+      }
+    ]
+  }
+}
