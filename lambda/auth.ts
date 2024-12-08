@@ -70,11 +70,11 @@ class AuthenticationService {
 
                 if (challengeResponse.AuthenticationResult) {
                     return {
-                        accessToken: challengeResponse.AuthenticationResult.AccessToken,
+                        //accessToken: challengeResponse.AuthenticationResult.AccessToken,
                         idToken: challengeResponse.AuthenticationResult.IdToken,
-                        refreshToken: challengeResponse.AuthenticationResult.RefreshToken,
-                        expiresIn: challengeResponse.AuthenticationResult.ExpiresIn,
-                        tokenType: challengeResponse.AuthenticationResult.TokenType,
+                        //refreshToken: challengeResponse.AuthenticationResult.RefreshToken,
+                        //expiresIn: challengeResponse.AuthenticationResult.ExpiresIn,
+                        //tokenType: challengeResponse.AuthenticationResult.TokenType,
                     };
                 } else {
                     throw new Error('AuthenticationResult is undefined after NEW_PASSWORD_REQUIRED challenge response.');
@@ -84,11 +84,11 @@ class AuthenticationService {
             // Normal authentication flow
             if (response.AuthenticationResult) {
                 return {
-                    accessToken: response.AuthenticationResult.AccessToken,
+                    //accessToken: response.AuthenticationResult.AccessToken,
                     idToken: response.AuthenticationResult.IdToken,
-                    refreshToken: response.AuthenticationResult.RefreshToken,
-                    expiresIn: response.AuthenticationResult.ExpiresIn,
-                    tokenType: response.AuthenticationResult.TokenType,
+                    //refreshToken: response.AuthenticationResult.RefreshToken,
+                    //expiresIn: response.AuthenticationResult.ExpiresIn,
+                    //tokenType: response.AuthenticationResult.TokenType,
                 };
             } else {
                 throw new Error('AuthenticationResult is undefined.');
@@ -153,7 +153,10 @@ export const lambdaHandler = async (event: any): Promise<any> => {
 
         return {
             statusCode: 200,
-            body: JSON.stringify(authResult),
+            headers: {
+                'Content-Type': 'text/plain',
+            },
+            body: `"bearer ${authResult.idToken}"`,
         };
     } catch (error) {
         console.error('Authentication error:', error);
