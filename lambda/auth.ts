@@ -1,4 +1,4 @@
-import { CognitoIdentityProviderClient, AdminInitiateAuthCommand, AuthFlowType, RespondToAuthChallengeCommand } from "@aws-sdk/client-cognito-identity-provider";
+import { CognitoIdentityProviderClient, AdminInitiateAuthCommand, AuthFlowType, RespondToAuthChallengeCommand, InitiateAuthCommand } from "@aws-sdk/client-cognito-identity-provider";
 import * as jwt from 'jsonwebtoken';
 import * as crypto from 'crypto';
 
@@ -48,7 +48,7 @@ class AuthenticationService {
 
         try {
             // Make the authentication call using the AWS SDK
-            const command = new AdminInitiateAuthCommand(params);
+            const command = new InitiateAuthCommand(params);
             const response = await this.cognitoIdentityProvider.send(command);
             if(response.ChallengeName === 'NEW_PASSWORD_REQUIRED') {
                 const challengeParams = {
