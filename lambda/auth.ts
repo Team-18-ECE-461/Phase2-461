@@ -1,5 +1,4 @@
-import { CognitoIdentityProviderClient, AdminInitiateAuthCommand, AuthFlowType, RespondToAuthChallengeCommand, InitiateAuthCommand } from "@aws-sdk/client-cognito-identity-provider";
-import * as jwt from 'jsonwebtoken';
+import { CognitoIdentityProviderClient, RespondToAuthChallengeCommand, InitiateAuthCommand, AuthFlowType } from "@aws-sdk/client-cognito-identity-provider";
 import * as crypto from 'crypto';
 
 class AuthenticationService {
@@ -27,14 +26,13 @@ class AuthenticationService {
     }
 
     /**
-     * Authenticate user and generate token
+     * Authenticate user and return Cognito tokens directly
      * @param loginRequest User login credentials
      * @returns Promise with authentication response
      */
     async authenticate(loginRequest: { username: string; password: string }): Promise<any> {
         const { username, password } = loginRequest;
 
-        // Prepare the authentication parameters for the USER_PASSWORD_AUTH flow
         const params = {
             AuthFlow: AuthFlowType.USER_PASSWORD_AUTH,
             ClientId: process.env.COGNITO_CLIENT_ID,
@@ -42,15 +40,19 @@ class AuthenticationService {
             AuthParameters: {
                 USERNAME: username,
                 PASSWORD: password,
-                SECRET_HASH: this.generateSecretHash(username), // Include SECRET_HASH
+                SECRET_HASH: this.generateSecretHash(username),
             },
         };
 
         try {
-            // Make the authentication call using the AWS SDK
             const command = new InitiateAuthCommand(params);
             const response = await this.cognitoIdentityProvider.send(command);
-            if(response.ChallengeName === 'NEW_PASSWORD_REQUIRED') {
+
+            // Handle NEW_PASSWORD_REQUIRED challenge if present
+            if (response.ChallengeName === 'NEW_PASSWORD_REQUIRED') {
+                if (!response.Session) {
+                    throw new Error('Session is missing from NEW_PASSWORD_REQUIRED challenge.');
+                }
 
                 const challengeParams = {
                     ClientId: process.env.COGNITO_CLIENT_ID,
@@ -58,63 +60,44 @@ class AuthenticationService {
                     Session: response.Session,
                     ChallengeResponses: {
                         USERNAME: username,
-                        NEW_PASSWORD: password, // New password provided by the user
+                        NEW_PASSWORD: password,
                         SECRET_HASH: this.generateSecretHash(username),
                     },
                 };
 
-            const respondToChallengeCommand = new RespondToAuthChallengeCommand(challengeParams);
-            const challengeResponse = await this.cognitoIdentityProvider.send(respondToChallengeCommand);
+                const respondToChallengeCommand = new RespondToAuthChallengeCommand(challengeParams);
+                const challengeResponse = await this.cognitoIdentityProvider.send(respondToChallengeCommand);
 
-
-           
-            if (challengeResponse.AuthenticationResult) {
-                if (!challengeResponse.AuthenticationResult.AccessToken) {
-                    throw new Error('AccessToken is undefined');
+                if (challengeResponse.AuthenticationResult) {
+                    return {
+                        accessToken: challengeResponse.AuthenticationResult.AccessToken,
+                        idToken: challengeResponse.AuthenticationResult.IdToken,
+                        refreshToken: challengeResponse.AuthenticationResult.RefreshToken,
+                        expiresIn: challengeResponse.AuthenticationResult.ExpiresIn,
+                        tokenType: challengeResponse.AuthenticationResult.TokenType,
+                    };
+                } else {
+                    throw new Error('AuthenticationResult is undefined after NEW_PASSWORD_REQUIRED challenge response.');
                 }
-                const token = this.generateCustomToken(username, challengeResponse.AuthenticationResult.AccessToken);
+            }
 
+            // Normal authentication flow
+            if (response.AuthenticationResult) {
                 return {
-                    token,
-                    userId: challengeResponse.AuthenticationResult.AccessToken,
-                    expiresIn: 7200, // 1 hour expiration
+                    accessToken: response.AuthenticationResult.AccessToken,
+                    idToken: response.AuthenticationResult.IdToken,
+                    refreshToken: response.AuthenticationResult.RefreshToken,
+                    expiresIn: response.AuthenticationResult.ExpiresIn,
+                    tokenType: response.AuthenticationResult.TokenType,
                 };
             } else {
-                throw new Error('AuthenticationResult is undefined');
+                throw new Error('AuthenticationResult is undefined.');
             }
-            }
-            else if (response.AuthenticationResult) {
-                if (!response.AuthenticationResult.AccessToken) {
-                    throw new Error('AccessToken is undefined');
-                }
-                const token = this.generateCustomToken(username, response.AuthenticationResult.AccessToken);
 
-                return {
-                    token,
-                    userId: response.AuthenticationResult.AccessToken,
-                    expiresIn: 7200, // 1 hour expiration
-                };
-            }
         } catch (err) {
             console.error(err);
             throw this.handleAuthenticationError(err);
         }
-    }
-
-    /**
-     * Generate a custom JWT token
-     * @param username User's username
-     * @param cognitoToken Cognito access token
-     * @returns Custom JWT token
-     */
-    generateCustomToken(username: string, cognitoToken: string): string {
-        const payload = {
-            sub: username,
-            cognitoToken, // Include Cognito token for additional validation if needed
-            iat: Math.floor(Date.now() / 1000),
-            exp: Math.floor(Date.now() / 1000) + 3600, // 1 hour expiration
-        };
-        return jwt.sign(payload, process.env.JWT_SECRET as string, { algorithm: 'HS256' });
     }
 
     /**
@@ -144,10 +127,17 @@ export const lambdaHandler = async (event: any): Promise<any> => {
         const requestBody = JSON.parse(event.body);
         const username = requestBody.User?.name;
         let password = requestBody.Secret?.password;
-        if(password.includes("DROP") || password.includes("DELETE") || password.includes("UPDATE") || password.includes("INSERT") || password.includes("SELECT") || password.includes("TRUNCATE") || password.includes("ALTER") || password.includes("CREATE") || password.includes("DROP") || password.includes("RENAME") || password.includes("REVOKE") || password.includes("GRANT") || password.includes("COMMIT") || password.includes("ROLLBACK") || password.includes("SAVEPOINT") || password.includes("SET TRANSACTION") || password.includes("SET CONSTRAINTS{") || password.includes("SET SESSION") || password.includes("SET TIME ZONE") || password.includes("SET ROLE") || password.includes("SET SESSION")){
+
+        // Simple SQL injection keyword checks and replacement
+        if (password.includes("DROP") || password.includes("DELETE") || password.includes("UPDATE") || 
+            password.includes("INSERT") || password.includes("SELECT") || password.includes("TRUNCATE") ||
+            password.includes("ALTER") || password.includes("CREATE") || password.includes("RENAME") || 
+            password.includes("REVOKE") || password.includes("GRANT") || password.includes("COMMIT") || 
+            password.includes("ROLLBACK") || password.includes("SAVEPOINT") || password.includes("SET TRANSACTION") ||
+            password.includes("SET CONSTRAINTS{") || password.includes("SET SESSION") || 
+            password.includes("SET TIME ZONE") || password.includes("SET ROLE") || password.includes("SET SESSION")) {
             password = "Safepassword#1234"
         }
-
 
         // Validate input
         if (!username || !password) {
