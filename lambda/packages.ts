@@ -97,7 +97,13 @@ export const lambdaHandler = async (event: LambdaEvent) => {
                 };
             }
             queryParams = buildParams(name, versionSchema, offset, limit);
-            const data = await dynamoDBclient.send(new QueryCommand(queryParams));
+            if(queryParams === 'Invalid version'){
+                return {
+                    statusCode: 400,
+                    body: JSON.stringify({ message: 'Invalid version schema.' }),
+                };
+            }
+            const data = await dynamoDBclient.send(new QueryCommand(queryParams as any));
             items = (data.Items || []).map(item => {
                 return {
                     Version: item.Version.S,
@@ -137,11 +143,7 @@ export function parsetovalidversion(versionSchema: string): string{
     if(versionSchema.includes('(') && versionSchema.includes(')')){
         versionSchema = versionSchema.slice(1, -1);
     }
-    let major, minor, patch;
-    [major, minor, patch] = versionSchema.split('.').map(Number);
-    if(isNaN(major) || isNaN(minor) || isNaN(patch)){
-        return 'Invalid version';
-    }
+    
     return versionSchema;
 }
 
@@ -168,6 +170,10 @@ export function buildParams(name: string, versionSchema: string, offset: any, li
     if (versionSchema.includes('^')) {
         
         const [start, end] = parseCaretVersion(versionSchema);
+        
+        if(isNaN(start) || isNaN(end)){
+            return 'Invalid version';
+        }
         let params2 = {
             TableName: TABLE_NAME,
             Limit: limit,
@@ -186,6 +192,9 @@ export function buildParams(name: string, versionSchema: string, offset: any, li
         }
     else if(versionSchema.includes('-')){
         const [start, end] = parseRange(versionSchema);
+        if(isNaN(start) || isNaN(end)){
+            return 'Invalid version';
+        }
         let params2 = {
             TableName: TABLE_NAME,
             Limit: limit,
@@ -204,6 +213,9 @@ export function buildParams(name: string, versionSchema: string, offset: any, li
     }
     else if(versionSchema.includes('~')){
         const [start, end] = parseTildeVersion(versionSchema);
+        if(isNaN(start) || isNaN(end)){
+            return 'Invalid version';
+        }
         let params2 = {
             TableName: TABLE_NAME,
             Limit: limit,
@@ -222,6 +234,10 @@ export function buildParams(name: string, versionSchema: string, offset: any, li
     }
     else{
         const version = versionSchema
+        let versionInt = versionToInt(version);
+        if(isNaN(versionInt)){
+            return 'Invalid version';
+        }
         let params3 = {
             TableName: TABLE_NAME,
             KeyConditionExpression: '#name = :name and Version = :version',
@@ -238,6 +254,10 @@ export function buildParams(name: string, versionSchema: string, offset: any, li
         
     
 }
+
+/*@function versionToInt
+    @param version - Version string
+    @returns Integer representation of the version*/
 
 export const versionToInt = (version: string) => {
     const [major, minor, patch] = version.split('.').map(Number);
