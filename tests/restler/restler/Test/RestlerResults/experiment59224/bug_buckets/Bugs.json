@@ -1,0 +1,9 @@
+{"bugs":[{
+    "filepath": "main_driver_502_1.json",
+    "reproducible": true,
+    "checker_name": "main_driver",
+    "error_code": "502"},{
+    "filepath": "main_driver_502_2.json",
+    "reproducible": true,
+    "checker_name": "main_driver",
+    "error_code": "502"}]}

@@ -1,0 +1,104 @@
+/* General page styling */
+.package-info-page {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    background-color: #f9f9f9;
+    min-height: 100vh;
+    text-align: center;
+  }
+  
+  /* Heading styles */
+  .package-info-page h1 {
+    font-size: 2rem;
+    color: #333;
+    margin-bottom: 10px;
+  }
+  
+  /* Paragraph styles */
+  .package-info-page p {
+    font-size: 1rem;
+    color: #666;
+    margin-bottom: 20px;
+  }
+  
+  /* Form styling */
+  .package-info-form {
+    display: inline-block;
+    text-align: left;
+    background: #fff;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    margin: 0 auto;
+  }
+  
+  .package-info-form label {
+    display: block;
+    font-size: 1rem;
+    color: #333;
+    margin-bottom: 8px;
+  }
+  
+  .package-info-form input[type="text"],
+  .package-info-form input[type="checkbox"],
+  .package-info-form button {
+    display: block;
+    width: 100%;
+    font-size: 1rem;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  .package-info-form input[type="text"]:focus,
+  .package-info-form button:focus {
+    outline: 3px solid #005fcc;
+    outline-offset: 2px;
+  }
+  
+  .package-info-form button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  
+  .package-info-form button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+  
+  .package-info-form button:hover:not(:disabled) {
+    background-color: #005fcc;
+  }
+  
+  .package-info-form input[type="checkbox"] {
+    width: auto;
+    margin-right: 10px;
+  }
+  
+  .package-info-form .checkbox-label {
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+  }
+  
+  /* Accessibility: Error message styling */
+  .message {
+    font-size: 1rem;
+    color: #d9534f;
+    margin-top: 10px;
+  }
+  
+  /* Responsive styling */
+  @media (max-width: 768px) {
+    .package-info-form {
+      width: 100%;
+      padding: 15px;
+    }
+  }
+  

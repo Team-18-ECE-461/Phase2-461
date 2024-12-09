@@ -1,0 +1,260 @@
+[11/26/2024 7:32:50 PM] Generating grammar...
+[11/26/2024 7:32:50 PM] Getting requests...
+[11/26/2024 7:32:50 PM] Getting dependencies...
+[11/26/2024 7:32:50 PM] Getting path consumers...
+[11/26/2024 7:32:50 PM] Getting query consumers...
+[11/26/2024 7:32:50 PM] Getting header consumers...
+[11/26/2024 7:32:50 PM] Getting body consumers...
+[11/26/2024 7:32:50 PM] Getting producers...
+[11/26/2024 7:32:50 PM] Done processing producers
+[11/26/2024 7:32:50 PM] Compute dependencies
+[11/26/2024 7:32:50 PM] Second pass dependencies for request { endpoint = "/package/{id}/cost"
+  xMsPath = None
+  method = Get }
+[11/26/2024 7:32:50 PM] Second pass dependencies for request { endpoint = "/reset"
+  xMsPath = None
+  method = Delete }
+[11/26/2024 7:32:50 PM] Second pass dependencies for request { endpoint = "/package/{id}"
+  xMsPath = None
+  method = Get }[[11/26/2024 7:32:50 PM] Second pass dependencies for request { endpoint = "/package"
+  xMsPath = None
+  method = Post }[11/26/2024 7:32:50 PM] [[11/26/2024 7:32:50 PM[[[
+11/26/2024 7:32:50 PM] Second pass dependencies for request { endpoint = "/packages"
+  xMsPath = None
+  method = Post }11/26/2024 7:32:50 PM] Second pass dependencies for request { endpoint = "/package"
+  xMsPath = None
+  method = Post }
+[11/26/2024 7:32:50 PM] Second pass dependencies for request { endpoint = "/package/byRegEx"
+  xMsPath = None
+  method = Post }
+Second pass dependencies for request { endpoint = "/package/{id}"
+  xMsPath = None
+  method = Get }
+11/26/2024 7:32:50 PM] Second pass dependencies for request { endpoint = "/package"
+  xMsPath = None
+  method = Post }
+] [11/26/2024 7:32:50 PM] 11/26/2024 7:32:50 PMDone dependencies for request { endpoint = "/reset"
+  xMsPath = None
+  method = Delete }] Second pass dependencies for request { endpoint = "/package/byRegEx"
+  xMsPath = None
+  method = Post }
+[11/26/2024 7:32:50 PM] Done dependencies for request { endpoint = "/package/{id}"
+  xMsPath = None
+  method = Get }
+11/26/2024 7:32:50 PM[[11/26/2024 7:32:50 PM11/26/2024 7:32:50 PM] Done dependencies for request { endpoint = "/package/{id}/cost"
+  xMsPath = None
+  method = Get }
+
+
+[11/26/2024 7:32:50 PM] Second pass dependencies for request { endpoint = "/package/{id}/cost"
+  xMsPath = None
+  method = Get }
+
+] Second pass dependencies for request { endpoint = "/packages"
+  xMsPath = None
+  method = Post }
+] Second pass dependencies for request { endpoint = "/package/{id}"
+  xMsPath = None
+  method = Get }
+Second pass dependencies for request { endpoint = "/package/byRegEx"
+  xMsPath = None
+  method = Post }[11/26/2024 7:32:50 PM] Done dependencies for request { endpoint = "/package"
+  xMsPath = None
+  method = Post }
+
+[11/26/2024 7:32:50 PM] Done dependencies for request { endpoint = "/package/{id}"
+  xMsPath = None
+  method = Get }
+[11/26/2024 7:32:50 PM] Done dependencies for request { endpoint = "/package"
+  xMsPath = None
+  method = Post }[11/26/2024 7:32:50 PM[
+] Done dependencies for request { endpoint = "/package/byRegEx"
+  xMsPath = None
+  method = Post }11/26/2024 7:32:50 PM[11/26/2024 7:32:50 PM] Done dependencies for request { endpoint = "/package"
+  xMsPath = None
+  method = Post }
+] Done dependencies for request { endpoint = "/package/byRegEx"
+  xMsPath = None
+  method = Post }[11/26/2024 7:32:50 PM] Done dependencies for request { endpoint = "/packages"
+  xMsPath = None
+  method = Post }
+
+
+[11/26/2024 7:32:50 PM] Second pass dependencies for request { endpoint = "/authenticate"
+  xMsPath = None
+  method = Put }
+[11/26/2024 7:32:50 PM] Done dependencies for request { endpoint = "/package/byRegEx"
+  xMsPath = None
+  method = Post }
+[11/26/2024 7:32:50 PM] Second pass dependencies for request { endpoint = "/package/{id}"
+  xMsPath = None
+  method = Post }[11/26/2024 7:32:50 PM] Done dependencies for request { endpoint = "/packages"
+  xMsPath = None
+  method = Post }
+
+[11/26/2024 7:32:50 PM] Second pass dependencies for request { endpoint = "/package/{id}/rate"
+  xMsPath = None
+  method = Get }
+[11/26/2024 7:32:50 PM] Done dependencies for request { endpoint = "/package/{id}"
+  xMsPath = None
+  method = Get }
+[11/26/2024 7:32:50 PM] Second pass dependencies for request { endpoint = "/tracks"
+  xMsPath = None
+  method = Get }
+[11/26/2024 7:32:50 PM] Second pass dependencies for request { endpoint = "/authenticate"
+  xMsPath = None
+  method = Put }
+[11/26/2024 7:32:50 PM] Done dependencies for request { endpoint = "/package/{id}/rate"
+  xMsPath = None
+  method = Get }
+[11/26/2024 7:32:50 PM] Second pass dependencies for request { endpoint = "/package/{id}/rate"
+  xMsPath = None
+  method = Get }
+[11/26/2024 7:32:50 PM] Done dependencies for request { endpoint = "/package/{id}/cost"
+  xMsPath = None
+  method = Get }
+[11/26/2024 7:32:50 PM] Second pass dependencies for request { endpoint = "/package/{id}"
+  xMsPath = None
+  method = Post }
+[11/26/2024 7:32:50 PM] Second pass dependencies for request { endpoint = "/authenticate"
+  xMsPath = None
+  method = Put }
+[11/26/2024 7:32:50 PM] Done dependencies for request { endpoint = "/authenticate"
+  xMsPath = None
+  method = Put }
+[11/26/2024 7:32:50 PM] Done dependencies for request { endpoint = "/package/{id}/rate"
+  xMsPath = None
+  method = Get }
+[11/26/2024 7:32:50 PM[11/26/2024 7:32:50 PM] Second pass dependencies for request { endpoint = "/reset"
+  xMsPath = None
+  method = Delete }
+] Second pass dependencies for request { endpoint = "/tracks"
+  xMsPath = None
+  method = Get }
+[11/26/2024 7:32:50 PM] Done dependencies for request { endpoint = "/package/{id}"
+  xMsPath = None
+  method = Post }
+[11/26/2024 7:32:50 PM] Second pass dependencies for request { endpoint = "/tracks"
+  xMsPath = None
+  method = Get }
+[[11/26/2024 7:32:50 PM11/26/2024 7:32:50 PM] Second pass dependencies for request { endpoint = "/reset"
+  xMsPath = None
+  method = Delete }
+] Done dependencies for request { endpoint = "/tracks"
+  xMsPath = None
+  method = Get }
+[11/26/2024 7:32:50 PM] Second pass dependencies for request { endpoint = "/reset"
+  xMsPath = None
+  method = Delete }
+[11/26/2024 7:32:50 PM] Done dependencies for request { endpoint = "/package/{id}"
+  xMsPath = None
+  method = Post }
+[11/26/2024 7:32:50 PM] Done dependencies for request { endpoint = "/reset"
+  xMsPath = None
+  method = Delete }
+[11/26/2024 7:32:50 PM] Done dependencies for request { endpoint = "/authenticate"
+  xMsPath = None
+  method = Put }
+[11/26/2024 7:32:50 PM] Done dependencies for request { endpoint = "/reset"
+  xMsPath = None
+  method = Delete }
+[11/26/2024 7:32:50 PM] Done dependencies for request { endpoint = "/tracks"
+  xMsPath = None
+  method = Get }
+[11/26/2024 7:32:50 PM] Done dependencies for request { endpoint = "/authenticate"
+  xMsPath = None
+  method = Put }
+[11/26/2024 7:32:50 PM] Second pass dependencies for request { endpoint = "/package/{id}/rate"
+  xMsPath = None
+  method = Get }
+[[11/26/2024 7:32:50 PM] Second pass dependencies for request { endpoint = "/tracks"
+  xMsPath = None
+  method = Get }
+11/26/2024 7:32:50 PM] Done dependencies for request { endpoint = "/reset"
+  xMsPath = None
+  method = Delete }
+[11/26/2024 7:32:50 PM] [Done dependencies for request { endpoint = "/tracks"
+  xMsPath = None
+  method = Get }11/26/2024 7:32:50 PM
+] Done dependencies for request { endpoint = "/package/{id}/rate"
+  xMsPath = None
+  method = Get }
+[11/26/2024 7:32:50 PM] Done dependencies for request { endpoint = "/tracks"
+  xMsPath = None
+  method = Get }
+[[11/26/2024 7:32:50 PM] Second pass dependencies for request { endpoint = "/package/{id}"
+  xMsPath = None
+  method = Post }
+11/26/2024 7:32:50 PM] Second pass dependencies for request { endpoint = "/package/{id}/cost"
+  xMsPath = None
+  method = Get }
+[11/26/2024 7:32:50 PM] Second pass dependencies for request { endpoint = "/packages"
+  xMsPath = None
+  method = Post }
+[11/26/2024 7:32:50 PM] Second pass dependencies for request { endpoint = "/package/{id}/rate"
+  xMsPath = None
+  method = Get }
+[[11/26/2024 7:32:50 PM] Second pass dependencies for request { endpoint = "/package/{id}"
+  xMsPath = None
+  method = Get }11/26/2024 7:32:50 PM] Second pass dependencies for request { endpoint = "/package/{id}/cost"
+  xMsPath = None
+  method = Get }
+
+[11/26/2024 7:32:50 PM] Done dependencies for request { endpoint = "/package/{id}/cost"
+  xMsPath = None
+  method = Get }
+[11/26/2024 7:32:50 PM] Done dependencies for request { endpoint = "/package/{id}"
+  xMsPath = None
+  method = Post }
+[11/26/2024 7:32:50 PM] Done dependencies for request { endpoint = "/package/{id}/cost"
+  xMsPath = None
+  method = Get }[11/26/2024 7:32:50 PM] Done dependencies for request { endpoint = "/packages"
+  xMsPath = None
+  method = Post }
+
+[11/26/2024 7:32:50 PM] Done dependencies for request { endpoint = "/package/{id}/rate"
+  xMsPath = None
+  method = Get }
+[11/26/2024 7:32:50 PM] Done dependencies for request { endpoint = "/package/{id}"
+  xMsPath = None
+  method = Get }
+[11/26/2024 7:32:50 PM] Second pass dependencies for request { endpoint = "/package/byRegEx"
+  xMsPath = None
+  method = Post }
+[11/26/2024 7:32:50 PM] Second pass dependencies for request { endpoint = "/authenticate"
+  xMsPath = None
+  method = Put }
+[11/26/2024 7:32:50 PM] Done dependencies for request { endpoint = "/package/byRegEx"
+  xMsPath = None
+  method = Post }
+[11/26/2024 7:32:50 PM] Done dependencies for request { endpoint = "/authenticate"
+  xMsPath = None
+  method = Put }
+[11/26/2024 7:32:50 PM] Second pass dependencies for request { endpoint = "/package/{id}"
+  xMsPath = None
+  method = Post }
+[11/26/2024 7:32:50 PM] Done dependencies for request { endpoint = "/package/{id}"
+  xMsPath = None
+  method = Post }
+[11/26/2024 7:32:50 PM] Second pass dependencies for request { endpoint = "/package"
+  xMsPath = None
+  method = Post }
+[11/26/2024 7:32:50 PM] Second pass dependencies for request { endpoint = "/packages"
+  xMsPath = None
+  method = Post }
+[11/26/2024 7:32:50 PM] Done dependencies for request { endpoint = "/package"
+  xMsPath = None
+  method = Post }
+[11/26/2024 7:32:50 PM] Done dependencies for request { endpoint = "/packages"
+  xMsPath = None
+  method = Post }
+[11/26/2024 7:32:50 PM] Assigning equality constraints...
+[11/26/2024 7:32:50 PM] Getting ordering constraints...
+[11/26/2024 7:32:50 PM] Dependency analysis completed.
+[11/26/2024 7:32:50 PM] Generating request primitives...
+Writing new dictionary to C:\Users\kparv\Downloads\ece-461-actuallyusethis\restler-fuzzer\UserskparvDownloadsece-461-actuallyusethisrestler-fuzzerrestler_bin\restler\Compile\dict.json
+[11/26/2024 7:32:50 PM] Generating python grammar...
+[11/26/2024 7:32:50 PM] Get requests
+[11/26/2024 7:32:50 PM] Done get requests
+[11/26/2024 7:32:50 PM] Done generating python grammar.
+Workflow completed.  See C:\Users\kparv\Downloads\ece-461-actuallyusethis\restler-fuzzer\UserskparvDownloadsece-461-actuallyusethisrestler-fuzzerrestler_bin\restler\Compile for REST-ler grammar.

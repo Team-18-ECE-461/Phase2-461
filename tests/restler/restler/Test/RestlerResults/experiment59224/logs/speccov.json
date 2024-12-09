@@ -1,0 +1,405 @@
+{
+    "1432cace360e7bacfb85a256e252e6a803322795_1": {
+        "verb": "GET",
+        "endpoint": "/tracks",
+        "verb_endpoint": "GET /tracks",
+        "valid": 1,
+        "matching_prefix": [],
+        "invalid_due_to_sequence_failure": 0,
+        "invalid_due_to_resource_failure": 0,
+        "invalid_due_to_parser_failure": 0,
+        "invalid_due_to_500": 0,
+        "status_code": "200",
+        "status_text": "OK",
+        "error_message": null,
+        "request_order": 0,
+        "sample_request": {
+            "request_sent_timestamp": null,
+            "response_received_timestamp": "2024-12-08 18:21:03",
+            "request_verb": "GET",
+            "request_uri": "/stage1/tracks",
+            "request_headers": [
+                "Accept: application/json",
+                "Host: 3zq0b41jvf.execute-api.us-east-1.amazonaws.com"
+            ],
+            "request_body": null,
+            "response_status_code": "200",
+            "response_status_text": "OK",
+            "response_headers": [
+                "Date: Sun, 08 Dec 2024 18:21:04 GMT",
+                "Content-Type: application/json",
+                "Content-Length: 42",
+                "Connection: keep-alive",
+                "x-amzn-RequestId: a58a29ec-9842-4247-8bb0-cdde17f358fd",
+                "x-amz-apigw-id: CfB-iEhzoAMEagg=",
+                "X-Amzn-Trace-Id: Root=1-6755e38f-0bad28ec1a2fb75718232171;Parent=1512af4fb4a3ab39;Sampled=0;Lineage=1:a8588aee:0"
+            ],
+            "response_body": "{\"plannedTracks\":[\"Access control track\"]}"
+        },
+        "tracked_parameters": {}
+    },
+    "2cf9e105b78f22c8cba7d77ae184dbf94bd947b5_1": {
+        "verb": "GET",
+        "endpoint": "/package/{id}/rate",
+        "verb_endpoint": "GET /package/{id}/rate",
+        "valid": 0,
+        "matching_prefix": [],
+        "invalid_due_to_sequence_failure": 0,
+        "invalid_due_to_resource_failure": 0,
+        "invalid_due_to_parser_failure": 0,
+        "invalid_due_to_500": 0,
+        "status_code": "404",
+        "status_text": "Not Found",
+        "error_message": "{\"message\":\"Package not found\"}",
+        "request_order": 1,
+        "sample_request": {
+            "request_sent_timestamp": null,
+            "response_received_timestamp": "2024-12-08 18:21:03",
+            "request_verb": "GET",
+            "request_uri": "/stage1/package/123567192081501/rate",
+            "request_headers": [
+                "Accept: application/json",
+                "Host: 3zq0b41jvf.execute-api.us-east-1.amazonaws.com",
+                "X-Authorization: fuzzstring"
+            ],
+            "request_body": null,
+            "response_status_code": "404",
+            "response_status_text": "Not Found",
+            "response_headers": [
+                "Date: Sun, 08 Dec 2024 18:21:04 GMT",
+                "Content-Type: application/json",
+                "Content-Length: 31",
+                "Connection: keep-alive",
+                "x-amzn-RequestId: db34279f-dcf2-4fc8-a125-58bb4f7a8e05",
+                "x-amz-apigw-id: CfB-mEPLIAMEBfw=",
+                "X-Amzn-Trace-Id: Root=1-6755e390-6468ecbc758027db6a6a3ba9;Parent=6ff9e564b0355269;Sampled=0;Lineage=1:e1f84b31:0"
+            ],
+            "response_body": "{\"message\":\"Package not found\"}"
+        },
+        "tracked_parameters": {}
+    },
+    "34378edc1c9c7e4a438d92f5d892fa0a51880371_1": {
+        "verb": "PUT",
+        "endpoint": "/authenticate",
+        "verb_endpoint": "PUT /authenticate",
+        "valid": 0,
+        "matching_prefix": [],
+        "invalid_due_to_sequence_failure": 0,
+        "invalid_due_to_resource_failure": 0,
+        "invalid_due_to_parser_failure": 0,
+        "invalid_due_to_500": 1,
+        "status_code": "502",
+        "status_text": "Bad Gateway",
+        "error_message": "{\"message\": \"Internal server error\"}",
+        "request_order": 2,
+        "sample_request": {
+            "request_sent_timestamp": null,
+            "response_received_timestamp": "2024-12-08 18:21:05",
+            "request_verb": "PUT",
+            "request_uri": "/stage1/authenticate",
+            "request_headers": [
+                "Accept: application/json",
+                "Host: 3zq0b41jvf.execute-api.us-east-1.amazonaws.com",
+                "Content-Type: application/json"
+            ],
+            "request_body": "{\n    \"User\":\n        {\n            \"name\":\"Alfalfa\",\n            \"isAdmin\":true\n        }\n    ,\n    \"Secret\":\n        {\n            \"password\":\"fuzzstring\"\n        }\n    }\r\n",
+            "response_status_code": "502",
+            "response_status_text": "Bad Gateway",
+            "response_headers": [
+                "Date: Sun, 08 Dec 2024 18:21:05 GMT",
+                "Content-Type: application/json",
+                "Content-Length: 36",
+                "Connection: keep-alive",
+                "x-amzn-RequestId: 8a609a7c-a90c-487e-a75c-8b8f593ca733",
+                "x-amzn-ErrorType: InternalServerErrorException",
+                "x-amz-apigw-id: CfB-vGMjIAMEP3g="
+            ],
+            "response_body": "{\"message\": \"Internal server error\"}"
+        },
+        "tracked_parameters": {}
+    },
+    "363dfef7918f8b6448fc6cea79723e812ed3ff66_1": {
+        "verb": "POST",
+        "endpoint": "/package/{id}",
+        "verb_endpoint": "POST /package/{id}",
+        "valid": 0,
+        "matching_prefix": [],
+        "invalid_due_to_sequence_failure": 0,
+        "invalid_due_to_resource_failure": 0,
+        "invalid_due_to_parser_failure": 0,
+        "invalid_due_to_500": 0,
+        "status_code": "400",
+        "status_text": "Bad Request",
+        "error_message": "{\"message\":\"Invalid request\"}",
+        "request_order": 3,
+        "sample_request": {
+            "request_sent_timestamp": null,
+            "response_received_timestamp": "2024-12-08 18:21:08",
+            "request_verb": "POST",
+            "request_uri": "/stage1/package/123567192081501",
+            "request_headers": [
+                "Accept: application/json",
+                "Host: 3zq0b41jvf.execute-api.us-east-1.amazonaws.com",
+                "X-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+                "Content-Type: application/json"
+            ],
+            "request_body": "{\n    \"metadata\":\n        {\n            \"Name\":\n                \"fuzzstring\"\n            ,\n            \"Version\":\"1.2.3\",\n            \"ID\":\n                \"123567192081501\"\n        }\n    ,\n    \"data\":\n        {\n            \"Name\":\n                { \"fuzz\": false }\n            ,\n            \"Content\":\"fuzzstring\",\n            \"URL\":\"fuzzstring\",\n            \"debloat\":true,\n            \"JSProgram\":\"fuzzstring\"\n        }\n    }\r\n",
+            "response_status_code": "400",
+            "response_status_text": "Bad Request",
+            "response_headers": [
+                "Date: Sun, 08 Dec 2024 18:21:08 GMT",
+                "Content-Type: application/json",
+                "Content-Length: 29",
+                "Connection: keep-alive",
+                "x-amzn-RequestId: 0ad3c941-9f1c-4c53-a40f-5e1c72adbf11",
+                "x-amz-apigw-id: CfB_JFnpIAMEnAA=",
+                "X-Amzn-Trace-Id: Root=1-6755e393-2dee0fc61a8153a44acec5f2;Parent=48a58b511995804b;Sampled=0;Lineage=1:cd8741cc:0"
+            ],
+            "response_body": "{\"message\":\"Invalid request\"}"
+        },
+        "tracked_parameters": {}
+    },
+    "372ed7a4465fd8552af28bd18ae4deac31545b50_1": {
+        "verb": "DELETE",
+        "endpoint": "/reset",
+        "verb_endpoint": "DELETE /reset",
+        "valid": 1,
+        "matching_prefix": [],
+        "invalid_due_to_sequence_failure": 0,
+        "invalid_due_to_resource_failure": 0,
+        "invalid_due_to_parser_failure": 0,
+        "invalid_due_to_500": 0,
+        "status_code": "200",
+        "status_text": "OK",
+        "error_message": null,
+        "request_order": 4,
+        "sample_request": {
+            "request_sent_timestamp": null,
+            "response_received_timestamp": "2024-12-08 18:21:14",
+            "request_verb": "DELETE",
+            "request_uri": "/stage1/reset",
+            "request_headers": [
+                "Accept: application/json",
+                "Host: 3zq0b41jvf.execute-api.us-east-1.amazonaws.com",
+                "X-Authorization: fuzzstring"
+            ],
+            "request_body": null,
+            "response_status_code": "200",
+            "response_status_text": "OK",
+            "response_headers": [
+                "Date: Sun, 08 Dec 2024 18:21:15 GMT",
+                "Content-Type: application/json",
+                "Content-Length: 62",
+                "Connection: keep-alive",
+                "x-amzn-RequestId: c1131e47-574f-4efb-ba39-f869e7d5e260",
+                "x-amz-apigw-id: CfB_9EuIoAMEIqQ=",
+                "X-Amzn-Trace-Id: Root=1-6755e398-4a4b736d3cd854bf185b09eb;Parent=5467446991db75f4;Sampled=0;Lineage=1:3e37fb17:0"
+            ],
+            "response_body": "{\"message\":\"Table cleared and default user set successfully.\"}"
+        },
+        "tracked_parameters": {}
+    },
+    "53c40289bc28496ce0dc38077ca4ccae5f2a4441_1": {
+        "verb": "POST",
+        "endpoint": "/package",
+        "verb_endpoint": "POST /package",
+        "valid": 0,
+        "matching_prefix": [],
+        "invalid_due_to_sequence_failure": 0,
+        "invalid_due_to_resource_failure": 0,
+        "invalid_due_to_parser_failure": 0,
+        "invalid_due_to_500": 0,
+        "status_code": "400",
+        "status_text": "Bad Request",
+        "error_message": "\"Invalid Request Body!\"",
+        "request_order": 5,
+        "sample_request": {
+            "request_sent_timestamp": null,
+            "response_received_timestamp": "2024-12-08 18:21:16",
+            "request_verb": "POST",
+            "request_uri": "/stage1/package",
+            "request_headers": [
+                "Accept: application/json",
+                "Host: 3zq0b41jvf.execute-api.us-east-1.amazonaws.com",
+                "X-Authorization: fuzzstring",
+                "Content-Type: application/json"
+            ],
+            "request_body": "{\n    \"Name\":\n        { \"fuzz\": false }\n    ,\n    \"Content\":\"fuzzstring\",\n    \"URL\":\"fuzzstring\",\n    \"debloat\":true,\n    \"JSProgram\":\"fuzzstring\"}\r\n",
+            "response_status_code": "400",
+            "response_status_text": "Bad Request",
+            "response_headers": [
+                "Date: Sun, 08 Dec 2024 18:21:17 GMT",
+                "Content-Type: application/json",
+                "Content-Length: 23",
+                "Connection: keep-alive",
+                "x-amzn-RequestId: fd9a6c63-ef27-4520-8ce0-d4f5f8073890",
+                "x-amz-apigw-id: CfCAZHkBIAMEP3g=",
+                "X-Amzn-Trace-Id: Root=1-6755e39b-2748f0cd189e33930f035aee;Parent=6c207a6b6900074d;Sampled=0;Lineage=1:698c1f5e:0"
+            ],
+            "response_body": "\"Invalid Request Body!\""
+        },
+        "tracked_parameters": {}
+    },
+    "622f8847b89cdc3edbb1fc1c095a74df6195b6c3_1": {
+        "verb": "POST",
+        "endpoint": "/package/byRegEx",
+        "verb_endpoint": "POST /package/byRegEx",
+        "valid": 0,
+        "matching_prefix": [],
+        "invalid_due_to_sequence_failure": 0,
+        "invalid_due_to_resource_failure": 0,
+        "invalid_due_to_parser_failure": 0,
+        "invalid_due_to_500": 0,
+        "status_code": "404",
+        "status_text": "Not Found",
+        "error_message": "{\"message\":\"No packages found.\"}",
+        "request_order": 6,
+        "sample_request": {
+            "request_sent_timestamp": null,
+            "response_received_timestamp": "2024-12-08 18:21:18",
+            "request_verb": "POST",
+            "request_uri": "/stage1/package/byRegEx",
+            "request_headers": [
+                "Accept: application/json",
+                "Host: 3zq0b41jvf.execute-api.us-east-1.amazonaws.com",
+                "X-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+                "Content-Type: application/json"
+            ],
+            "request_body": "{\n    \"RegEx\":\"fuzzstring\"}\r\n",
+            "response_status_code": "404",
+            "response_status_text": "Not Found",
+            "response_headers": [
+                "Date: Sun, 08 Dec 2024 18:21:19 GMT",
+                "Content-Type: application/json",
+                "Content-Length: 32",
+                "Connection: keep-alive",
+                "x-amzn-RequestId: 1cf251e2-666f-4768-9af0-6c060abb99c2",
+                "x-amz-apigw-id: CfCArFUKoAMEIqQ=",
+                "X-Amzn-Trace-Id: Root=1-6755e39d-35a185bc0b963b6e7e8b0d53;Parent=012ca284b170aa1e;Sampled=0;Lineage=1:b57455e7:0"
+            ],
+            "response_body": "{\"message\":\"No packages found.\"}"
+        },
+        "tracked_parameters": {}
+    },
+    "dda8837d7e90fc25b149d3cf4b78cb64d0af2def_3": {
+        "verb": "POST",
+        "endpoint": "/packages",
+        "verb_endpoint": "POST /packages",
+        "valid": 1,
+        "matching_prefix": [],
+        "invalid_due_to_sequence_failure": 0,
+        "invalid_due_to_resource_failure": 0,
+        "invalid_due_to_parser_failure": 0,
+        "invalid_due_to_500": 0,
+        "status_code": "200",
+        "status_text": "OK",
+        "error_message": null,
+        "request_order": 7,
+        "sample_request": {
+            "request_sent_timestamp": null,
+            "response_received_timestamp": "2024-12-08 18:21:20",
+            "request_verb": "POST",
+            "request_uri": "/stage1/packages",
+            "request_headers": [
+                "Accept: application/json",
+                "Host: 3zq0b41jvf.execute-api.us-east-1.amazonaws.com",
+                "X-Authorization: fuzzstring",
+                "Content-Type: application/json"
+            ],
+            "request_body": "[{\"Name\":\"fuzzstring\"}]",
+            "response_status_code": "200",
+            "response_status_text": "OK",
+            "response_headers": [
+                "Date: Sun, 08 Dec 2024 18:21:21 GMT",
+                "Content-Type: application/json",
+                "Content-Length: 2",
+                "Connection: keep-alive",
+                "x-amzn-RequestId: f2bf881f-d936-4016-86df-06b53cde496f",
+                "x-amz-apigw-id: CfCBRE0zIAMEgSw=",
+                "X-Amzn-Trace-Id: Root=1-6755e3a1-4fd1c76b722eed6a218e063f;Parent=341fab8a228ad290;Sampled=0;Lineage=1:22038140:0"
+            ],
+            "response_body": "[]"
+        },
+        "tracked_parameters": {}
+    },
+    "eadef1a1f3943dfd070111a7759507bbe57a2fab_1": {
+        "verb": "GET",
+        "endpoint": "/package/{id}/cost",
+        "verb_endpoint": "GET /package/{id}/cost",
+        "valid": 0,
+        "matching_prefix": [],
+        "invalid_due_to_sequence_failure": 0,
+        "invalid_due_to_resource_failure": 0,
+        "invalid_due_to_parser_failure": 0,
+        "invalid_due_to_500": 0,
+        "status_code": "404",
+        "status_text": "Not Found",
+        "error_message": "{\"message\":\"Package does not exist.\"}",
+        "request_order": 8,
+        "sample_request": {
+            "request_sent_timestamp": null,
+            "response_received_timestamp": "2024-12-08 18:21:20",
+            "request_verb": "GET",
+            "request_uri": "/stage1/package/123567192081501/cost?dependency=true",
+            "request_headers": [
+                "Accept: application/json",
+                "Host: 3zq0b41jvf.execute-api.us-east-1.amazonaws.com",
+                "X-Authorization: fuzzstring"
+            ],
+            "request_body": null,
+            "response_status_code": "404",
+            "response_status_text": "Not Found",
+            "response_headers": [
+                "Date: Sun, 08 Dec 2024 18:21:21 GMT",
+                "Content-Type: application/json",
+                "Content-Length: 37",
+                "Connection: keep-alive",
+                "x-amzn-RequestId: 8d25ac9a-c1ac-44bc-aa58-ae5f311696a9",
+                "x-amz-apigw-id: CfCBUHAIoAMETVw=",
+                "X-Amzn-Trace-Id: Root=1-6755e3a1-0f57d16705e53be032a3b37b;Parent=350a06c8d3bd342f;Sampled=0;Lineage=1:cb020ee1:0"
+            ],
+            "response_body": "{\"message\":\"Package does not exist.\"}"
+        },
+        "tracked_parameters": {}
+    },
+    "f3af48e85240ea07e9d43e24792a41c036c96b0c_1": {
+        "verb": "GET",
+        "endpoint": "/package/{id}",
+        "verb_endpoint": "GET /package/{id}",
+        "valid": 0,
+        "matching_prefix": [],
+        "invalid_due_to_sequence_failure": 0,
+        "invalid_due_to_resource_failure": 0,
+        "invalid_due_to_parser_failure": 0,
+        "invalid_due_to_500": 0,
+        "status_code": "404",
+        "status_text": "Not Found",
+        "error_message": "{\"message\":\"Package not found\"}",
+        "request_order": 9,
+        "sample_request": {
+            "request_sent_timestamp": null,
+            "response_received_timestamp": "2024-12-08 18:21:22",
+            "request_verb": "GET",
+            "request_uri": "/stage1/package/123567192081501",
+            "request_headers": [
+                "Accept: application/json",
+                "Host: 3zq0b41jvf.execute-api.us-east-1.amazonaws.com",
+                "X-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+            ],
+            "request_body": null,
+            "response_status_code": "404",
+            "response_status_text": "Not Found",
+            "response_headers": [
+                "Date: Sun, 08 Dec 2024 18:21:23 GMT",
+                "Content-Type: application/json",
+                "Content-Length: 31",
+                "Connection: keep-alive",
+                "x-amzn-RequestId: f78d5fbc-aeec-40d0-98c1-72c90d832916",
+                "x-amz-apigw-id: CfCBeEWZIAMEXqA=",
+                "X-Amzn-Trace-Id: Root=1-6755e3a2-329b2fd16eaaff0560a20a63;Parent=3d771c435d7ca49b;Sampled=0;Lineage=1:cd8741cc:0"
+            ],
+            "response_body": "{\"message\":\"Package not found\"}"
+        },
+        "tracked_parameters": {}
+    }
+}

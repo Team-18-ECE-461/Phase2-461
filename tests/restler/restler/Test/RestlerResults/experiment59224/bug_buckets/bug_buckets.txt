@@ -1,0 +1,11 @@
+main_driver_502: 2
+Total Buckets: 2
+-------------
+main_driver_502 - Bug was reproduced - main_driver_502_1.replay.txt
+Hash: main_driver_502_88dec23ace2e638809fca219b03d955e1113cbc0
+PUT /stage1/authenticate HTTP/1.1\r\nAccept: application/json\r\nHost: 3zq0b41jvf.execute-api.us-east-1.amazonaws.com\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n{\n    "User":\n        {\n            "name":fuzzstring,\n            "isAdmin":true\n        }\n    ,\n    "Secret":\n        {\n            "password":fuzzstring\n        }\n    }\r\n
+--------------------------------------------------------------------------------
+main_driver_502 - Bug was reproduced - main_driver_502_2.replay.txt
+Hash: main_driver_502_98d5a40c0db20d2e0be364c4fb86580dee5c253f
+POST /stage1/packages?offset=fuzzstring HTTP/1.1\r\nAccept: application/json\r\nHost: 3zq0b41jvf.execute-api.us-east-1.amazonaws.com\r\nX-Authorization: fuzzstring\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n[\n    {\n        "Version":\n            "Exact (1.2.3)\nBounded range (1.2.3-2.1.0)\nCarat (^1.2.3)\nTilde (~1.2.0)"\n        ,\n        "Name":\n            fuzzstring\n    }]\r\n
+--------------------------------------------------------------------------------
