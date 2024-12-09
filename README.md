@@ -4,11 +4,6 @@ Team Members: Shriya Srinivas, Parv Kumar, Karthik Digavalli
 ## Overview
 Package Module Regsitry which allows users to rate, upload, update, and remove packages through a web interface.
 
-## Table of Contents
-- [Assignment Goal](#assignment-goal)
-- [Features](#features)
-- [How to Deploy] (#set-up)
-
 ## Assignment Goal
 The goal is to refactor and build upon an existing implementation to:
 - Handle complex package management operations.
@@ -29,6 +24,7 @@ The goal is to refactor and build upon an existing implementation to:
   - Reset the registry to its default state.
 
  ## How To Deploy
+ 
  - **To Run Front-End**
    - cd into authentication/authentication-app directory
    - run npm install
