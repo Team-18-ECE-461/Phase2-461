@@ -2,11 +2,12 @@ Team Members: Shriya Srinivas, Parv Kumar, Karthik Digavalli
 # Trustworthy Module Registry - Phase 2
 
 ## Overview
-This project extends and enhances a Trustworthy Module Registry system to meet ACME Corporation's advanced requirements. The implementation focuses on functional capabilities, performance, security, and cloud deployment practices.
+Package Module Regsitry which allows users to rate, upload, update, and remove packages through a web interface.
 
 ## Table of Contents
 - [Assignment Goal](#assignment-goal)
 - [Features](#features)
+- [How to Deploy] (#set-up)
 
 ## Assignment Goal
 The goal is to refactor and build upon an existing implementation to:
@@ -26,5 +27,16 @@ The goal is to refactor and build upon an existing implementation to:
   - Verify and ingest public npm packages meeting quality thresholds.
 - **State Management**:
   - Reset the registry to its default state.
+
+ ## How To Deploy
+ - **To Run Front-End**
+   - cd into authentication/authentication-app directory
+   - run npm install
+   - run npm start
+- **To Run Back-End**
+   - open a new terminal
+   - cd into authentication/authentication-app directory
+   - run node server.js
+
 
 
