@@ -1,3 +1,33 @@
+/**
+ * Unit tests for the `Manager` class in the `metrics/manager` module.
+ *
+ * This test suite ensures that the `Manager` class correctly registers, manages, and executes CLI commands 
+ * using the `commander` library. It also verifies logging behavior and argument handling.
+ *
+ * Features tested:
+ * - Initialization of the `Manager` instance with default values.
+ * - Registration of commands with descriptions and associated actions.
+ * - Execution of registered commands with and without arguments.
+ * - Display of help information when no command or invalid command is provided.
+ * - Execution of the `printHelp` method to display the help output.
+ *
+ * Highlights:
+ * - Verifies integration with the `commander` library for CLI functionality.
+ * - Mocks `console.log` and `commander.help` to prevent undesired output during tests.
+ * - Tests command actions to ensure proper argument parsing and execution flow.
+ *
+ * Test coverage:
+ * - Command registration and execution (`registerCommand` and `execute`).
+ * - Argument handling and action invocation.
+ * - Help functionality when no command or invalid input is provided.
+ * - Ensures logging works as expected when `printHelp` is invoked.
+ */
+
+
+
+
+
+
 import { Manager } from '../metrics/manager';
 import { Command } from 'commander';
 import { EventEmitter } from 'stream';

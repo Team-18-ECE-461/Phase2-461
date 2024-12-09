@@ -1,3 +1,24 @@
+/**
+ * Unit tests for the `filterByRegex` function in the `byregex` module.
+ *
+ * This test suite validates the functionality of the `filterByRegex` function,
+ * which filters DynamoDB scan results based on a given regular expression pattern.
+ *
+ * Features tested:
+ * - Filtering items that match a specific regex pattern.
+ * - Handling scenarios where no items match the regex.
+ * - Handling edge cases with undefined or empty `Items` in the scan result.
+ *
+ * Test scenarios:
+ * - Valid regex patterns that successfully filter matching items.
+ * - Scenarios where no items match the provided regex pattern.
+ * - Handling of empty or undefined `Items` arrays in the scan result.
+ */
+
+
+
+
+
 import { filterByRegex } from '../../lambda/byregex';
 
 interface PackageItem {

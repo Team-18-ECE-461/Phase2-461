@@ -1,3 +1,28 @@
+/**
+ * Unit tests for helper functions in the `packages` module.
+ *
+ * This test suite validates the functionality of various helper functions used for parsing,
+ * converting, and building parameters related to package versioning and database queries.
+ *
+ * Features tested:
+ * - Parsing and validation of version strings.
+ * - Conversion of version strings to integers for range-based comparisons.
+ * - Handling of special version formats, including caret (^), tilde (~), and range (e.g., 1.2.3-2.3.4).
+ * - Building query parameters for DynamoDB queries based on different version formats.
+ *
+ * Test scenarios:
+ * - `parsetovalidversion`: Validation and cleanup of version strings.
+ * - `versionToInt`: Conversion of valid version strings to integer representations.
+ * - `parseRange`: Parsing version ranges into start and end integers.
+ * - `parseCaretVersion`: Handling of caret version formats (^1.2.3).
+ * - `parseTildeVersion`: Handling of tilde version formats (~1.2.3).
+ * - `buildParams`: Construction of DynamoDB query parameters for different version formats.
+ */
+
+
+
+
+
 import {
     parsetovalidversion,
     buildParams,

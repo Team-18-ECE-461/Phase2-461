@@ -1,4 +1,26 @@
 // cost.test.ts
+
+/**
+ * Unit tests for the `lambdaHandler` function in the `cost` Lambda.
+ *
+ * This test suite validates the functionality of the `lambdaHandler` function,
+ * which calculates the cost of a package based on its size in S3 and optionally includes the size
+ * of its dependencies. It utilizes AWS DynamoDB for metadata and S3 for package data.
+ *
+ * Features tested:
+ * - Proper handling of missing `packageIds` in the request.
+ * - Calculation of standalone cost for a package without dependencies.
+ * - Calculation of cumulative cost for a package with dependencies.
+ * - Error handling for non-existent packages.
+ *
+ * Mocking:
+ * - AWS SDK clients (S3 and DynamoDB) are mocked using Jest to simulate network interactions.
+ * - JSZip is mocked to simulate reading and parsing package files.
+ */
+
+
+
+
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { lambdaHandler } from '../../lambda/cost';
 import { S3, GetObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';

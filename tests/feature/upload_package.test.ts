@@ -1,3 +1,28 @@
+/**
+ * Unit tests for the `lambdaHandler` function in the `upload_package` Lambda.
+ *
+ * This test suite validates the functionality of the `lambdaHandler` function,
+ * which handles uploading packages to an AWS infrastructure involving S3 and DynamoDB.
+ *
+ * Features tested:
+ * - Uploading packages via content (base64-encoded zip files).
+ * - Uploading packages via URLs (GitHub and NPM).
+ * - Duplicate package rejection.
+ * - Validation of invalid request scenarios (e.g., both Content and URL provided).
+ * - Handling of debloating logic for GitHub and NPM URLs.
+ *
+ * Mocking:
+ * - AWS SDK clients (S3 and DynamoDB) are used to simulate interactions with storage and database services.
+ * - JSZip is mocked to simulate creating and parsing package files.
+ *
+ * Test scenarios:
+ * 1. Successful package uploads with content, GitHub URLs, and NPM URLs.
+ * 2. Rejection of duplicate packages.
+ * 3. Validation of improper inputs, such as providing both content and URL.
+ * 4. Debloating scenarios for GitHub and NPM URLs.
+ */
+
+
 import { lambdaHandler } from '../../lambda/upload_package';
 import { S3, DynamoDB } from 'aws-sdk';
 import * as JSZIP from 'jszip';

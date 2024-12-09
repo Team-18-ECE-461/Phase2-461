@@ -1,3 +1,37 @@
+
+/**
+ * Unit tests for the `Controller` class.
+ *
+ * This test suite ensures that the `Controller` class functions as expected,
+ * orchestrating the interactions between the `Manager`, `Metrics`, `UrlHandler`,
+ * and `OutputMetrics` components while logging appropriate messages.
+ *
+ * Features tested:
+ * - Proper event handling and method calls across different components.
+ * - Logging to the file pointer (`fp`) during various events.
+ * - Database cleanup and file closure when the process completes.
+ *
+ * Mocked Dependencies:
+ * - `fs` for file operations.
+ * - `manager`, `calc_metrics`, `url_handler`, and `output_metrics` for event-driven functionality.
+ * - `better-sqlite3` for database operations.
+ *
+ * Highlights:
+ * - Validates the interaction of the `Controller` class with mocked components.
+ * - Ensures logs are written during critical lifecycle events like processing, metrics calculation, and output generation.
+ * - Verifies proper resource cleanup during the `close` event.
+ *
+ * Test coverage:
+ * - Event-driven functionality for `startProcessing`, `done`, and `close` events.
+ * - Proper delegation of tasks to `UrlHandler`, `Metrics`, and `OutputMetrics`.
+ * - Logging behavior for different stages of processing.
+ */
+
+
+
+
+
+
 import { Controller } from '../metrics/controller';
 import * as manager from '../metrics/manager';
 import * as cm from '../metrics/calc_metrics';

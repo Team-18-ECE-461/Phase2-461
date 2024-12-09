@@ -1,3 +1,34 @@
+/**
+ * Unit tests for database functions in the `database` module.
+ *
+ * This test suite ensures that the database-related functions (`createConnection`, `createTable`, `addEntry`, `updateEntry`, and `closeConnection`) 
+ * perform as expected, interacting with a SQLite database and logging operations properly.
+ *
+ * Features tested:
+ * - Establishing a database connection using `createConnection`.
+ * - Creating a table schema with `createTable`.
+ * - Inserting records into the database with `addEntry`.
+ * - Updating records in the database using `updateEntry`.
+ * - Proper closure of the database connection with `closeConnection`.
+ *
+ * Mocked Dependencies:
+ * - `fs` to mock file writing operations for logging.
+ * - `better-sqlite3` to mock SQLite database interactions.
+ *
+ * Highlights:
+ * - Verifies that SQL commands are prepared and executed as expected.
+ * - Confirms that appropriate log messages are written during each operation.
+ * - Ensures the proper lifecycle of the database connection, including cleanup.
+ *
+ * Test coverage:
+ * - Connection creation and setup (`createConnection`).
+ * - Table creation (`createTable`).
+ * - Data insertion (`addEntry`).
+ * - Data updates (`updateEntry`).
+ * - Resource cleanup (`closeConnection`).
+ */
+
+
 import { createConnection, createTable, addEntry, updateEntry, closeConnection } from '../metrics/database';
 import fs from 'fs';
 import Database from 'better-sqlite3';

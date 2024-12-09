@@ -1,3 +1,35 @@
+/**
+ * Unit tests for helper functions in the `upload_package` Lambda module.
+ *
+ * This test suite validates the functionality of various helper functions used for package management,
+ * including operations such as version conversion, GitHub and NPM package handling, temporary file
+ * cleanup, and database interactions. These functions form the core logic for uploading and managing
+ * packages in the Lambda function.
+ *
+ * Features tested:
+ * - Checking for existing packages in DynamoDB.
+ * - Parsing GitHub URLs and handling GitHub package downloads and extraction.
+ * - Handling NPM package downloads and extraction.
+ * - Converting version strings to integers for comparison.
+ * - Temporary file cleanup and base64 zip content extraction.
+ * - Uploading package metadata to DynamoDB.
+ * - Generating unique package IDs based on name and version.
+ *
+ * Mocking:
+ * - AWS SDK clients (S3 and DynamoDB) are mocked to simulate cloud interactions.
+ * - File system and library dependencies (e.g., Axios, JSZip, Archiver) are mocked to simulate file operations and HTTP requests.
+ *
+ * Test scenarios:
+ * - Validating existing packages and retrieving metadata from DynamoDB.
+ * - Parsing and handling GitHub and NPM package URLs.
+ * - Successful and edge-case scenarios for helper utilities like `cleanupTempFiles`, `extractBase64ZipContent`, and `generatePackageId`.
+ * - Handling of version-to-integer conversion and parameter building.
+ *
+ * Note:
+ * Certain tests for unimplemented or incomplete features are commented out for future expansion.
+ * Uncomment and adapt them as required when the corresponding functionality is finalized.
+ */
+
 import { S3, GetObjectCommand, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { DynamoDBClient, GetItemCommand, PutItemCommand, DeleteItemCommand, QueryCommand } from '@aws-sdk/client-dynamodb';
 import axios from 'axios';

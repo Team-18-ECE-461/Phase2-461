@@ -1,3 +1,33 @@
+/**
+ * Unit tests for the `OutputMetrics` class in the `metrics/output_metrics` module.
+ *
+ * This test suite validates the functionality of the `OutputMetrics` class, ensuring that it:
+ * - Correctly retrieves and formats metrics data from the database.
+ * - Logs and returns metrics in the desired format with appropriate rounding.
+ * - Handles cases where no data is found in the database.
+ * - Gracefully handles database errors by logging the issue and exiting the process.
+ *
+ * Features tested:
+ * - Proper retrieval and parsing of metrics data from the database.
+ * - Correct rounding of metrics values to three decimal places.
+ * - Logging and returning a message when no data is found.
+ * - Error handling with appropriate logging and process exit on database failures.
+ *
+ * Test Coverage:
+ * - Database interaction via `prepare` and `all` methods.
+ * - Console output for valid and invalid scenarios.
+ * - Graceful error handling and process termination when unexpected issues arise.
+ *
+ * Mocking:
+ * - `better-sqlite3` is mocked to simulate database interactions.
+ * - `console.log` and `process.exit` are mocked to prevent undesired outputs and process termination during testing.
+ */
+
+
+
+
+
+
 import Database from 'better-sqlite3';
 import { OutputMetrics } from '../metrics/output_metrics';
 

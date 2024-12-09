@@ -1,3 +1,17 @@
+/**
+ * Unit tests for the `resetRegistry` Lambda function.
+ * 
+ * This test suite validates the behavior of the `resetRegistry` function,
+ * which is responsible for clearing a DynamoDB table and setting a default user.
+ * 
+ * Features tested:
+ * - Successful clearing of the table and addition of a default user.
+ * - Graceful handling of errors, including DynamoDB exceptions.
+ * 
+ * Mocking:
+ * - AWS DynamoDB SDK is mocked using Jest to simulate Scan, Delete, and Put operations.
+ */
+
 import { resetRegistry } from '../../lambda/reset';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import {

@@ -1,3 +1,28 @@
+/**
+ * Unit tests for the `lambdaHandler` functions in the `packagesubendpoints` and `upload_package` Lambdas.
+ *
+ * This test suite validates the functionality of the Lambdas for updating, uploading, and retrieving packages.
+ *
+ * Features tested:
+ * - Uploading packages using content or URLs.
+ * - Updating packages with valid metadata and content.
+ * - Handling of invalid or mismatched update operations (e.g., URL vs. Content, invalid versions).
+ * - Retrieving packages using valid or invalid IDs.
+ * - Support for handling packages from various sources, including npm and GitHub.
+ *
+ * Mocking:
+ * - AWS SDK clients (S3 and DynamoDB) are mocked to simulate interactions with storage and database services.
+ * - JSZip is mocked to simulate reading and parsing package files.
+ *
+ * Test scenarios:
+ * - Package upload with valid and invalid inputs.
+ * - Package update using content, npm URLs, and GitHub URLs.
+ * - Proper validation of debloating logic and mismatched inputs.
+ * - Package retrieval with valid and invalid package IDs.
+ */
+
+
+
 import { lambdaHandler } from "../../lambda/packagesubendpoints";
 import { lambdaHandler as uploadHandler } from "../../lambda/upload_package";
 import { S3, DynamoDB } from 'aws-sdk';

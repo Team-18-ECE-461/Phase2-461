@@ -1,3 +1,39 @@
+/**
+ * Unit tests for helper functions and sub-endpoints in the `packagesubendpoints` Lambda module.
+ *
+ * This test suite validates the functionality of utility and core functions used for managing packages,
+ * including operations such as uploading, downloading, extracting, and validating packages. It also
+ * covers interactions with AWS services like S3 and DynamoDB, as well as utility libraries like JSZip and Archiver.
+ *
+ * Features tested:
+ * - Package management operations, including version validation, package ID generation, and metadata handling.
+ * - Integration with S3 and DynamoDB for storage and metadata persistence.
+ * - Download and extraction of packages from sources like GitHub and NPM.
+ * - Utility operations such as extracting base64 content, cleaning up temporary files, and parsing URLs.
+ *
+ * Mocking:
+ * - AWS SDK clients (S3 and DynamoDB) are mocked to simulate cloud interactions.
+ * - File system and library dependencies (e.g., JSZip, Archiver, Axios) are mocked to simulate file operations and HTTP requests.
+ *
+ * Test scenarios:
+ * 1. Validation of existing and most recent package versions.
+ * 2. Downloading and extracting packages from GitHub and NPM.
+ * 3. Base64 content extraction and file cleanup.
+ * 4. Version conversion and ID generation.
+ * 5. Successful uploads and interactions with DynamoDB.
+ *
+ * Note:
+ * Certain tests are commented out for incomplete implementation or further verification.
+ * Uncomment and adapt them as required when the corresponding functionality is finalized.
+ */
+
+
+
+
+
+
+
+
 import { S3, GetObjectCommand, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { DynamoDBClient, GetItemCommand, PutItemCommand, DeleteItemCommand, QueryCommand } from '@aws-sdk/client-dynamodb';
 import axios from 'axios';
