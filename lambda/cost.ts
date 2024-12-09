@@ -1,3 +1,22 @@
+
+
+/**
+ * @fileoverview This file contains an AWS Lambda function that calculates the cumulative size of a package and its dependencies.
+ * 
+ * The Lambda function interacts with AWS S3 to fetch package zip files and DynamoDB to retrieve package details.
+ * It extracts the 'package.json' file from the zip, parses it, and recursively calculates the size of the package and its dependencies.
+ * 
+ * The function supports querying multiple packages at once and ensures that shared dependencies are not double-counted.
+ * 
+ * Key functionalities include:
+ * - Converting S3 streams to buffers.
+ * - Fetching package details from DynamoDB.
+ * - Extracting and parsing 'package.json' from S3 zip files.
+ * - Calculating the size of packages and their dependencies.
+ * - Handling Lambda events to process package size requests.
+ * 
+ * @module lambda/cost
+ */
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { S3, GetObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
 import { DynamoDBClient, QueryCommand, QueryCommandOutput } from '@aws-sdk/client-dynamodb';

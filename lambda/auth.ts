@@ -1,3 +1,8 @@
+/**
+     * @file auth.ts
+     * @description This file contains the implementation of the authentication logic using AWS Cognito.
+     */
+
 import { CognitoIdentityProviderClient, AdminInitiateAuthCommand, AuthFlowType, RespondToAuthChallengeCommand, InitiateAuthCommand } from "@aws-sdk/client-cognito-identity-provider";
 import * as jwt from 'jsonwebtoken';
 import * as crypto from 'crypto';
@@ -30,6 +35,28 @@ class AuthenticationService {
      * Authenticate user and generate token
      * @param loginRequest User login credentials
      * @returns Promise with authentication response
+     */
+
+    /**
+     * Authenticates a user using AWS Cognito with the USER_PASSWORD_AUTH flow.
+     * 
+     * @param loginRequest - An object containing the username and password of the user.
+     * @returns A promise that resolves to an object containing the authentication token, userId, and expiration time.
+     * 
+     * @throws Will throw an error if the authentication fails or if the AccessToken is undefined.
+     * 
+     * @example
+     * ```typescript
+     * const auth = new Auth();
+     * const loginRequest = { username: 'exampleUser', password: 'examplePassword' };
+     * auth.authenticate(loginRequest)
+     *     .then(response => {
+     *         console.log(response.token);
+     *     })
+     *     .catch(error => {
+     *         console.error(error);
+     *     });
+     * ```
      */
     async authenticate(loginRequest: { username: string; password: string }): Promise<any> {
         const { username, password } = loginRequest;

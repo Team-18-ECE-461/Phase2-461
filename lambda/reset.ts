@@ -1,3 +1,18 @@
+/**
+ * @file reset.ts
+ * 
+ * This file contains the implementation of an AWS Lambda function that resets a DynamoDB table
+ * and sets a default user in another table. The function is designed to be triggered by an 
+ * API Gateway event.
+ * 
+ * The main functionality includes:
+ * - Scanning the 'PackageInfo' DynamoDB table to retrieve all items.
+ * - Deleting each item from the 'PackageInfo' table using both partition and sort keys.
+ * - Setting a default user in the 'Users' table.
+ * 
+ * @module resetRegistry
+ */
+
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { DynamoDBClient, ScanCommand, DeleteItemCommand, PutItemCommand } from '@aws-sdk/client-dynamodb';
 
@@ -8,6 +23,12 @@ const defaultUser = {
     role: { S: 'admin' }, // Optional: Add any additional attributes relevant for your system
 };
 
+/**
+ * Resets the 'PackageInfo' DynamoDB table and sets a default user in the 'Users' table.
+ *  
+ * @param {APIGatewayProxyEvent} event - The API Gateway event object.
+ * @returns {APIGatewayProxyResult} - The API Gateway response object.
+ */
 export const resetRegistry = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     try {
         // Scan the table to retrieve all items
