@@ -1,3 +1,24 @@
+
+
+/**
+ * @fileoverview Lambda Authorizer for verifying JWT tokens using AWS Cognito and generating IAM policies.
+ * 
+ * This authorizer function validates JWT tokens against AWS Cognito's JWKS (JSON Web Key Set) and generates
+ * IAM policies to allow or deny access to API Gateway methods based on the token's validity.
+ * 
+ * Environment Variables:
+ * - COGNITO_USER_POOL_ID: The ID of the Cognito User Pool.
+ * - COGNITO_APP_CLIENT_ID: The App Client ID of the Cognito User Pool.
+ * 
+ * Dependencies:
+ * - jsonwebtoken: Library for decoding and verifying JWT tokens.
+ * - jwks-rsa: Library for retrieving signing keys from JWKS endpoints.
+ * 
+ * Functions:
+ * - getSigningKey(kid: string): Retrieves the public signing key from the JWKS endpoint using the Key ID (kid) from the token header.
+ * - generatePolicy(principalId: string, effect: "Allow" | "Deny", resource: string): Generates an IAM policy document.
+ * - handler(event: object): Lambda Authorizer handler function that validates the JWT token and returns an IAM policy.
+ */
 const jwt = require("jsonwebtoken");
 const jwksClient = require("jwks-rsa");
 let userPoolId = process.env.COGNITO_USER_POOL_ID;

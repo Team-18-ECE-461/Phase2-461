@@ -1,3 +1,19 @@
+/**
+ * This file contains the implementation of an AWS Lambda function that interacts with AWS S3 and DynamoDB services.
+ * The Lambda function processes incoming events to query package information from a DynamoDB table and return the results.
+ * 
+ * The main components of this file include:
+ * - `lambdaHandler`: The main Lambda function handler that processes incoming events and queries DynamoDB based on the provided input.
+ * - `parsetovalidversion`: A utility function to validate and parse version strings.
+ * - `buildParams`: A utility function to build DynamoDB query parameters based on the provided package name and version schema.
+ * - `versionToInt`: A utility function to convert version strings to integer representations.
+ * - `parseRange`: A utility function to parse version ranges.
+ * - `parseCaretVersion`: A utility function to parse caret (^) version ranges.
+ * - `parseTildeVersion`: A utility function to parse tilde (~) version ranges.
+ * 
+ * The Lambda function supports querying packages by name and version, with support for various version schemas including exact versions, ranges, caret, and tilde versions.
+ * The results are paginated and limited to a maximum of 1000 items.
+ */
 import { S3, GetObjectCommand } from '@aws-sdk/client-s3';
 import { DynamoDBClient, GetItemCommand, PutItemCommand, ScanCommand, QueryCommand } from '@aws-sdk/client-dynamodb';
 import { version } from 'os';
@@ -128,6 +144,13 @@ export function parsetovalidversion(versionSchema: string): string{
     }
     return versionSchema;
 }
+
+/*@function buildParams
+ @param name - Package name
+ @param versionSchema - Version schema
+ @param offset - Offset for pagination
+ @param limit - Maximum number of items to return
+ @returns DynamoDB query parameters*/
 
 export function buildParams(name: string, versionSchema: string, offset: any, limit: number) {
     

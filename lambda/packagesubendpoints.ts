@@ -1,3 +1,49 @@
+/**
+ * @fileoverview This file contains the implementation of AWS Lambda functions for handling package operations.
+ * It includes functions for retrieving, updating, and deleting packages stored in an S3 bucket and DynamoDB table.
+ * The packages can be uploaded via content or URL, and can optionally be debloated using esbuild.
+ * 
+ * Dependencies:
+ * - AWS SDK for S3 and DynamoDB
+ * - Axios for HTTP requests
+ * - File system and path modules for file operations
+ * - Temporary directory from OS module
+ * - Crypto for generating package IDs
+ * - Tar and unzipper for extracting packages
+ * - Esbuild for debloating packages
+ * - Archiver for zipping files
+ * 
+ * Constants:
+ * - BUCKET_NAME: The name of the S3 bucket where packages are stored.
+ * - TABLE_NAME: The name of the DynamoDB table where package metadata is stored.
+ * 
+ * Interfaces:
+ * - LambdaEvent: Represents the structure of an incoming Lambda event.
+ * 
+ * Functions:
+ * - lambdaHandler: Main handler function for the Lambda. Routes requests to appropriate handlers based on HTTP method.
+ * - handleGetPackage: Retrieves package metadata and content from DynamoDB and S3.
+ * - handleUpdatePackage: Updates package metadata and content in DynamoDB and S3. Supports debloating.
+ * - handleDeletePackage: Deletes package metadata and content from DynamoDB and S3.
+ * - downloadAndExtractGithubPackage: Downloads and extracts a package from GitHub.
+ * - checkexistingPackage: Checks if a package with a given name and version already exists in DynamoDB.
+ * - getMostRecentVersion: Retrieves the most recent version of a package from DynamoDB.
+ * - checkValidVersionContent: Validates if a given version is a valid patch update.
+ * - parseGitHubUrl: Parses a GitHub URL to extract the owner and repository name.
+ * - urlhandler: Handles URL conversion for GitHub and npm URLs.
+ * - getEntryPoint: Retrieves the entry point(s) of a package from its package.json.
+ * - uploadDB: Uploads package metadata to DynamoDB.
+ * - versionInt: Converts a version string to an integer for comparison.
+ * - downloadAndExtractNpmPackage: Downloads and extracts a package from npm.
+ * - generatePackageId: Generates a unique package ID based on name and version.
+ * - cleanupTempFiles: Cleans up temporary files and directories.
+ * - extractBase64ZipContent: Extracts base64 encoded zip content to a specified directory.
+ * - zipFolder: Zips a folder and saves it to a specified path.
+ * - uploadToS3: Uploads a file to S3.
+ * - checkValidVersion: Checks if a given version is valid for a package.
+ * - downloadNpm: Downloads a package from npm and uploads it to S3.
+ * - getVersionFromGithub: Retrieves the latest version of a package from GitHub.
+ */
 import { S3, GetObjectCommand } from '@aws-sdk/client-s3';
 import axios from 'axios';
 import { DynamoDBClient, GetItemCommand, PutItemCommand, DeleteItemCommand, QueryCommand } from '@aws-sdk/client-dynamodb';
@@ -28,7 +74,8 @@ export const lambdaHandler = async (event: LambdaEvent) => {
   const requestBody = JSON.parse(event.body);
   const packageId =event.pathParameters.id;
   console.log(packageId)
-
+  
+  // determine the HTTP method and call the appropriate handler function
   switch (httpMethod) {
     case 'GET':
       return await handleGetPackage(packageId);
@@ -120,7 +167,9 @@ export async function handleGetPackage(packageId: string) {
         return { statusCode: 500, body: JSON.stringify({ message: 'Error retrieving package' }) };
       }
 }
-
+/* @param event - Lambda event object containing the request body
+  * @returns HTTP response object
+  */
 export async function handleUpdatePackage(event: LambdaEvent) {
     try {
         const requestBody = JSON.parse(event.body);
@@ -401,6 +450,15 @@ export async function handleDeletePackage(id:string){
 
 }
 
+/**
+ * 
+ * @param githubUrl 
+ * @param destination 
+ * @param owner 
+ * @param repo 
+ * @param branch 
+ * @returns 
+ */
 export async function downloadAndExtractGithubPackage(githubUrl: string, destination: string, owner: string, repo: string, branch:string): Promise<any> {
   const tarballUrl = `https://api.github.com/repos/${owner}/${repo}/tarball/${branch}`;
   const tarballPath = path.join(destination, 'package.tar.gz');
@@ -448,7 +506,12 @@ export async function downloadAndExtractGithubPackage(githubUrl: string, destina
   //return path.join(destination); // Adjust this based on the extracted directory structure
 
 }
-
+ /**
+  * 
+  * @param packageName 
+  * @param packageVersion 
+  * @returns 
+  */
 export async function checkexistingPackage(packageName: string, packageVersion: string){
   console.log("packageversion: ", packageVersion)
   console.log("packagename: ", packageName)
@@ -471,7 +534,13 @@ export async function checkexistingPackage(packageName: string, packageVersion: 
 
   return false;
 }
-
+/**
+ * 
+ * @param packageName 
+ * @param majorVersion 
+ * @param minorVersion 
+ * @returns 
+ */
 export async function getMostRecentVersion(packageName: string, majorVersion: number, minorVersion: number): Promise<number> {
   const params = {
       TableName: TABLE_NAME,                 // Replace with your table name
@@ -515,7 +584,12 @@ export async function getMostRecentVersion(packageName: string, majorVersion: nu
       return 0;
   }
 }
-
+/**
+ * 
+ * @param version 
+ * @param mostRecentVersion 
+ * @returns 
+ */
 export async function checkValidVersionContent(version:string, mostRecentVersion:number) {
   console.log("most Recent version", mostRecentVersion)
   const [major, minor, patch] = version.split('.').map(Number);
@@ -532,7 +606,11 @@ export async function checkValidVersionContent(version:string, mostRecentVersion
   // Otherwise, the incoming version is valid
   return true;
 }
-
+/**
+ * 
+ * @param url 
+ * @returns 
+ */
 export function parseGitHubUrl(url: string): [ owner: string, repo: string ] | null {
   try {
       const parsedUrl = new URL(url);
@@ -548,7 +626,11 @@ export function parseGitHubUrl(url: string): [ owner: string, repo: string ] | n
       return null;
   }
 }
-
+/**
+ * 
+ * @param url 
+ * @returns 
+ */
 export async function urlhandler(url:string){
   if(url.includes('github')){
     const repoNameMatch = url.match(/github\.com\/[^\/]+\/([^\/]+)/);

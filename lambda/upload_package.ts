@@ -1,3 +1,29 @@
+/**
+ * This file contains the implementation of an AWS Lambda function that handles the upload and processing of JavaScript packages.
+ * The Lambda function supports both GitHub and npm package URLs, as well as base64 encoded zip content.
+ * It can optionally "debloat" the package by removing unnecessary files and minifying the JavaScript code.
+ * The processed package is then uploaded to an S3 bucket and its metadata is stored in a DynamoDB table.
+ * 
+ * The main components of this file include:
+ * 
+ * - `LambdaEvent`: Interface representing the structure of the Lambda event.
+ * - `urlhandler(url: string)`: Function to handle GitHub and npm URLs, converting npm URLs to GitHub URLs if necessary.
+ * - `lambdaHandler(event: LambdaEvent)`: The main Lambda function handler that processes the incoming request.
+ * - `versionInt(version: string): number`: Function to convert a version string to an integer for comparison purposes.
+ * - `getVersionFromGithub(owner: string, repo: string): Promise<string>`: Function to get the latest version of a GitHub repository.
+ * - `downloadNpm(npmUrl: string, JSProgram: string, name: string)`: Function to download and process an npm package.
+ * - `parseGitHubUrl(url: string): [owner: string, repo: string] | null`: Function to parse a GitHub URL into owner and repository name.
+ * - `downloadAndExtractNpmPackage(npmUrl: string, destination: string)`: Function to download and extract an npm package.
+ * - `downloadAndExtractGithubPackage(githubUrl: string, destination: string, owner: string, repo: string)`: Function to download and extract a GitHub repository.
+ * - `generatePackageId(name: string, version: string): string`: Function to generate a unique package ID based on name and version.
+ * - `cleanupTempFiles(tempFilePath: string): Promise<void>`: Function to clean up temporary files and directories.
+ * - `extractBase64ZipContent(base64Content: string, destination: string, repo: string, branch: string): Promise<string>`: Function to extract base64 encoded zip content.
+ * - `zipFolder(source: string, out: string)`: Function to zip a folder.
+ * - `uploadToS3(filePath: string, bucketName: string, key: string)`: Function to upload a file to an S3 bucket.
+ * - `checkexistingPackage(packageName: string, packageVersion: string)`: Function to check if a package already exists in DynamoDB.
+ * - `uploadDB(packageId: string, packageName: string, packageVersion: string, JSProgram: string, url: string)`: Function to upload package metadata to DynamoDB.
+ * - `getEntryPoint(packageJsonPath: string): string[]`: Function to get the entry point(s) of a package from its package.json file.
+ */
 import { S3, Type } from '@aws-sdk/client-s3';
 import { DynamoDBClient, PutItemCommand, GetItemCommand, QueryCommand } from '@aws-sdk/client-dynamodb';
 import axios from 'axios';
@@ -24,6 +50,11 @@ interface LambdaEvent {
   // JSProgram: string;
 }
 
+/**
+ * 
+ * @param url 
+ * @returns 
+ */
 export async function urlhandler(url:string){
   if(url.includes('github')){
     const repoNameMatch = url.match(/github\.com\/[^\/]+\/([^\/]+)/);
@@ -59,7 +90,11 @@ const s3 = new S3();
 const dynamoDBclient = new DynamoDBClient({});
 const BUCKET_NAME = 'packagesstorage';
 const TABLE_NAME = 'PackageInfo';
-
+/**
+ * 
+ * @param event 
+ * @returns 
+ */
 export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
   try {
     if (event.httpMethod === "OPTIONS") {
@@ -394,7 +429,11 @@ export const lambdaHandler = async (event: LambdaEvent): Promise<any> => {
   }
 };
 
-
+/**
+ * 
+ * @param version 
+ * @returns 
+ */
 export function versionInt(version: string): number{
 
   let [major, minor, patch] = version.split('.').map(Number);
