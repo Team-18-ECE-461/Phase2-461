@@ -5,10 +5,12 @@ import './NavBar.css';
 const Navbar: React.FC = () => {
   return (
     <nav>
-      <Link to="/">Home</Link>
+      <Link to="/signin">Sign In/ Sign Up</Link>
       <Link to="/upload">Upload Package</Link>
-      <Link to="/directory">Directory</Link>
-      <Link to="/user-management">User Management</Link>
+      <Link to="/create-version">Update Version</Link>
+      <Link to="/user-management">Cost/Rate</Link>
+      <Link to="/search">Fetch Package</Link>
+      <Link to="/reset">Reset Registry</Link>
     </nav>
   );
 };

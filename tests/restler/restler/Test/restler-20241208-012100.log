@@ -1,0 +1,37 @@
+Restler Information: 0 : Starting task Test...
+    DateTime=2024-12-08T18:21:00.9382406Z
+Restler Information: 0 : Launching 'python.exe --version'
+    DateTime=2024-12-08T18:21:01.6663452Z
+Restler Information: 0 : Process execution terminated in 00:00:00.1955338 with exit code 0x0: 'python.exe --version'
+    DateTime=2024-12-08T18:21:01.8925961Z
+Restler Information: 0 : (36556) python.exe --version exited with code: 0
+    DateTime=2024-12-08T18:21:01.8972683Z
+Restler Information: 0 : Launching 'python.exe -B "C:\Users\kparv\Downloads\ece-461-actuallyusethis\restler-fuzzer\UserskparvDownloadsece-461-actuallyusethisrestler-fuzzerrestler_bin\restler\../engine/restler.py" --restler_grammar "C:\Users\kparv\Downloads\ece-461-actuallyusethis\restler-fuzzer\UserskparvDownloadsece-461-actuallyusethisrestler-fuzzerrestler_bin\restler\Compile\grammar.py" --custom_mutations "C:\Users\kparv\Downloads\ece-461-actuallyusethis\restler-fuzzer\UserskparvDownloadsece-461-actuallyusethisrestler-fuzzerrestler_bin\restler\Compile\dict.json" --set_version 9.2.4            --include_user_agent --no_tokens_in_logs t --garbage_collection_interval 30 --fuzzing_mode directed-smoke-test'
+    DateTime=2024-12-08T18:21:01.9073118Z
+Restler Information: 0 : Process execution terminated in 00:00:22.1323401 with exit code 0x0: 'python.exe -B "C:\Users\kparv\Downloads\ece-461-actuallyusethis\restler-fuzzer\UserskparvDownloadsece-461-actuallyusethisrestler-fuzzerrestler_bin\restler\../engine/restler.py" --restler_grammar "C:\Users\kparv\Downloads\ece-461-actuallyusethis\restler-fuzzer\UserskparvDownloadsece-461-actuallyusethisrestler-fuzzerrestler_bin\restler\Compile\grammar.py" --custom_mutations "C:\Users\kparv\Downloads\ece-461-actuallyusethis\restler-fuzzer\UserskparvDownloadsece-461-actuallyusethisrestler-fuzzerrestler_bin\restler\Compile\dict.json" --set_version 9.2.4            --include_user_agent --no_tokens_in_logs t --garbage_collection_interval 30 --fuzzing_mode directed-smoke-test'
+    DateTime=2024-12-08T18:21:24.0397537Z
+Restler Information: 0 : (59224) python.exe -B "C:\Users\kparv\Downloads\ece-461-actuallyusethis\restler-fuzzer\UserskparvDownloadsece-461-actuallyusethisrestler-fuzzerrestler_bin\restler\../engine/restler.py" --restler_grammar "C:\Users\kparv\Downloads\ece-461-actuallyusethis\restler-fuzzer\UserskparvDownloadsece-461-actuallyusethisrestler-fuzzerrestler_bin\restler\Compile\grammar.py" --custom_mutations "C:\Users\kparv\Downloads\ece-461-actuallyusethis\restler-fuzzer\UserskparvDownloadsece-461-actuallyusethisrestler-fuzzerrestler_bin\restler\Compile\dict.json" --set_version 9.2.4            --include_user_agent --no_tokens_in_logs t --garbage_collection_interval 30 --fuzzing_mode directed-smoke-test exited with code: 0
+    DateTime=2024-12-08T18:21:24.0400038Z
+Restler Information: 0 : Launching 'dotnet "C:\Users\kparv\Downloads\ece-461-actuallyusethis\restler-fuzzer\UserskparvDownloadsece-461-actuallyusethisrestler-fuzzerrestler_bin\restler\../resultsAnalyzer/Restler.ResultsAnalyzer.dll" analyze "C:\Users\kparv\Downloads\ece-461-actuallyusethis\restler-fuzzer\UserskparvDownloadsece-461-actuallyusethisrestler-fuzzerrestler_bin\restler\Test" --output_dir "C:\Users\kparv\Downloads\ece-461-actuallyusethis\restler-fuzzer\UserskparvDownloadsece-461-actuallyusethisrestler-fuzzerrestler_bin\restler\Test\ResponseBuckets" --dictionary_file "C:\Users\kparv\Downloads\ece-461-actuallyusethis\restler-fuzzer\UserskparvDownloadsece-461-actuallyusethisrestler-fuzzerrestler_bin\restler\Compile\dict.json" --max_instances_per_bucket 10'
+    DateTime=2024-12-08T18:21:24.0506396Z
+Restler Information: 0 : Process execution terminated in 00:00:00.4379744 with exit code 0x0: 'dotnet "C:\Users\kparv\Downloads\ece-461-actuallyusethis\restler-fuzzer\UserskparvDownloadsece-461-actuallyusethisrestler-fuzzerrestler_bin\restler\../resultsAnalyzer/Restler.ResultsAnalyzer.dll" analyze "C:\Users\kparv\Downloads\ece-461-actuallyusethis\restler-fuzzer\UserskparvDownloadsece-461-actuallyusethisrestler-fuzzerrestler_bin\restler\Test" --output_dir "C:\Users\kparv\Downloads\ece-461-actuallyusethis\restler-fuzzer\UserskparvDownloadsece-461-actuallyusethisrestler-fuzzerrestler_bin\restler\Test\ResponseBuckets" --dictionary_file "C:\Users\kparv\Downloads\ece-461-actuallyusethis\restler-fuzzer\UserskparvDownloadsece-461-actuallyusethisrestler-fuzzerrestler_bin\restler\Compile\dict.json" --max_instances_per_bucket 10'
+    DateTime=2024-12-08T18:21:24.4887207Z
+Restler Information: 0 : (109424) dotnet "C:\Users\kparv\Downloads\ece-461-actuallyusethis\restler-fuzzer\UserskparvDownloadsece-461-actuallyusethisrestler-fuzzerrestler_bin\restler\../resultsAnalyzer/Restler.ResultsAnalyzer.dll" analyze "C:\Users\kparv\Downloads\ece-461-actuallyusethis\restler-fuzzer\UserskparvDownloadsece-461-actuallyusethisrestler-fuzzerrestler_bin\restler\Test" --output_dir "C:\Users\kparv\Downloads\ece-461-actuallyusethis\restler-fuzzer\UserskparvDownloadsece-461-actuallyusethisrestler-fuzzerrestler_bin\restler\Test\ResponseBuckets" --dictionary_file "C:\Users\kparv\Downloads\ece-461-actuallyusethis\restler-fuzzer\UserskparvDownloadsece-461-actuallyusethisrestler-fuzzerrestler_bin\restler\Compile\dict.json" --max_instances_per_bucket 10 exited with code: 0
+    DateTime=2024-12-08T18:21:24.4890403Z
+Restler Information: 0 : Request coverage (successful / total): 3 / 10
+    DateTime=2024-12-08T18:21:24.7485626Z
+Restler Information: 0 : Attempted requests: 10 / 10
+    DateTime=2024-12-08T18:21:24.7491358Z
+Restler Information: 0 : Bugs were found!
+    DateTime=2024-12-08T18:21:24.7532483Z
+Restler Information: 0 : Bug buckets:
+    DateTime=2024-12-08T18:21:24.7538096Z
+Restler Information: 0 : 
+main_driver_502: 2
+    DateTime=2024-12-08T18:21:24.7551114Z
+Restler Information: 0 : See 'coverage_failures_to_investigate.txt' to investigate API coverage.
+    DateTime=2024-12-08T18:21:24.8383501Z
+Restler Information: 0 : Task Test succeeded.
+    DateTime=2024-12-08T18:21:24.8414740Z
+Restler Information: 0 : Collecting logs...
+    DateTime=2024-12-08T18:21:24.9630885Z

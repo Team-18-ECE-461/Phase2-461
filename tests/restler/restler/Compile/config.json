@@ -1,0 +1,23 @@
+{
+  "SwaggerSpecFilePath": [
+    "C:\\Users\\kparv\\Downloads\\ece461_fall_2024_openapi_spec (2).yaml"
+  ],
+  "GrammarOutputDirectoryPath": "C:\\Users\\kparv\\Downloads\\ece-461-actuallyusethis\\restler-fuzzer\\UserskparvDownloadsece-461-actuallyusethisrestler-fuzzerrestler_bin\\restler\\Compile",
+  "CustomDictionaryFilePath": "C:\\Users\\kparv\\Downloads\\ece-461-actuallyusethis\\restler-fuzzer\\UserskparvDownloadsece-461-actuallyusethisrestler-fuzzerrestler_bin\\restler\\Compile\\defaultDict.json",
+  "IncludeOptionalParameters": true,
+  "UseHeaderExamples": true,
+  "UsePathExamples": false,
+  "UseQueryExamples": true,
+  "UseBodyExamples": true,
+  "UseAllExamplePayloads": false,
+  "DiscoverExamples": false,
+  "ExamplesDirectory": "",
+  "DataFuzzing": true,
+  "ReadOnlyFuzz": false,
+  "ResolveQueryDependencies": true,
+  "ResolveBodyDependencies": true,
+  "ResolveHeaderDependencies": false,
+  "UseRefreshableToken": true,
+  "AllowGetProducers": false,
+  "TrackFuzzedParameterNames": false
+}
