@@ -1,3 +1,30 @@
+/**
+ * Unit tests for the `lambdaHandler` function in the `byregex` Lambda.
+ *
+ * This test suite validates the functionality of the `lambdaHandler` function,
+ * which queries DynamoDB for items matching a specified regular expression pattern
+ * and returns filtered results.
+ *
+ * Features tested:
+ * - Proper handling of missing or invalid `RegEx` parameters in the request.
+ * - Handling of cases where no items are found in the database.
+ * - Successful return of filtered results for valid regex queries.
+ * - Graceful handling of internal server errors, including DynamoDB failures.
+ *
+ * Mocking:
+ * - DynamoDBClient is mocked using Jest to simulate database interactions.
+ *
+ * Test scenarios:
+ * 1. Missing `RegEx` parameter returns a 400 status code.
+ * 2. Invalid `RegEx` parameter returns a 400 status code.
+ * 3. No items matching the query return a 404 status code.
+ * 4. Valid `RegEx` parameter returns filtered results with a 200 status code.
+ * 5. Internal server errors return a 500 status code.
+ */
+
+
+
+
 import { lambdaHandler } from '../../lambda/byregex'; // Adjust the path
 import { DynamoDBClient, ScanCommand } from '@aws-sdk/client-dynamodb';
 

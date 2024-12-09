@@ -1,24 +1,25 @@
-import { Manager } from './manager'
-import { exec } from 'child_process'
-import { Metrics } from './calc_metrics'
-import * as database from './database'
+import { Manager } from './manager';
+import { exec } from 'child_process';
+import { Metrics } from './calc_metrics';
+import * as database from './database';
 //import { getgithuburl } from 'get-github-url'
-import { Controller } from './controller'
-import { OutputMetrics } from './output_metrics'
-import { UrlHandler } from './url_handler'
-import fs from 'fs'
-import path from 'path'
-import { log } from 'console'
+import { Controller } from './controller';
+import { OutputMetrics } from './output_metrics';
+import { UrlHandler } from './url_handler';
+import fs from 'fs';
+import path from 'path';
+import { log } from 'console';
 import JSZIP from 'jszip';
 import { S3, GetObjectCommand } from '@aws-sdk/client-s3';
 import { DynamoDBClient, GetItemCommand, PutItemCommand, DeleteItemCommand, QueryCommand } from '@aws-sdk/client-dynamodb';
+
+// Create AWS SDK clients for S3 and DynamoDB
 const s3 = new S3();
 const dynamoDBclient = new DynamoDBClient({});
-const BUCKET_NAME = 'packagesstorage';
-const TABLE_NAME = 'PackageInfo';
+const BUCKET_NAME = 'packagesstorage'; // Name of the S3 bucket for package storage
+const TABLE_NAME = 'PackageInfo'; // Name of the DynamoDB table for package metadata
 
-
-// Getting environment variables for logfile and logLvl
+// Retrieve environment variables for logfile and log level
 let logfile = process.env.LOG_FILE as string;
 let logLvl = process.env.LOG_LEVEL as string;
 
@@ -34,39 +35,45 @@ if (fs.existsSync(DB_FILE_PATH)) {
     }
 }
 
-
-// Check if the logfile is given and if there is a GITHUB_TOKEN. Exiting and writing an error message if they don't exist
-if(!logfile) {
+// Check if the logfile is specified and set a default value if not
+if (!logfile) {
     logfile = "/tmp/app.log";
     console.error("No logfile given");
     //process.exit(1);
 }
 
-
-
-
-// If logLvl wasn't set, it is set to 0 by default
-if(!logLvl) {
+// Set default log level if not provided
+if (!logLvl) {
     logLvl = "0";
 }
 
+// Create the directory for the logfile if it doesn't exist
 const logDir = path.dirname(logfile);
 if (!fs.existsSync(logDir)) {
     fs.mkdirSync(logDir, { recursive: true });
 }
 
-// Opening logfile
+// Open the logfile
 const fp = fs.openSync(logfile, 'w');
 
-let line
-let out :any;
-let index = 0;
-const db = database.createConnection(fp, +logLvl);
-const metric_calc = new Metrics(db, fp, +logLvl);
-const output_metrics = new OutputMetrics(db, 1, fp, +logLvl);
-const urlHandler = new UrlHandler(db, fp, +logLvl);
-database.createTable(db, fp, +logLvl);
+let line: string; // Current URL to process
+let out: any; // Output from the metrics calculation
+let index = 0; // Index of the current URL
+const db = database.createConnection(fp, +logLvl); // Create a database connection
+const metric_calc = new Metrics(db, fp, +logLvl); // Metrics calculator instance
+const output_metrics = new OutputMetrics(db, 1, fp, +logLvl); // Output metrics generator instance
+const urlHandler = new UrlHandler(db, fp, +logLvl); // URL handler instance
 
+// Initialize the database table
+database.createTable(db, fp, +logLvl);
+/**
+ * Parses GitHub URLs into a standardized format.
+ * Handles variations such as `git://`, `git+`, and `.git` suffixes.
+ * Extracts the owner and repository name from the URL.
+ * 
+ * @param url - The raw GitHub URL.
+ * @returns The standardized GitHub repository URL.
+ */
 function pareseGitURL(url: string): string {
     if (url.startsWith("git://")) {
         url = url.replace("git://", "https://");
@@ -83,7 +90,20 @@ function pareseGitURL(url: string): string {
     let repo = urlParts[urlParts.length - 1];
     url = `https://github.com/${owner}/${repo}`;
 
-    return url;}
+    return url;
+}
+
+/**
+ * Processes a given package URL.
+ * Steps:
+ * 1. Adds the URL to the database.
+ * 2. Runs the URL handler to process the package.
+ * 3. Calculates metrics for the package.
+ * 4. Generates output metrics for the package.
+ * 
+ * @param line - The URL to process.
+ * @param index - The index of the current package in the batch.
+ */
 
 async function processUrl(line: string, index: number) {
     if(line.includes('github.com')){line = pareseGitURL(line);}
@@ -100,7 +120,16 @@ interface LamdaEvent {
     body: string;
     pathParameters: { id: string },
 }
-
+/**
+ * Lambda handler function for processing package URLs or retrieving package metadata.
+ * Steps:
+ * 1. Retrieves package metadata from DynamoDB or S3.
+ * 2. Extracts or constructs the package URL.
+ * 3. Processes the URL using the `processUrl` function.
+ * 
+ * @param event - The Lambda event containing the request data.
+ * @returns An HTTP response object with a status code and body.
+ */
 
 exports.lambdaHandler = async (event: LamdaEvent) => {
     let body = JSON.parse(event.body);

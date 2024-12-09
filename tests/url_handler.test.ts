@@ -1,3 +1,34 @@
+/**
+ * Unit tests for the `UrlHandler` class in the `metrics/url_handler` module.
+ *
+ * This test suite validates the functionality of the `UrlHandler` class, ensuring that it:
+ * - Correctly processes URLs from the database to fetch repository metrics.
+ * - Accurately calculates and stores key metrics such as commits, contributors, downloads, and issue data.
+ * - Handles both GitHub and npm package URLs appropriately.
+ * - Handles errors gracefully, including logging and process termination when necessary.
+ *
+ * Features tested:
+ * - Extraction of repository owner and name from GitHub and npm URLs.
+ * - Retrieval of repository metrics such as commits, contributors, issues, and downloads.
+ * - Database updates with the calculated metrics.
+ * - Error handling and logging for API errors and invalid inputs.
+ *
+ * Test Coverage:
+ * - Core methods including `main`, `getRepoMetrics`, `getTopContributors`, `getCommitsPastYear`, `getClosedIssues`, and `checkLicense`.
+ * - Private utility methods such as `extractOwnerRepoFromGitHubUrl` and `getRepositoryUrlFromNpm`.
+ * - Integration with database update functions to store processed metrics.
+ *
+ * Mocking:
+ * - `axios`, `fs`, and `isomorphic-git` are mocked to simulate API calls, filesystem operations, and Git operations.
+ * - `better-sqlite3` is mocked to simulate database interactions.
+ * - Helper modules such as `database` are mocked to intercept and verify database updates.
+ */
+
+
+
+
+
+
 import { UrlHandler, RowInfo } from '../metrics/url_handler'; // Adjust the import paths accordingly
 import axios from 'axios';
 import Database from 'better-sqlite3';
